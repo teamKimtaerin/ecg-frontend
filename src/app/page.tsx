@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useVideo } from '@/contexts/VideoContext'
 
 import Button from '@/components/Button'
 import UploadModal from '@/components/UploadModal'
@@ -17,6 +18,7 @@ import Footer from '@/components/LandingPage/Footer'
 
 export default function Home() {
   const router = useRouter()
+  const { setVideoFile } = useVideo()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isTranscriptionModalOpen, setIsTranscriptionModalOpen] =
@@ -143,6 +145,11 @@ export default function Home() {
       let response: Response
 
       if (data.method === 'file' && data.files) {
+        // Save video file to VideoContext for editor page
+        if (data.files.length > 0) {
+          setVideoFile(data.files[0])
+        }
+
         // Create FormData for file upload
         const formData = new FormData()
 

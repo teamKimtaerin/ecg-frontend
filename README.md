@@ -1,4 +1,247 @@
-# Next.js Project
+# ECG Frontend
+
+ECG Player를 사용한 고급 자막 시스템 프론트엔드
+
+## 🚀 빠른 시작
+
+### 팀원용 (GitHub 패키지 사용)
+
+```bash
+# 프로젝트 클론
+git clone <repository-url>
+cd ecg-frontend
+
+# 의존성 설치
+npm install
+
+# 개발 서버 시작
+npm run dev
+```
+
+### 로컬 개발자용 (ECG Player 연동)
+
+```bash
+# 환경변수 설정
+cp .env.local.example .env.local
+
+# .env.local에서 USE_LOCAL_ECG_PLAYER=true 설정
+echo "USE_LOCAL_ECG_PLAYER=true" >> .env.local
+
+# 로컬 플레이어 모드로 개발 서버 시작
+npm run dev:local-player
+```
+
+## 🏗️ ECG Player 통합
+
+### 설치 방법
+
+#### 1. GitHub 패키지 (기본)
+
+```bash
+npm install
+```
+
+#### 2. 로컬 개발 모드
+
+```bash
+# ECG Player 로컬 경로: ../../../ass-generator/ecg-player/src
+npm run dev:local-player
+```
+
+### 사용법
+
+```tsx
+import { CaptionWithIntention } from 'ecg-player'
+import { VideoProvider, useVideo } from '@/contexts/VideoContext'
+
+function VideoPlayer() {
+  const { videoUrl, captionData } = useVideo()
+
+  return (
+    <CaptionWithIntention
+      videoSrc={videoUrl}
+      timingSyncSrc={JSON.stringify(captionData)}
+      width={960}
+      height={540}
+      responsive={true}
+    />
+  )
+}
+
+function App() {
+  return (
+    <VideoProvider>
+      <VideoPlayer />
+    </VideoProvider>
+  )
+}
+```
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── app/
+│   ├── editor/page.tsx        # 메인 편집기 페이지
+│   └── layout.tsx
+├── components/
+│   ├── ECGPlayer.tsx          # ECG Player 래퍼 컴포넌트
+│   ├── UploadModal.tsx        # 비디오 업로드 모달
+│   └── Header.tsx             # 헤더 (업로드 버튼 포함)
+├── contexts/
+│   └── VideoContext.tsx       # 비디오 상태 관리
+└── lib/
+```
+
+## 🔧 환경 변수
+
+```bash
+# ECG Player 로컬 개발 모드
+USE_LOCAL_ECG_PLAYER=true
+
+# 백엔드 URL
+BACKEND_URL=http://localhost:8000
+
+# Docker 환경
+DOCKER=false
+```
+
+## 📝 개발 스크립트
+
+```bash
+# 일반 개발 (GitHub 패키지 사용)
+npm run dev
+
+# 로컬 ECG Player 연동
+npm run dev:local-player
+
+# 빌드
+npm run build
+
+# 린트
+npm run lint
+npm run lint:fix
+
+# 타입 체크
+npm run type-check
+```
+
+## 🚨 주의사항
+
+### GitHub 패키지 인증
+
+GitHub 패키지를 사용하려면 `.npmrc` 파일이 설정되어 있어야 합니다:
+
+```bash
+# .npmrc (이미 설정됨)
+@teamkimtaerin:registry=https://npm.pkg.github.com
+```
+
+개인 액세스 토큰이 필요한 경우:
+
+```bash
+npm login --scope=@teamkimtaerin --registry=https://npm.pkg.github.com
+```
+
+### 로컬 개발 환경
+
+로컬 개발 시 ECG Player 경로가 올바른지 확인하세요:
+
+- 예상 경로: `../../../ass-generator/ecg-player/src`
+- 실제 경로와 다를 경우 `next.config.ts`에서 수정
+
+## 🔄 워크플로우
+
+### 1. 비디오 업로드
+
+1. Header의 "Upload Video" 버튼 클릭
+2. 파일 선택 또는 드래그&드롭
+3. 비디오가 VideoContext에 저장
+
+### 2. ECG Player 렌더링
+
+1. ECGPlayer 컴포넌트가 VideoContext에서 비디오 URL 읽기
+2. `/public/sample/real.json` 자막 데이터 로드
+3. CaptionWithIntention 컴포넌트 렌더링
+
+### 3. 실시간 개발
+
+- 로컬 모드에서 ECG Player 소스 수정 시 HMR 동작
+- 타입 체크 및 빌드 오류 실시간 확인
+
+## 🐛 문제 해결
+
+### ECG Player 로드 실패
+
+```bash
+# 모듈 설치 확인
+npm ls ecg-player
+
+# 로컬 경로 확인
+ls -la ../../../ass-generator/ecg-player/src
+```
+
+### 타입 오류
+
+```bash
+# 타입 체크
+npm run type-check
+
+# ECG Player 타입 확인
+npm ls @types/ecg-player
+```
+
+### 빌드 오류
+
+```bash
+# 의존성 재설치
+rm -rf node_modules package-lock.json
+npm install
+
+# 캐시 클리어
+npm run build -- --no-cache
+```
+
+## 📚 API 참조
+
+### VideoContext
+
+```tsx
+interface VideoState {
+  videoFile: File | null
+  videoUrl: string | null
+  captionData: TimingSyncData | null
+  isPlaying: boolean
+  currentTime: number
+  duration: number
+}
+
+interface VideoActions {
+  setVideoFile: (file: File | null) => void
+  setVideoUrl: (url: string | null) => void
+  setCaptionData: (data: TimingSyncData | null) => void
+  setIsPlaying: (playing: boolean) => void
+  setCurrentTime: (time: number) => void
+  setDuration: (duration: number) => void
+  resetVideo: () => void
+}
+```
+
+### ECG Player Props
+
+```tsx
+interface CaptionWithIntentionProps {
+  videoSrc?: string
+  timingSyncSrc?: string
+  width?: number
+  height?: number
+  responsive?: boolean
+}
+```
+
+---
+
+## Next.js 프로젝트 기본 정보
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

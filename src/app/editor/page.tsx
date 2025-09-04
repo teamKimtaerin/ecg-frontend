@@ -5,7 +5,9 @@ import React, { useState } from 'react'
 import Button from '@/components/Button'
 import Tab from '@/components/Tab'
 import TabItem from '@/components/TabItem'
-import VideoPlayer from '@/components/VideoPlayer'
+import ECGPlayer from '@/components/ECGPlayer'
+
+//import VideoPlayer from '@/components/VideoPlayer'
 import Dropdown from '@/components/Dropdown'
 
 interface ClipItem {
@@ -166,18 +168,18 @@ function Toolbar({ activeTab }: ToolbarProps) {
   )
 }
 
-function VideoSection() {
-  return (
-    <div className="w-[300px] bg-gray-900 p-4 border-r border-gray-700">
-      <div
-        className="bg-black rounded-lg mb-4 relative"
-        style={{ aspectRatio: '16/9' }}
-      >
-        <VideoPlayer className="w-full h-full" />
-      </div>
-    </div>
-  )
-}
+// function VideoSection() {
+//   return (
+//     <div className="w-[300px] bg-gray-900 p-4 border-r border-gray-700">
+//       <div
+//         className="bg-black rounded-lg mb-4 relative"
+//         style={{ aspectRatio: '16/9' }}
+//       >
+//         <VideoPlayer className="w-full h-full" />
+//       </div>
+//     </div>
+//   )
+// }
 
 interface ClipProps {
   clip: ClipItem
@@ -300,7 +302,7 @@ function SubtitleEditList({
   )
 }
 
-export default function EditorPage() {
+
   const [activeTab, setActiveTab] = useState('home')
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
   const [clips, setClips] = useState<ClipItem[]>([
@@ -383,8 +385,11 @@ export default function EditorPage() {
 
       <Toolbar activeTab={activeTab} />
 
-      <div className="flex h-[calc(100vh-120px)]">
-        <VideoSection />
+        {/* Central Video Player */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 top-[80px] w-[960px] h-[540px]">
+          <ECGPlayer />
+        </div>
+
 
         <div className="flex-1 flex justify-center">
           <SubtitleEditList

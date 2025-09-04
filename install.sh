@@ -5,6 +5,7 @@ echo "🔧 팀 PR 도구 설치 중..."
 
 # 실행 권한 부여
 chmod +x .claude/scripts/prm
+chmod +x .claude/scripts/pronly
 
 # PATH에 추가 (bashrc)
 if [ -f ~/.bashrc ]; then
@@ -38,6 +39,10 @@ echo "   git add ."
 echo ""
 echo "2️⃣  PR 생성 (자동 커밋 + 푸시 + PR):"
 echo '   prm "Feat: 블로그 생성"'
+echo ""
+echo "2️⃣-2 기존 커밋으로 PR 생성 (커밋 없이):"
+echo '   pronly              # 전체 브랜치 기준'
+echo '   pronly abc123       # 특정 커밋 기준'
 echo ""
 echo "3️⃣  Claude Code에서 분석:"
 echo "   - 자동으로 클립보드에 복사된 프롬프트를 붙여넣기"

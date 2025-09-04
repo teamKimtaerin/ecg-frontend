@@ -1,15 +1,43 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Button from '@/components/Button'
+import UploadModal from '@/components/UploadModal'
+import { useVideo } from '@/contexts/VideoContext'
 
 interface HeaderProps {
   isVisible?: boolean
 }
 
 export default function Header({ isVisible = true }: HeaderProps) {
+  const router = useRouter()
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const { setVideoFile } = useVideo()
+
+  const handleFileSelect = (files: FileList) => {
+    if (files.length > 0) {
+      setVideoFile(files[0])
+    }
+  }
+
+  const handleStartTranscription = (data: {
+    files?: FileList
+    url?: string
+    language: string
+    useDictionary: boolean
+    autoSubmit: boolean
+    method: 'file' | 'link'
+  }) => {
+    if (data.method === 'file' && data.files && data.files.length > 0) {
+      setVideoFile(data.files[0])
+    }
+    setIsUploadModalOpen(false)
+    router.push('/editor')
+  }
+
   return (
     <header
       className={`fixed top-0 w-full bg-black/90 border-b border-gray-slate/20 z-50 transition-transform duration-300 ${
@@ -53,6 +81,14 @@ export default function Header({ isVisible = true }: HeaderProps) {
             >
               <span>VoT</span>
             </a>
+            <Button
+              variant="primary"
+              size="medium"
+              className="rounded-full mr-4"
+              onClick={() => setIsUploadModalOpen(true)}
+            >
+              Upload Video
+            </Button>
             <a
               href="#"
               className="text-sm text-gray-medium font-bold hover:text-white transition-colors"
@@ -65,6 +101,15 @@ export default function Header({ isVisible = true }: HeaderProps) {
           </nav>
         </div>
       </div>
+
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onFileSelect={handleFileSelect}
+        onStartTranscription={handleStartTranscription}
+        acceptedTypes={['video/mp4', 'video/webm', 'video/ogg']}
+        multiple={false}
+      />
     </header>
   )
 }
