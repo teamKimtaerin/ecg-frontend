@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-static'
+
 /**
  * GET /api/health 엔드포인트를 처리하는 함수
  * 이 엔드포인트는 컨테이너의 헬스체크에 사용

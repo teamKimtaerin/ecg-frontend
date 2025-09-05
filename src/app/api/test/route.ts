@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-static'
+
 /**
  * GET /api/test 엔드포인트를 처리하는 함수
  * 이 엔드포인트는 간단한 테스트 용도로 사용

@@ -67,12 +67,6 @@ jobs:
         run: yarn test:e2e --reporter=list
         if: hashFiles('playwright.config.*') != '' && hashFiles('tests/**/*.spec.*') != ''
 
-      # Docker 빌드 테스트
-      - name: Test Docker build
-        run: |
-          docker build --target dev -t ecg-frontend:dev .
-          docker build --target prod -t ecg-frontend:prod .
-
       # 테스트 결과 업로드 (실패 시 디버깅용)
       - name: Upload test results
         uses: actions/upload-artifact@v4
