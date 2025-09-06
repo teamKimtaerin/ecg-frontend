@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import Modal from '@/components/Modal'
-import Button from '@/components/Button'
+import Modal from '@/components/ui/Modal'
+import Button from '@/components/ui/Button'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
 const SimpleModalDemo: React.FC = () => {

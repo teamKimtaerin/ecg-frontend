@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { DashboardLayout } from '@/components/Dashboard/DashboardLayout'
-import { Header } from '@/components/Dashboard/Header'
-import { DataTable } from '@/components/Dashboard/DataTable'
+import { DashboardLayout } from './components/DashboardLayout'
+import { Header } from './components/Header'
+import { DataTable } from './components/DataTable'
 
 interface TranscriptionFile {
   id: string

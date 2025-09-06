@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import ProgressBar from '@/components/ProgressBar'
-import ProgressCircle from '@/components/ProgressCircle'
+import ProgressBar from '@/components/ui/ProgressBar'
+import ProgressCircle from '@/components/ui/ProgressCircle'
 import { getProgressValue } from './constants'
 
 const ProgressDemo: React.FC = () => {

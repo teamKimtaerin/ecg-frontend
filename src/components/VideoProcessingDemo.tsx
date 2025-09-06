@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useRef } from 'react'
-import Button from './Button'
+import Button from './ui/Button'
 
 interface Segment {
   start_time: number

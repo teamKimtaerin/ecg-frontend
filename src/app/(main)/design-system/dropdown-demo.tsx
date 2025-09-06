@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import Dropdown from '@/components/Dropdown'
+import Dropdown from '@/components/ui/Dropdown'
 import { HomeIcon, UserIcon, SettingsIcon } from '@/components/icons'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
