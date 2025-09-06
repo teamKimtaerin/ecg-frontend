@@ -1,19 +1,19 @@
 'use client'
 
-import React from 'react'
 import {
   cn,
   getBaseInteractiveClasses,
+  getDisabledClasses,
   getSizeClasses,
   getVariantClasses,
-  getDisabledClasses,
   logComponentWarning,
   SIZE_CLASSES,
-  type ComponentVariant,
-  type ComponentStyle,
-  type StaticColor,
   type BaseComponentProps,
-} from '@/lib/utils'
+  type ComponentStyle,
+  type ComponentVariant,
+  type StaticColor,
+} from '@/utils'
+import React from 'react'
 
 export interface ButtonProps extends BaseComponentProps {
   label?: string

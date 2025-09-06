@@ -1,6 +1,6 @@
-import React, { Children, cloneElement, isValidElement } from 'react'
 import { ButtonProps } from '@/components/ui/Button'
-import { type ComponentSize } from '@/lib/utils'
+import { type ComponentSize } from '@/utils'
+import React, { Children, cloneElement, isValidElement } from 'react'
 
 export interface ButtonGroupProps {
   orientation?: 'horizontal' | 'vertical'

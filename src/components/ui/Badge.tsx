@@ -1,12 +1,12 @@
-import React from 'react'
 import {
-  cn,
-  SIZE_CLASSES,
   BADGE_COLORS,
-  TRANSITIONS,
+  cn,
   logComponentWarning,
+  SIZE_CLASSES,
+  TRANSITIONS,
   type BaseComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export type BadgeVariant = keyof typeof BADGE_COLORS
 export type BadgeFixed = 'none' | 'top' | 'right' | 'bottom' | 'left'

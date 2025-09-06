@@ -38,7 +38,6 @@ const SortableClipComponent: React.FC<SortableClipComponentProps> = ({
   isMultiSelected,
   onSelect,
   onWordEdit,
-  isDragging = false,
 }) => {
   const {
     attributes,

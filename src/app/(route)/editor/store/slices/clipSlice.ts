@@ -1,9 +1,16 @@
 import { arrayMove } from '@/lib/utils/array'
+import {
+  defaultProjectSettings,
+  generateProjectId,
+  hybridProjectStorage,
+} from '@/utils/storage/serverProjectStorage'
 import { StateCreator } from 'zustand'
 import { ClipItem, INITIAL_CLIPS } from '../../types'
+import { ProjectData } from '../../types/project'
 
 export interface ClipSlice {
   clips: ClipItem[]
+  currentProject: ProjectData | null
   setClips: (clips: ClipItem[]) => void
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
   reorderClips: (
@@ -11,10 +18,16 @@ export interface ClipSlice {
     overId: string,
     selectedIds: Set<string>
   ) => void
+  // Project management
+  saveProject: (name?: string) => Promise<void>
+  loadProject: (id: string) => Promise<void>
+  createNewProject: (name?: string) => void
+  setCurrentProject: (project: ProjectData) => void
 }
 
-export const createClipSlice: StateCreator<ClipSlice> = (set) => ({
+export const createClipSlice: StateCreator<ClipSlice> = (set, get) => ({
   clips: INITIAL_CLIPS,
+  currentProject: null,
 
   setClips: (clips) => set({ clips }),
 
@@ -82,5 +95,64 @@ export const createClipSlice: StateCreator<ClipSlice> = (set) => ({
         return { clips: arrayMove(clips, oldIndex, newIndex) }
       }
     })
+  },
+
+  // Project management methods
+  saveProject: async (name?: string) => {
+    const state = get()
+    let project = state.currentProject
+
+    if (!project) {
+      // Create new project if none exists
+      project = {
+        id: generateProjectId(),
+        name: name || '새 프로젝트',
+        clips: state.clips,
+        settings: defaultProjectSettings,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    } else {
+      // Update existing project
+      project = {
+        ...project,
+        name: name || project.name,
+        clips: state.clips,
+        updatedAt: new Date(),
+      }
+    }
+
+    await hybridProjectStorage.saveProject(project)
+    set({ currentProject: project })
+  },
+
+  loadProject: async (id: string) => {
+    const project = await hybridProjectStorage.loadProject(id)
+    if (project) {
+      set({
+        clips: project.clips,
+        currentProject: project,
+      })
+    }
+  },
+
+  createNewProject: (name?: string) => {
+    const project: ProjectData = {
+      id: generateProjectId(),
+      name: name || '새 프로젝트',
+      clips: [],
+      settings: defaultProjectSettings,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    set({
+      clips: [],
+      currentProject: project,
+    })
+  },
+
+  setCurrentProject: (project: ProjectData) => {
+    set({ currentProject: project })
   },
 })

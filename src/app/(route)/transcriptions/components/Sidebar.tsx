@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
+import Badge from '@/components/ui/Badge'
+import { cn } from '@/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import Badge from '@/components/ui/Badge'
+import React from 'react'
 
 interface SidebarItem {
   href: string

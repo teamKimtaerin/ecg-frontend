@@ -1,11 +1,11 @@
-import React from 'react'
+import { ErrorIcon, InfoIcon } from '@/components/icons'
 import {
   cn,
   getDisabledClasses,
   SIZE_CLASSES,
   type ComponentSize,
-} from '@/lib/utils'
-import { InfoIcon, ErrorIcon } from '@/components/icons'
+} from '@/utils'
+import React from 'react'
 
 export interface HelpTextProps {
   text: string

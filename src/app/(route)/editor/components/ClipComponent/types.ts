@@ -37,3 +37,17 @@ export interface ClipStyleState {
   isHovered: boolean
   isDragging?: boolean
 }
+
+export interface ClipToolBarProps {
+  selectedClipIds: Set<string>
+  canUndo: boolean
+  canRedo: boolean
+  onNewClick: () => void
+  onMergeClips: () => void
+  onUndo: () => void
+  onRedo: () => void
+  onCut?: () => void
+  onCopy?: () => void
+  onPaste?: () => void
+  onSplitClip?: () => void
+}

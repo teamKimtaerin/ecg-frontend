@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState, useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 
-import { cn, SIZE_CLASSES } from '@/lib/utils'
+import { cn, SIZE_CLASSES } from '@/utils'
 
-import Modal, { type ModalProps } from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import ButtonGroup from '@/components/ui/ButtonGroup'
+import Modal, { type ModalProps } from '@/components/ui/Modal'
 import ProgressCircle from '@/components/ui/ProgressCircle'
 import FileUploadTab from './FileUploadTab'
-import UrlImportTab from './UrlImportTab'
 import TranscriptionSettings from './TranscriptionSettings'
+import UrlImportTab from './UrlImportTab'
 
 export interface UploadModalProps
   extends Omit<ModalProps, 'children' | 'title' | 'size'> {

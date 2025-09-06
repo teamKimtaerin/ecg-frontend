@@ -1,12 +1,12 @@
 // TODO : 진행도 임의값 -> 백엔드 요청값으로 변경
-import React from 'react'
 import {
+  calculateProgress,
   cn,
   SIZE_CLASSES,
   TRANSITIONS,
-  calculateProgress,
   type BaseComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export interface ProgressBarProps extends BaseComponentProps {
   variant?: 'default' | 'over-background'

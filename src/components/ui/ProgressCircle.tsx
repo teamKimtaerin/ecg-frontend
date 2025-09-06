@@ -1,10 +1,10 @@
-import React from 'react'
 import {
+  calculateProgress,
   cn,
   TRANSITIONS,
-  calculateProgress,
   type BaseComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export interface ProgressCircleProps extends BaseComponentProps {
   variant?: 'default' | 'over-background'

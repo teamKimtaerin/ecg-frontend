@@ -1,13 +1,13 @@
-import React from 'react'
 import {
   cn,
+  getDisabledClasses,
+  logComponentWarning,
   SIZE_CLASSES,
   STATUS_LIGHT_COLORS,
   TRANSITIONS,
-  getDisabledClasses,
-  logComponentWarning,
   type BaseComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export type StatusLightVariant =
   | 'informative'

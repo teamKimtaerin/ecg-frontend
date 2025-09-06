@@ -5,7 +5,7 @@ import Dropdown from '@/components/ui/Dropdown'
 import { HomeIcon, UserIcon, SettingsIcon } from '@/components/icons'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
-const DropdownDemo: React.FC = () => {
+const DropdownDemo = () => {
   const [dropdowns, setDropdowns] = useState({
     basic: '',
     quiet: '',

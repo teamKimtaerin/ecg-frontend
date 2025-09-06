@@ -1,16 +1,16 @@
 'use client'
 
-import React from 'react'
 import {
   cn,
-  SIZE_CLASSES,
-  SEMANTIC_COLORS,
-  TRANSITIONS,
   createClickHandler,
   createKeyboardHandler,
   logComponentWarning,
+  SEMANTIC_COLORS,
+  SIZE_CLASSES,
+  TRANSITIONS,
   type InteractiveComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export interface TagProps extends Omit<InteractiveComponentProps, 'size'> {
   label: string

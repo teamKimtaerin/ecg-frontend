@@ -1,15 +1,15 @@
 'use client'
 
-import React from 'react'
 import {
   cn,
+  createClickHandler,
+  createKeyboardHandler,
   getDisabledClasses,
   SIZE_CLASSES,
   TRANSITIONS,
-  createClickHandler,
-  createKeyboardHandler,
   type InteractiveComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export interface SwitchProps extends InteractiveComponentProps {
   label?: string

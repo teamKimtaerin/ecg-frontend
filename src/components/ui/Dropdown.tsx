@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import { ChevronDownIcon } from '@/components/icons'
 import {
   cn,
   getDisabledClasses,
   SIZE_CLASSES,
   type ComponentSize,
-} from '@/lib/utils'
-import { ChevronDownIcon } from '@/components/icons'
+} from '@/utils'
+import React, { useEffect, useRef, useState } from 'react'
 
 export interface DropdownOption {
   value: string
@@ -237,10 +237,10 @@ const Dropdown: React.FC<DropdownProps> = ({
 
   // 메뉴 클래스
   const menuClasses = cn(
-    'absolute z-50 w-full mt-1 rounded-default shadow-lg max-h-60 overflow-auto',
+    'absolute w-full mt-1 rounded-default shadow-lg max-h-60 overflow-auto',
     variant === 'toolbar'
-      ? 'bg-slate-700/95 border border-slate-500/70 backdrop-blur-sm'
-      : 'bg-white border border-slate-300',
+      ? 'z-[9999] bg-slate-700/95 border border-slate-500/70 backdrop-blur-sm'
+      : 'z-50 bg-white border border-slate-300',
     sizeClasses.menu
   )
 
