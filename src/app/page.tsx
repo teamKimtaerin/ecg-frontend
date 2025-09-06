@@ -1,8 +1,8 @@
 'use client'
 
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Button from '@/components/ui/Button'
 import EditTranscriptionSection from './components/LandingPage/EditTranscriptionSection'
@@ -109,7 +109,6 @@ export default function Home() {
       () => setIsTranscriptionModalOpen(false),
       true
     )
-
   }
 
   return (
