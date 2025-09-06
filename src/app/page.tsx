@@ -15,7 +15,6 @@ import VoTSection from './components/LandingPage/VoTSection'
 import UploadModal from './components/UploadModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
 
-
 export default function Home() {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)

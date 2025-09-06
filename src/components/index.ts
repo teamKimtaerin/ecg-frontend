@@ -1,7 +1,7 @@
 // UI Components
 export * from './ui'
 
-// Shared Components  
+// Shared Components
 export * from './shared'
 
 // Icons
