@@ -3,8 +3,6 @@
 import React from 'react'
 import VideoPlayer from '@/components/VideoPlayer'
 
-export default function VideoSection() {
-
 const VideoSection: React.FC = () => {
   return (
     <div className="w-[300px] bg-gray-900 p-4 border-r border-gray-700">
@@ -16,5 +14,6 @@ const VideoSection: React.FC = () => {
       </div>
     </div>
   )
-
 }
+
+export default VideoSection

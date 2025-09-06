@@ -20,7 +20,15 @@ export interface ClipItem {
 }
 
 // UI related types
-export type EditorTab = 'file' | 'home' | 'edit' | 'subtitle' | 'format' | 'insert' | 'template' | 'effect'
+export type EditorTab =
+  | 'file'
+  | 'home'
+  | 'edit'
+  | 'subtitle'
+  | 'format'
+  | 'insert'
+  | 'template'
+  | 'effect'
 
 export interface SelectionBox {
   startX: number

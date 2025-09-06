@@ -47,7 +47,7 @@ const SortableClipComponent: React.FC<SortableClipComponentProps> = ({
     transform,
     transition,
     isDragging: isSortableDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: clip.id,
     data: {
       clip,
@@ -76,11 +76,11 @@ const SortableClipComponent: React.FC<SortableClipComponentProps> = ({
       {...listeners}
       data-clip-id={clip.id}
       className={`sortable-clip bg-gray-200 rounded-lg cursor-move ${
-        isMultiSelected 
-          ? 'ring-2 ring-blue-500 bg-blue-100' 
-          : isSelected 
-          ? 'ring-2 ring-blue-400' 
-          : 'hover:bg-gray-300'
+        isMultiSelected
+          ? 'ring-2 ring-blue-500 bg-blue-100'
+          : isSelected
+            ? 'ring-2 ring-blue-400'
+            : 'hover:bg-gray-300'
       } ${!isSortableDragging ? 'transition-colors' : ''}`}
       onClick={handleClick}
     >

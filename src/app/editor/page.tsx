@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { 
-  DndContext, 
-  DragOverlay, 
+import {
+  DndContext,
+  DragOverlay,
   closestCenter,
-  defaultDropAnimationSideEffects 
+  defaultDropAnimationSideEffects,
 } from '@dnd-kit/core'
 
 // Store
@@ -35,18 +35,18 @@ import { MergeClipsCommand } from '@/utils/commands/MergeClipsCommand'
 export default function EditorPage() {
   // Store state for DnD
   const { activeId } = useEditorStore()
-  
+
   // Local state
   const [activeTab, setActiveTab] = useState('home')
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null)
   const [checkedClipIds, setCheckedClipIds] = useState<string[]>([])
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [editorHistory] = useState(() => new EditorHistory())
-  
+
   // Upload modal hook
   const { isTranscriptionLoading, handleFileSelect, handleStartTranscription } =
     useUploadModal()
-  
+
   // Initial clips data
   const [clips, setClips] = useState<ClipItem[]>([
     {
@@ -103,23 +103,19 @@ export default function EditorPage() {
       ],
     },
   ])
-  
+
   // DnD functionality
-  const { 
-    sensors, 
-    handleDragStart, 
-    handleDragEnd, 
-    handleDragCancel 
-  } = useDragAndDrop()
-  
+  const { sensors, handleDragStart, handleDragEnd, handleDragCancel } =
+    useDragAndDrop()
+
   // Selection box functionality
-  const { 
+  const {
     containerRef,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
     isSelecting,
-    selectionBox
+    selectionBox,
   } = useSelectionBox()
 
   // Edit handlers
@@ -295,12 +291,9 @@ export default function EditorPage() {
       onDragCancel={handleDragCancel}
     >
       <div className="min-h-screen bg-gray-900 text-white">
-        <EditorHeaderTabs 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
-        
-        <Toolbar 
+        <EditorHeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+        <Toolbar
           activeTab={activeTab}
           onNewClick={() => setIsUploadModalOpen(true)}
           onMergeClips={handleMergeClips}
@@ -309,18 +302,18 @@ export default function EditorPage() {
           canUndo={editorHistory.canUndo()}
           canRedo={editorHistory.canRedo()}
         />
-        
+
         <div className="flex h-[calc(100vh-120px)]">
           <VideoSection />
-          
-          <div 
+
+          <div
             className="flex-1 flex justify-center relative"
             ref={containerRef}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
           >
-            <SubtitleEditList 
+            <SubtitleEditList
               clips={clips}
               selectedClipId={selectedClipId}
               checkedClipIds={checkedClipIds}
@@ -329,7 +322,7 @@ export default function EditorPage() {
               onWordEdit={handleWordEdit}
               onSpeakerChange={handleSpeakerChange}
             />
-            
+
             <SelectionBox
               startX={selectionBox.startX}
               startY={selectionBox.startY}
@@ -339,7 +332,7 @@ export default function EditorPage() {
             />
           </div>
         </div>
-        
+
         <UploadModal
           isOpen={isUploadModalOpen}
           onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
@@ -351,8 +344,8 @@ export default function EditorPage() {
           isLoading={isTranscriptionLoading}
         />
       </div>
-      
-      <DragOverlay 
+
+      <DragOverlay
         dropAnimation={{
           sideEffects: defaultDropAnimationSideEffects({
             styles: {
