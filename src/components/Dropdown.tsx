@@ -36,6 +36,7 @@ export interface DropdownProps {
   onChange?: (value: string) => void
   className?: string
   id?: string
+  variant?: 'default' | 'toolbar'
 }
 
 const DROPDOWN_SIZE_CLASSES = {
@@ -80,6 +81,7 @@ const Dropdown: React.FC<DropdownProps> = ({
   onChange,
   className,
   id,
+  variant = 'default',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [focusedIndex, setFocusedIndex] = useState(-1)
@@ -204,25 +206,41 @@ const Dropdown: React.FC<DropdownProps> = ({
             : 'border-border focus:ring-primary-light',
           'hover:border-primary',
         ]
-      : [
-          'border-2 bg-surface',
-          isError
-            ? 'border-red-600 focus:ring-red-200'
-            : 'border-border focus:ring-primary-light',
-          'hover:border-primary hover:shadow-sm',
-        ],
+      : variant === 'toolbar'
+        ? [
+            'border-2 bg-slate-700/90',
+            isError
+              ? 'border-red-600 focus:ring-red-200'
+              : 'border-slate-500/70 focus:ring-blue-200',
+            'hover:border-slate-400 hover:shadow-sm hover:bg-slate-600/90',
+          ]
+        : [
+            'border-2 bg-white/95',
+            isError
+              ? 'border-red-600 focus:ring-red-200'
+              : 'border-slate-300 focus:ring-blue-200',
+            'hover:border-slate-400 hover:shadow-sm hover:bg-gray-50',
+          ],
 
     // 비활성화 상태
     (isDisabled || isReadOnly) && getDisabledClasses(),
 
     // 텍스트 색상
-    selectedOption ? 'text-text-primary' : 'text-text-secondary'
+    variant === 'toolbar'
+      ? selectedOption
+        ? 'text-white'
+        : 'text-slate-300'
+      : selectedOption
+        ? 'text-black'
+        : 'text-gray-600'
   )
 
   // 메뉴 클래스
   const menuClasses = cn(
-    'absolute z-50 w-full mt-1 bg-surface border border-border rounded-default shadow-lg',
-    'max-h-60 overflow-auto',
+    'absolute z-50 w-full mt-1 rounded-default shadow-lg max-h-60 overflow-auto',
+    variant === 'toolbar'
+      ? 'bg-slate-700/95 border border-slate-500/70 backdrop-blur-sm'
+      : 'bg-white border border-slate-300',
     sizeClasses.menu
   )
 
@@ -234,13 +252,22 @@ const Dropdown: React.FC<DropdownProps> = ({
 
       // 상태별 스타일
       option.disabled
-        ? 'text-text-secondary cursor-not-allowed opacity-50'
-        : [
-            'text-text-primary',
-            'hover:bg-primary-very-light',
-            focusedIndex === index && 'bg-primary-very-light',
-            value === option.value && 'bg-primary text-white',
-          ]
+        ? variant === 'toolbar'
+          ? 'text-slate-500 cursor-not-allowed opacity-50'
+          : 'text-gray-400 cursor-not-allowed opacity-50'
+        : variant === 'toolbar'
+          ? [
+              'text-white',
+              'hover:bg-slate-600/70',
+              focusedIndex === index && 'bg-slate-600/70',
+              value === option.value && 'bg-blue-500 text-white',
+            ]
+          : [
+              'text-black',
+              'hover:bg-gray-100',
+              focusedIndex === index && 'bg-gray-100',
+              value === option.value && 'bg-blue-500 text-white',
+            ]
     )
 
   // 필수 표시

@@ -1,0 +1,94 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to AWS S3
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 코드 체크아웃
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Node.js 설정
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      # 3. 의존성 설치
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # 4. 환경 변수 파일 생성
+      - name: Create .env file
+        run: |
+          echo "FRONTEND_PORT=3000" >> .env
+          echo "NEXT_PUBLIC_FRONTEND_URL=${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}" >> .env
+          echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env
+
+      # 5. Next.js 빌드
+      - name: Build application
+        run: yarn build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_FRONTEND_URL: ${{ secrets.NEXT_PUBLIC_FRONTEND_URL }}
+
+      # 6. AWS 자격 증명 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 7. S3에 배포
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./out s3://${{ secrets.S3_BUCKET_NAME }} \
+            --delete \
+            --cache-control "public, max-age=31536000, immutable" \
+            --exclude "*.html" \
+            --exclude "_next/data/*" \
+            --exclude "_next/static/chunks/pages/*"
+
+          # HTML 파일은 캐싱 없이 업로드
+          aws s3 sync ./out s3://${{ secrets.S3_BUCKET_NAME }} \
+            --delete \
+            --cache-control "public, max-age=0, must-revalidate" \
+            --exclude "*" \
+            --include "*.html" \
+            --include "_next/data/*" \
+            --include "_next/static/chunks/pages/*"
+
+      # 8. CloudFront 캐시 무효화
+      - name: Invalidate CloudFront
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+              --paths "/*"
+          else
+            echo "CloudFront distribution ID not set, skipping cache invalidation"
+          fi
+
+      # 9. 배포 성공 알림
+      - name: Deployment Success
+        if: success()
+        run: |
+          echo "✅ Successfully deployed to S3!"
+          echo "🌐 URL: https://${{ secrets.CLOUDFRONT_DOMAIN }}"
+
+      # 10. 배포 실패 시 알림
+      - name: Deployment Failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          exit 1
