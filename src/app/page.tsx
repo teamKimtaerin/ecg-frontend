@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import Button from '@/components/Button'
 import EditTranscriptionSection from '@/components/LandingPage/EditTranscriptionSection'
@@ -11,8 +12,7 @@ import HeroSection from '@/components/LandingPage/HeroSection'
 import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
 import SubtitleEditorSection from '@/components/LandingPage/SubtitleEditorSection'
 import VoTSection from '@/components/LandingPage/VoTSection'
-import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
-import Footer from '@/components/LandingPage/Footer'
+import UploadModal from '@/components/UploadModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
 
 
