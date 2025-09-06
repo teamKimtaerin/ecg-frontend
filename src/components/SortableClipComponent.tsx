@@ -3,7 +3,7 @@
 import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import Dropdown from '@/components/Dropdown'
+import Dropdown from './ui/Dropdown'
 
 interface ClipItem {
   id: string

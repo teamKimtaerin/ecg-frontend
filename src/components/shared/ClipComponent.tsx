@@ -25,6 +25,7 @@ export interface ClipComponentProps {
   clip: ClipItem
   isSelected: boolean
   isChecked?: boolean
+  isMultiSelected?: boolean
   onSelect: (clipId: string) => void
   onCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
@@ -35,6 +36,7 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
   clip,
   isSelected,
   isChecked = false,
+  isMultiSelected = false,
   onSelect,
   onCheck,
   onWordEdit,
@@ -57,7 +59,11 @@ const ClipComponent: React.FC<ClipComponentProps> = ({
   return (
     <div
       className={`bg-gray-200 rounded-lg transition-all cursor-pointer ${
-        isSelected ? 'ring-2 ring-blue-500' : 'hover:bg-gray-300'
+        isMultiSelected
+          ? 'ring-2 ring-blue-500 bg-blue-100'
+          : isSelected
+            ? 'ring-2 ring-blue-400'
+            : 'hover:bg-gray-300'
       } ${isChecked ? 'ring-2 ring-green-500 bg-green-50' : ''}`}
       onClick={() => onSelect(clip.id)}
       onMouseEnter={() => setIsHovered(true)}
