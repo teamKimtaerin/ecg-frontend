@@ -498,7 +498,7 @@ export default function EditorPage() {
           onCut={() => console.log('Cut clips')}
           onCopy={() => console.log('Copy clips')}
           onPaste={() => console.log('Paste clips')}
-          onSplitClip={() => console.log('Split clip')}
+          onSplitClip={handleSplitClip}
         />
 
         <div className="flex h-[calc(100vh-120px)] relative">

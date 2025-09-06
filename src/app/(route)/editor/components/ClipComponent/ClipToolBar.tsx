@@ -11,8 +11,9 @@ function TextFormattingGroup() {
   const [selectedFont, setSelectedFont] = useState('굴림고딕 볼드')
   const [fontSize, setFontSize] = useState('100')
   const [selectedColor, setSelectedColor] = useState('#FFFFFF')
-  const [showColorPalette, setShowColorPalette] = useState(false)
-  const [showSizeDropdown, setShowSizeDropdown] = useState(false)
+  const [activeDropdown, setActiveDropdown] = useState<'color' | 'size' | null>(
+    null
+  )
   const [isBold, setIsBold] = useState(false)
   const [isItalic, setIsItalic] = useState(false)
 
@@ -30,15 +31,14 @@ function TextFormattingGroup() {
   // 외부 클릭시 드롭다운들 닫기
   useEffect(() => {
     const handleClickOutside = () => {
-      setShowColorPalette(false)
-      setShowSizeDropdown(false)
+      setActiveDropdown(null)
     }
 
-    if (showColorPalette || showSizeDropdown) {
+    if (activeDropdown) {
       document.addEventListener('click', handleClickOutside)
       return () => document.removeEventListener('click', handleClickOutside)
     }
-  }, [showColorPalette, showSizeDropdown])
+  }, [activeDropdown])
 
   const fontOptions = [
     {
@@ -184,14 +184,20 @@ function TextFormattingGroup() {
           className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-600/70 rounded"
           onClick={(e) => {
             e.stopPropagation()
-            if (!showSizeDropdown && sizeButtonRef.current) {
-              const rect = sizeButtonRef.current.getBoundingClientRect()
-              setSizeDropdownPosition({
-                top: rect.bottom + window.scrollY + 4,
-                left: rect.left + window.scrollX,
-              })
+            if (activeDropdown !== 'size') {
+              const inputElement =
+                e.currentTarget.parentElement?.querySelector('input')
+              if (inputElement) {
+                const rect = inputElement.getBoundingClientRect()
+                setSizeDropdownPosition({
+                  top: rect.bottom + window.scrollY + 4,
+                  left: rect.left + window.scrollX,
+                })
+              }
+              setActiveDropdown('size')
+            } else {
+              setActiveDropdown(null)
             }
-            setShowSizeDropdown(!showSizeDropdown)
           }}
         >
           <svg
@@ -210,7 +216,7 @@ function TextFormattingGroup() {
         </button>
 
         {/* 사이즈 드롭다운 메뉴 - Portal로 렌더링 */}
-        {showSizeDropdown &&
+        {activeDropdown === 'size' &&
           typeof document !== 'undefined' &&
           createPortal(
             <div
@@ -230,7 +236,7 @@ function TextFormattingGroup() {
                     onClick={(e) => {
                       e.stopPropagation()
                       setFontSize(size)
-                      setShowSizeDropdown(false)
+                      setActiveDropdown(null)
                     }}
                   >
                     {size}
@@ -249,14 +255,16 @@ function TextFormattingGroup() {
           className="w-8 h-8 border border-slate-500/70 rounded bg-slate-700/90 hover:bg-slate-600/90 transition-colors flex flex-col items-center justify-center p-1"
           onClick={(e) => {
             e.stopPropagation()
-            if (!showColorPalette && colorButtonRef.current) {
+            if (activeDropdown !== 'color' && colorButtonRef.current) {
               const rect = colorButtonRef.current.getBoundingClientRect()
               setColorDropdownPosition({
                 top: rect.bottom + window.scrollY + 8,
                 left: rect.left + window.scrollX,
               })
+              setActiveDropdown('color')
+            } else {
+              setActiveDropdown(null)
             }
-            setShowColorPalette(!showColorPalette)
           }}
         >
           <span className="text-xs font-bold text-white">A</span>
@@ -267,7 +275,7 @@ function TextFormattingGroup() {
         </button>
 
         {/* 색상 팔레트 - Portal로 렌더링 */}
-        {showColorPalette &&
+        {activeDropdown === 'color' &&
           typeof document !== 'undefined' &&
           createPortal(
             <div
@@ -294,7 +302,7 @@ function TextFormattingGroup() {
                     onClick={(e) => {
                       e.stopPropagation()
                       setSelectedColor(color)
-                      setShowColorPalette(false)
+                      setActiveDropdown(null)
                     }}
                   />
                 ))}
@@ -423,33 +431,35 @@ export default function ClipToolBar({
         </Tooltip>
 
         {/* 다시실행 */}
-        <div
-          className={`flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors ${
-            canRedo
-              ? 'hover:bg-slate-700/50 text-slate-300'
-              : 'text-slate-500 cursor-not-allowed'
-          }`}
-          onClick={canRedo ? onRedo : undefined}
-        >
-          <svg
-            className={`w-5 h-5 ${canRedo ? 'text-slate-300' : 'text-slate-500'}`}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <Tooltip content="다시실행" shortcut="Ctrl+Y" disabled={!canRedo}>
+          <div
+            className={`flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors ${
+              canRedo
+                ? 'hover:bg-slate-700/50 text-slate-300'
+                : 'text-slate-500 cursor-not-allowed'
+            }`}
+            onClick={canRedo ? onRedo : undefined}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6"
-            />
-          </svg>
-          <span
-            className={`text-xs ${canRedo ? 'text-slate-300' : 'text-slate-500'}`}
-          >
-            다시실행
-          </span>
-        </div>
+            <svg
+              className={`w-5 h-5 ${canRedo ? 'text-slate-300' : 'text-slate-500'}`}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 10H11a8 8 0 00-8 8v2m18-10l-6-6m6 6l-6 6"
+              />
+            </svg>
+            <span
+              className={`text-xs ${canRedo ? 'text-slate-300' : 'text-slate-500'}`}
+            >
+              다시실행
+            </span>
+          </div>
+        </Tooltip>
 
         <div className="w-px h-12 bg-slate-600 mx-2" />
 
