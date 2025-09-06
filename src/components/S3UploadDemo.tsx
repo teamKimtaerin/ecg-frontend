@@ -10,7 +10,7 @@ interface UploadStatus {
   s3Url?: string
 }
 
-const S3UploadDemo: React.FC = () => {
+const S3UploadDemo = () => {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>({
     status: 'idle',
     progress: 0,

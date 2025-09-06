@@ -1,11 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import {
-  cn,
-  getBaseInteractiveClasses,
-  type BaseComponentProps,
-} from '@/lib/utils'
+import { cn, getBaseInteractiveClasses, type BaseComponentProps } from '@/utils'
+import React, { useEffect, useRef, useState } from 'react'
 
 export interface ColorPickerProps extends BaseComponentProps {
   value?: string

@@ -1,12 +1,12 @@
 'use client'
 
-import React from 'react'
 import {
   cn,
   getBaseInteractiveClasses,
   SIZE_CLASSES,
   type BaseComponentProps,
-} from '@/lib/utils'
+} from '@/utils'
+import React from 'react'
 
 export interface ToggleButtonProps extends BaseComponentProps {
   isPressed?: boolean

@@ -1,16 +1,16 @@
 'use client'
 
-import React, { useState } from 'react'
+import { AlertIcon, CloseIcon, InfoIcon } from '@/components/icons'
 import {
-  cn,
-  SIZE_CLASSES,
   ALERT_BANNER_COLORS,
-  TRANSITIONS,
+  cn,
   createClickHandler,
   logComponentWarning,
+  SIZE_CLASSES,
+  TRANSITIONS,
   type BaseComponentProps,
-} from '@/lib/utils'
-import { AlertIcon, InfoIcon, CloseIcon } from '@/components/icons'
+} from '@/utils'
+import React, { useState } from 'react'
 
 export type AlertBannerVariant = 'neutral' | 'informative' | 'negative'
 

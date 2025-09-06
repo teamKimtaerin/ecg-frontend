@@ -2,12 +2,16 @@ import { StateCreator } from 'zustand'
 import { SelectionBox } from '../../types'
 
 export interface SelectionSlice {
-  // Selection state
+  // Selection state (체크박스용 - 다중 선택)
   selectedClipIds: Set<string>
   setSelectedClipIds: (ids: Set<string>) => void
   toggleClipSelection: (clipId: string, multiSelect: boolean) => void
   clearSelection: () => void
   addToSelection: (clipIds: string[]) => void
+
+  // Active clip state (포커스용 - 단일 선택)
+  activeClipId: string | null
+  setActiveClipId: (clipId: string | null) => void
 
   // Selection box state
   isSelecting: boolean
@@ -17,7 +21,7 @@ export interface SelectionSlice {
 }
 
 export const createSelectionSlice: StateCreator<SelectionSlice> = (set) => ({
-  // Selection state
+  // Selection state (체크박스용)
   selectedClipIds: new Set<string>(),
 
   setSelectedClipIds: (ids) => set({ selectedClipIds: ids }),
@@ -52,6 +56,11 @@ export const createSelectionSlice: StateCreator<SelectionSlice> = (set) => ({
       return { selectedClipIds: newSet }
     })
   },
+
+  // Active clip state (포커스용)
+  activeClipId: null,
+
+  setActiveClipId: (clipId) => set({ activeClipId: clipId }),
 
   // Selection box state
   isSelecting: false,

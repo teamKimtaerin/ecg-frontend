@@ -1,22 +1,22 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import {
-  cn,
-  SIZE_CLASSES,
-  ALERT_DIALOG_COLORS,
-  TRANSITIONS,
-  createClickHandler,
-  logComponentWarning,
-  type BaseComponentProps,
-} from '@/lib/utils'
 import {
   CheckCircleIcon,
-  InfoIcon,
   ExclamationTriangleIcon,
+  InfoIcon,
   XCircleIcon,
 } from '@/components/icons'
 import Button from '@/components/ui/Button'
+import {
+  ALERT_DIALOG_COLORS,
+  cn,
+  createClickHandler,
+  logComponentWarning,
+  SIZE_CLASSES,
+  TRANSITIONS,
+  type BaseComponentProps,
+} from '@/utils'
+import React, { useEffect } from 'react'
 
 export type AlertDialogVariant =
   | 'confirmation'

@@ -6,7 +6,7 @@ import ButtonGroup from '@/components/ui/ButtonGroup'
 import { StarIcon, HeartIcon, PlusIcon } from '@/components/icons'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
-const ButtonDemo: React.FC = () => {
+const ButtonDemo = () => {
   return (
     <div className={getSpacingClass('DEMO_SECTIONS')}>
       <div>

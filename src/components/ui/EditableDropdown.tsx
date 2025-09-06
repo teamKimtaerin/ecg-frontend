@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import { cn, type BaseComponentProps } from '@/lib/utils'
+import { cn, type BaseComponentProps } from '@/utils'
+import React, { useEffect, useRef, useState } from 'react'
 
 export interface EditableDropdownProps extends BaseComponentProps {
   value?: string

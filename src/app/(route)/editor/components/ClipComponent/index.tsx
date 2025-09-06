@@ -23,6 +23,7 @@ export default function ClipComponent({
   onSpeakerChange,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
+
   const { speakers } = useSpeakerManagement()
   const { dragProps, isDragging } = useClipDragAndDrop(
     clip.id,
@@ -37,12 +38,18 @@ export default function ClipComponent({
       isDragging,
     })
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Stop propagation to prevent selection box from triggering
+    e.stopPropagation()
+    onSelect(clip.id)
+  }
+
   return (
     <div
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
-      onClick={() => onSelect(clip.id)}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -52,7 +59,7 @@ export default function ClipComponent({
           <ClipTimeline timeline={clip.timeline} />
           <ClipCheckbox
             clipId={clip.id}
-            isChecked={isChecked || isMultiSelected}
+            isChecked={isChecked}
             onCheck={onCheck}
           />
         </div>

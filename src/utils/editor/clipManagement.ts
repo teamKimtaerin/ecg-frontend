@@ -1,4 +1,4 @@
-import { ClipItem, SelectionBox } from '../types'
+import { ClipItem, SelectionBox } from '@/app/(route)/editor/types'
 
 /**
  * Check if a clip element intersects with a selection box

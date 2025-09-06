@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
-import { cn } from '@/lib/utils'
-import StatusLight from '@/components/ui/StatusLight'
 import Button from '@/components/ui/Button'
+import StatusLight from '@/components/ui/StatusLight'
 import Tag from '@/components/ui/Tag'
+import { cn } from '@/utils'
+import React from 'react'
 
 interface TableAction {
   label: string
