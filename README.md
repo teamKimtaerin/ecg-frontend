@@ -2,6 +2,10 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🎬 ECG (Easy Caption Generator) Frontend
+
+강력한 자막 편집 도구를 위한 Next.js 기반 프론트엔드 애플리케이션입니다.
+
 ## 🚀 PR 자동화 도구 - 팀원 설정 가이드
 
 ### 0. Github CLI 설치
