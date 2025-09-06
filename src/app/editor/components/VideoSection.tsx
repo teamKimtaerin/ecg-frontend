@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import VideoPlayer from '@/components/VideoPlayer'
+import VideoPlayer from './VideoPlayer'
 
 const VideoSection: React.FC = () => {
   return (
