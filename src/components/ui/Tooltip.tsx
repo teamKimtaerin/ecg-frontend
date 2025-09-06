@@ -21,7 +21,7 @@ export default function Tooltip({
   const [isVisible, setIsVisible] = useState(false)
   const [position, setPosition] = useState({ top: 0, left: 0, width: 120 })
   const triggerRef = useRef<HTMLDivElement>(null)
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>()
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   // Mac/Windows 구분
   const isMac =

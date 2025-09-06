@@ -78,8 +78,10 @@ class ServerProjectStorage implements ProjectStorage {
         }>
       } = await response.json()
       return result.projects.map((project) => ({
-        ...project,
+        id: project.id,
+        name: project.name,
         lastModified: new Date(project.lastModified),
+        size: 0, // Server doesn't provide size yet, default to 0
       }))
     } catch (error) {
       console.error('서버에서 프로젝트 목록 조회 실패:', error)

@@ -15,10 +15,10 @@ if (!global.projectsStorage) {
 // 특정 프로젝트 조회
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const project = global.projectsStorage?.find((p) => p.id === id)
 
     if (!project) {
@@ -44,10 +44,10 @@ export async function GET(
 // 특정 프로젝트 삭제
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!global.projectsStorage) {
       return NextResponse.json(
