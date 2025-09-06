@@ -13,8 +13,8 @@ import {
   type ComponentSize,
   type BaseComponentProps,
 } from '@/lib/utils'
-import { CloseIcon } from './icons'
-import Button from './Button'
+import { CloseIcon } from '@/components/icons'
+import Button from '@/components/ui/Button'
 
 // Types
 // Constants

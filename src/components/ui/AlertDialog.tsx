@@ -15,8 +15,8 @@ import {
   InfoIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
-} from './icons'
-import Button from './Button'
+} from '@/components/icons'
+import Button from '@/components/ui/Button'
 
 export type AlertDialogVariant =
   | 'confirmation'

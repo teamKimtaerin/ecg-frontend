@@ -7,7 +7,7 @@ import {
   SIZE_CLASSES,
   type ComponentSize,
 } from '@/lib/utils'
-import { ChevronDownIcon } from './icons'
+import { ChevronDownIcon } from '@/components/icons'
 
 export interface DropdownOption {
   value: string

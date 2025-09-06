@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import ClipComponent, { ClipItem } from '@/components/ClipComponent'
+import ClipComponent, { ClipItem } from '@/components/shared/ClipComponent'
 
 export interface SubtitleEditListProps {
   clips: ClipItem[]

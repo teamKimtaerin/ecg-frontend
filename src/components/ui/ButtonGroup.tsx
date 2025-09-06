@@ -1,5 +1,5 @@
 import React, { Children, cloneElement, isValidElement } from 'react'
-import { ButtonProps } from './Button'
+import { ButtonProps } from '@/components/ui/Button'
 import { type ComponentSize } from '@/lib/utils'
 
 export interface ButtonGroupProps {

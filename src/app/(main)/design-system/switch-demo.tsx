@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import Switch from '@/components/Switch'
+import Switch from '@/components/ui/Switch'
 import { DESIGN_SYSTEM_CONSTANTS, getSpacingClass } from './constants'
 
 const SwitchDemo: React.FC = () => {

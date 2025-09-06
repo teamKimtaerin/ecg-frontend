@@ -5,7 +5,6 @@ import {
   cn,
   getBaseInteractiveClasses,
   SIZE_CLASSES,
-  type ComponentSize,
   type BaseComponentProps,
 } from '@/lib/utils'
 

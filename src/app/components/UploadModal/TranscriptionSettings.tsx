@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import Dropdown from '@/components/Dropdown'
-import Switch from '@/components/Switch'
+import Dropdown from '@/components/ui/Dropdown'
+import Switch from '@/components/ui/Switch'
 
 interface TranscriptionSettingsProps {
   language: string

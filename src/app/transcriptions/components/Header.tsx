@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import Button from '@/components/Button'
-import Dropdown from '@/components/Dropdown'
+import Button from '@/components/ui/Button'
+import Dropdown from '@/components/ui/Dropdown'
 
 interface HeaderProps {
   title: string

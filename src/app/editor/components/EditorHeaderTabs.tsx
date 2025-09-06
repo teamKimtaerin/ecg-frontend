@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import Button from '@/components/Button'
-import Tab from '@/components/Tab'
-import TabItem from '@/components/TabItem'
+import Button from '@/components/ui/Button'
+import Tab from '@/components/ui/Tab'
+import TabItem from '@/components/ui/TabItem'
 
 export interface EditorHeaderTabsProps {
   activeTab: string

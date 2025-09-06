@@ -10,7 +10,7 @@ import {
   logComponentWarning,
   type BaseComponentProps,
 } from '@/lib/utils'
-import { AlertIcon, InfoIcon, CloseIcon } from './icons'
+import { AlertIcon, InfoIcon, CloseIcon } from '@/components/icons'
 
 export type AlertBannerVariant = 'neutral' | 'informative' | 'negative'
 

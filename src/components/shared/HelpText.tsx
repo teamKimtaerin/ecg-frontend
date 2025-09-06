@@ -5,7 +5,7 @@ import {
   SIZE_CLASSES,
   type ComponentSize,
 } from '@/lib/utils'
-import { InfoIcon, ErrorIcon } from './icons'
+import { InfoIcon, ErrorIcon } from '@/components/icons'
 
 export interface HelpTextProps {
   text: string

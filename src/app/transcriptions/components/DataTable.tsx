@@ -2,9 +2,9 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import StatusLight from '@/components/StatusLight'
-import Button from '@/components/Button'
-import Tag from '@/components/Tag'
+import StatusLight from '@/components/ui/StatusLight'
+import Button from '@/components/ui/Button'
+import Tag from '@/components/ui/Tag'
 
 interface TableAction {
   label: string

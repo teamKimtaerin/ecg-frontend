@@ -4,7 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import Badge from '@/components/Badge'
+import Badge from '@/components/ui/Badge'
 
 interface SidebarItem {
   href: string

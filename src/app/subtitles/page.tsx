@@ -1,6 +1,6 @@
 import React from 'react'
-import { DashboardLayout } from '@/components/Dashboard/DashboardLayout'
-import { SubtitlesClient } from '@/components/Dashboard/SubtitlesClient'
+import { DashboardLayout } from '../transcriptions/components/DashboardLayout'
+import { SubtitlesClient } from '../transcriptions/components/SubtitlesClient'
 
 // TODO : 이 데이터는 나중에 API에서 가져올 수 있습니다, 삭제
 const sampleSubtitles = [

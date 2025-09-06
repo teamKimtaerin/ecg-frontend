@@ -8,7 +8,7 @@ import React, {
   useEffect,
   useRef,
 } from 'react'
-import { TabItemProps } from './TabItem'
+import { TabItemProps } from '@/components/ui/TabItem'
 
 export interface TabProps {
   orientation?: 'horizontal' | 'vertical'

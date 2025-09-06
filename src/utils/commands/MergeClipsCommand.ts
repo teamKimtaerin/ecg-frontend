@@ -1,5 +1,5 @@
 import { EditorCommand } from '../EditorHistory'
-import { ClipItem } from '@/components/ClipComponent'
+import { ClipItem } from '@/components/shared/ClipComponent'
 import { mergeSelectedClips } from '../clipMerger'
 
 export class MergeClipsCommand implements EditorCommand {

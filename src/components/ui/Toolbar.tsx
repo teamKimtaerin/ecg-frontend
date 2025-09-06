@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import Dropdown from '@/components/Dropdown'
+import Dropdown from '@/components/ui/Dropdown'
 
 interface ToolbarProps {
   activeTab: string

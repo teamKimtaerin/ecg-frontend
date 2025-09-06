@@ -4,8 +4,6 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   cn,
   getBaseInteractiveClasses,
-  SIZE_CLASSES,
-  type ComponentSize,
   type BaseComponentProps,
 } from '@/lib/utils'
 
