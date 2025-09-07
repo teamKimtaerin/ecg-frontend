@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ProjectData } from '@/app/(route)/editor/types/project'
 
+// Configure for static export
+export const dynamic = 'force-static'
+export const revalidate = false
+
 // 메모리 저장소 (실제로는 위 save/route.ts와 동일한 저장소를 공유해야 함)
 // TODO : 실제 구현에서는 데이터베이스나 외부 저장소를 사용
 declare global {

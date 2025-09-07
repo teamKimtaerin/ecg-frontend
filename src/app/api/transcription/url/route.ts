@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Configure for static export
 export const dynamic = 'force-static'
+export const revalidate = false
 
 interface TranscriptionUrlRequest {
   url: string

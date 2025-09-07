@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 
+// Configure for static export
 export const dynamic = 'force-static'
+export const revalidate = false
 
 /**
  * GET /api/health 엔드포인트를 처리하는 함수

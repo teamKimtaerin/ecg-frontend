@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ProjectData } from '@/app/(route)/editor/types/project'
 
+// Configure for static export
+export const dynamic = 'force-static'
+export const revalidate = false
+
 // 전역 저장소 선언
 declare global {
   var projectsStorage: ProjectData[] | undefined

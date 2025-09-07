@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// 파일 업로드 크기 제한 설정
-export const maxDuration = 60 // 60초 타임아웃
+// Configure for static export
 export const dynamic = 'force-static'
+export const revalidate = false
+export const maxDuration = 60 // 60초 타임아웃
 
 export async function POST(request: NextRequest) {
   try {
