@@ -4,7 +4,6 @@ export function useClipStyles({
   isSelected,
   isChecked,
   isMultiSelected,
-  isHovered,
   isDragging = false,
 }: ClipStyleState) {
   const getContainerClassName = () => {
