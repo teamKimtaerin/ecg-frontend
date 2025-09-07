@@ -4,6 +4,7 @@ import React from 'react'
 import { EditorTab, ClipItem } from '../../types'
 import HomeToolbar from './HomeToolbar'
 import EditToolbar from './EditToolbar'
+import FormatToolbar from './FormatToolbar'
 import ToolbarWrapper from './shared/ToolbarWrapper'
 
 interface ToolbarsProps {
@@ -95,10 +96,9 @@ export default function Toolbars({
       )
 
     case 'format':
-      // TODO: FormatToolbar 구현
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
-          <HomeToolbar {...commonProps} onNewClick={onNewClick} />
+          <FormatToolbar {...commonProps} />
         </ToolbarWrapper>
       )
 

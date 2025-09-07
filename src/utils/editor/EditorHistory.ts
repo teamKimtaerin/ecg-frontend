@@ -8,9 +8,20 @@ export class EditorHistory {
   private undoStack: EditorCommand[] = []
   private redoStack: EditorCommand[] = []
   private maxHistorySize: number
+  private savedStateIndex: number = -1
+  private onChangeCallback?: (hasUnsavedChanges: boolean) => void
 
   constructor(maxHistorySize: number = 50) {
     this.maxHistorySize = maxHistorySize
+  }
+
+  setOnChangeCallback(callback: (hasUnsavedChanges: boolean) => void): void {
+    this.onChangeCallback = callback
+  }
+
+  private notifyChange(): void {
+    const hasUnsavedChanges = this.savedStateIndex !== this.undoStack.length - 1
+    this.onChangeCallback?.(hasUnsavedChanges)
   }
 
   executeCommand(command: EditorCommand): void {
@@ -21,7 +32,13 @@ export class EditorHistory {
 
     if (this.undoStack.length > this.maxHistorySize) {
       this.undoStack.shift()
+      // Adjust saved state index if necessary
+      if (this.savedStateIndex > 0) {
+        this.savedStateIndex--
+      }
     }
+
+    this.notifyChange()
   }
 
   canUndo(): boolean {
@@ -41,6 +58,7 @@ export class EditorHistory {
     command.undo()
     this.redoStack.push(command)
 
+    this.notifyChange()
     return true
   }
 
@@ -53,12 +71,24 @@ export class EditorHistory {
     command.execute()
     this.undoStack.push(command)
 
+    this.notifyChange()
     return true
   }
 
   clear(): void {
     this.undoStack = []
     this.redoStack = []
+    this.savedStateIndex = -1
+    this.notifyChange()
+  }
+
+  markAsSaved(): void {
+    this.savedStateIndex = this.undoStack.length - 1
+    this.notifyChange()
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.savedStateIndex !== this.undoStack.length - 1
   }
 
   getUndoDescription(): string {

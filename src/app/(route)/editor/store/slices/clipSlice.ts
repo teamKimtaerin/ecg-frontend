@@ -7,6 +7,7 @@ import {
 import { StateCreator } from 'zustand'
 import { ClipItem, INITIAL_CLIPS } from '../../types'
 import { ProjectData } from '../../types/project'
+import { SaveSlice } from './saveSlice'
 
 export interface ClipSlice {
   clips: ClipItem[]
@@ -25,7 +26,12 @@ export interface ClipSlice {
   setCurrentProject: (project: ProjectData) => void
 }
 
-export const createClipSlice: StateCreator<ClipSlice> = (set, get) => ({
+export const createClipSlice: StateCreator<
+  ClipSlice & SaveSlice,
+  [],
+  [],
+  ClipSlice
+> = (set, get) => ({
   clips: INITIAL_CLIPS,
   currentProject: null,
 
@@ -124,6 +130,12 @@ export const createClipSlice: StateCreator<ClipSlice> = (set, get) => ({
 
     await hybridProjectStorage.saveProject(project)
     set({ currentProject: project })
+
+    // Mark as saved in save state
+    const currentState = get() as ClipSlice & SaveSlice
+    if (currentState.markAsSaved) {
+      currentState.markAsSaved()
+    }
   },
 
   loadProject: async (id: string) => {

@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import Button from '@/components/ui/Button'
 import ToolbarBase from './ToolbarBase'
 import { type ToolbarVariant } from '../../../constants/colors'
+import { AiOutlineExport } from 'react-icons/ai'
 
 interface ToolbarWrapperProps {
   variant?: ToolbarVariant
@@ -38,14 +38,13 @@ export default function ToolbarWrapper({
         <div className="flex items-center space-x-3 flex-1">{children}</div>
 
         {/* 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
-        <Button
-          variant="accent"
-          size="medium"
-          className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm hover:shadow-md transition-all duration-200 hover:from-blue-600 hover:to-indigo-700"
+        <button
+          className="ml-4 px-4 py-2 bg-[#14B0DA] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:bg-[#12A0C8] flex items-center gap-2 font-medium"
           onClick={handleExport}
         >
+          <AiOutlineExport className="w-5 h-5" />
           내보내기
-        </Button>
+        </button>
       </div>
     </ToolbarBase>
   )

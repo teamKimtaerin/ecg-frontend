@@ -17,7 +17,7 @@ export default function ClipWords({
       {words.map((word) => (
         <button
           key={word.id}
-          className="bg-white border border-gray-300 hover:border-gray-400 rounded px-2 py-1 text-sm text-gray-800 transition-colors"
+          className="bg-[#383842] border border-[#4D4D59] hover:border-[#9999A6] rounded px-2 py-1 text-sm text-[#F2F2F2] transition-colors"
           onClick={(e) => {
             e.stopPropagation()
             onWordEdit(clipId, word.id, word.text)

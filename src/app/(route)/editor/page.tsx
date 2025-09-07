@@ -18,6 +18,7 @@ import { EditorTab } from './types'
 import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
+import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -52,15 +53,28 @@ export default function EditorPage() {
     setActiveClipId,
     videoPanelWidth,
     setVideoPanelWidth,
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
+    markAsSaved,
   } = useEditorStore()
 
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
-  const [editorHistory] = useState(() => new EditorHistory())
+  const [editorHistory] = useState(() => {
+    const history = new EditorHistory()
+    // Connect history to save state
+    history.setOnChangeCallback((hasChanges) => {
+      setHasUnsavedChanges(hasChanges)
+    })
+    return history
+  })
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1920
   )
+
+  // Track unsaved changes
+  useUnsavedChanges(hasUnsavedChanges)
 
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
@@ -393,6 +407,8 @@ export default function EditorPage() {
         event.preventDefault()
         saveProject()
           .then(() => {
+            editorHistory.markAsSaved()
+            markAsSaved()
             showToast('프로젝트가 저장되었습니다.', 'success')
           })
           .catch((error) => {
@@ -428,6 +444,8 @@ export default function EditorPage() {
     handleMergeClips,
     handleSplitClip,
     handleDeleteClip,
+    editorHistory,
+    markAsSaved,
   ])
 
   // 에디터 진입 시 첫 번째 클립에 자동 포커스 및 패널 너비 복원

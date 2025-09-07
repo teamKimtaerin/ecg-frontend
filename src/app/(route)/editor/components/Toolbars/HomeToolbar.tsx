@@ -15,8 +15,6 @@ function TextFormattingGroup() {
   const [activeDropdown, setActiveDropdown] = useState<'color' | 'size' | null>(
     null
   )
-  const [isBold, setIsBold] = useState(false)
-  const [isItalic, setIsItalic] = useState(false)
 
   const sizeButtonRef = useRef<HTMLButtonElement>(null)
   const colorButtonRef = useRef<HTMLButtonElement>(null)
@@ -227,26 +225,6 @@ function TextFormattingGroup() {
             document.body
           )}
       </div>
-
-      {/* Bold 버튼 */}
-      <button
-        className={`w-8 h-8 border rounded flex items-center justify-center text-sm font-bold transition-colors ${
-          isBold ? EDITOR_COLORS.button.active : EDITOR_COLORS.button.inactive
-        }`}
-        onClick={() => setIsBold(!isBold)}
-      >
-        B
-      </button>
-
-      {/* Italic 버튼 */}
-      <button
-        className={`w-8 h-8 border rounded flex items-center justify-center text-sm italic transition-colors ${
-          isItalic ? EDITOR_COLORS.button.active : EDITOR_COLORS.button.inactive
-        }`}
-        onClick={() => setIsItalic(!isItalic)}
-      >
-        I
-      </button>
     </div>
   )
 }

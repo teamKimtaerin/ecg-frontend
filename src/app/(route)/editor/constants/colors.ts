@@ -7,12 +7,13 @@
 export const EDITOR_COLORS = {
   // 클립 컴포넌트 색상
   clip: {
-    background: '#F2F2F2',
-    sidebar: '#E6E6E6',
-    text: '#383842',
-    textSecondary: '#9999A6',
-    accent: '#33BFD9',
-    divider: '#9999A6',
+    background: '#2E2E38', // 메인 배경색 (어두운 회색)
+    sidebar: '#4D4D59', // 사이드바 색상 (중간 회색)
+    text: '#F2F2F2', // 메인 텍스트 (밝은 회색)
+    textSecondary: '#9999A6', // 보조 텍스트 (중간 밝기 회색)
+    accent: '#E6E6E6', // 강조색 (밝은 회색)
+    divider: '#383842', // 구분선 (어두운 회색)
+    hover: '#383842', // 호버 상태 색상
   },
 
   // 툴바 색상
