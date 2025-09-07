@@ -144,8 +144,6 @@ export default function ClipSelectionDropdown({
     }
   }
 
-  const selectedCount = selectedClipIds.size
-
   return (
     <div className="relative" data-clip-selection-dropdown>
       <button
