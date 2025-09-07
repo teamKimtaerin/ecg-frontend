@@ -13,6 +13,7 @@ import { useClipStyles } from '../../hooks/useClipStyles'
 
 export default function ClipComponent({
   clip,
+  index,
   isSelected,
   isChecked = false,
   isMultiSelected = false,
@@ -56,7 +57,7 @@ export default function ClipComponent({
       <div className="flex">
         {/* Left sidebar */}
         <div className={sidebarClassName}>
-          <ClipTimeline timeline={clip.timeline} />
+          <ClipTimeline index={index} />
           <ClipCheckbox
             clipId={clip.id}
             isChecked={isChecked}
@@ -87,7 +88,7 @@ export default function ClipComponent({
           </div>
 
           {/* Divider */}
-          <div className="border-t border-gray-400" />
+          <div className="border-t border-[#9999A6]" />
 
           {/* Lower section */}
           <ClipText fullText={clip.fullText} />

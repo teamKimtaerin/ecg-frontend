@@ -7,31 +7,31 @@ export function useClipStyles({
   isDragging = false,
 }: ClipStyleState) {
   const getContainerClassName = () => {
-    const baseClasses = 'bg-gray-200 rounded-lg transition-all cursor-pointer'
+    const baseClasses = 'rounded-lg transition-all cursor-pointer'
 
-    const stateClasses = []
+    const stateClasses = ['bg-[#F2F2F2]'] // 기본 배경색
 
     if (isMultiSelected || isChecked) {
-      // 체크박스 선택된 상태 (초록색)
-      stateClasses.push('ring-2 ring-green-500 bg-green-50')
+      // 체크박스 선택된 상태 (시안색)
+      stateClasses.push('ring-2 ring-[#33BFD9] bg-[#33BFD9]/10')
     }
 
     if (isSelected) {
-      // 포커스 상태 (파란색 테두리, 체크박스와 독립적)
+      // 포커스 상태 (시안색 테두리, 체크박스와 독립적)
       if (isMultiSelected || isChecked) {
-        stateClasses.push('ring-4 ring-blue-400') // 체크와 포커스가 함께 있을 때
+        stateClasses.push('ring-4 ring-[#33BFD9]') // 체크와 포커스가 함께 있을 때
       } else {
-        stateClasses.push('ring-2 ring-blue-400 bg-blue-50') // 포커스만 있을 때
+        stateClasses.push('ring-2 ring-[#33BFD9] bg-[#33BFD9]/5') // 포커스만 있을 때
       }
     } else if (!isDragging && !(isMultiSelected || isChecked)) {
-      stateClasses.push('hover:bg-gray-300')
+      stateClasses.push('hover:bg-[#E6E6E6]')
     }
 
     return `${baseClasses} ${stateClasses.join(' ')}`
   }
 
   const getSidebarClassName = () => {
-    return 'w-16 flex items-center justify-center bg-gray-300 rounded-l-lg border-r border-gray-400 relative'
+    return 'w-16 flex items-center justify-center bg-[#E6E6E6] rounded-l-lg border-r border-[#9999A6] relative'
   }
 
   const getContentClassName = () => {

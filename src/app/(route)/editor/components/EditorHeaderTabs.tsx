@@ -1,6 +1,5 @@
 'use client'
 
-import Button from '@/components/ui/Button'
 import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
 import { useEditorStore } from '../store'
@@ -12,7 +11,6 @@ export interface EditorHeaderTabsProps {
 }
 
 const TAB_LABELS: Record<string, string> = {
-  file: '파일',
   home: '홈',
   edit: '편집',
   subtitle: '자막',
@@ -49,14 +47,6 @@ export default function EditorHeaderTabs({
             <TabItem key={tab} id={tab} label={TAB_LABELS[tab]} />
           ))}
         </Tab>
-
-        <Button
-          variant="accent"
-          size="small"
-          className="ml-4 px-3 py-1.5 text-xs bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-sm hover:shadow-md transition-all duration-200 hover:from-blue-600 hover:to-indigo-700"
-        >
-          내보내기
-        </Button>
       </div>
     </div>
   )

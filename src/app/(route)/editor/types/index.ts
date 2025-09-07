@@ -21,7 +21,6 @@ export interface ClipItem {
 
 // UI related types
 export type EditorTab =
-  | 'file'
   | 'home'
   | 'edit'
   | 'subtitle'
@@ -124,7 +123,6 @@ export const INITIAL_CLIPS: ClipItem[] = [
 export const DRAG_ACTIVATION_DISTANCE = 8
 
 export const EDITOR_TABS: EditorTab[] = [
-  'file',
   'home',
   'edit',
   'subtitle',

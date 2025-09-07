@@ -1,14 +1,14 @@
 import React from 'react'
 
 interface ClipTimelineProps {
-  timeline: string
+  index: number
 }
 
-export default function ClipTimeline({ timeline }: ClipTimelineProps) {
+export default function ClipTimeline({ index }: ClipTimelineProps) {
   return (
     <div className="absolute top-2 left-0 right-0 flex justify-center">
-      <span className="text-base text-gray-600 font-mono font-bold">
-        {timeline}
+      <span className="text-base text-[#383842] font-mono font-bold">
+        {index}
       </span>
     </div>
   )

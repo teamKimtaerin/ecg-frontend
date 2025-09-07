@@ -28,15 +28,20 @@ export default function ClipSpeaker({
   }
 
   return (
-    <Dropdown
-      value={speaker}
-      options={[
-        ...speakers.map((s) => ({ value: s, label: s })),
-        { value: 'add_new', label: '+ 새 Speaker 추가' },
-      ]}
-      size="small"
-      className="text-sm flex-shrink-0"
-      onChange={handleChange}
-    />
+    <div className="flex items-center gap-2">
+      {/* 화자 앞의 동그라미 표시 */}
+      <div className="w-2 h-2 rounded-full bg-[#33BFD9] flex-shrink-0" />
+
+      <Dropdown
+        value={speaker}
+        options={[
+          ...speakers.map((s) => ({ value: s, label: s })),
+          { value: 'add_new', label: '+ 새 Speaker 추가' },
+        ]}
+        size="small"
+        className="text-sm flex-shrink-0"
+        onChange={handleChange}
+      />
+    </div>
   )
 }

@@ -39,10 +39,11 @@ export default function SubtitleEditList({
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-3">
-          {clips.map((clip) => (
+          {clips.map((clip, index) => (
             <ClipComponent
               key={clip.id}
               clip={clip}
+              index={index + 1} // 인덱스는 1부터 시작
               isSelected={activeClipId === clip.id} // 포커스 상태
               isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
               isMultiSelected={selectedClipIds.has(clip.id)}

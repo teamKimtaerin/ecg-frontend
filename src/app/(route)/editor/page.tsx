@@ -11,6 +11,9 @@ import { useCallback, useEffect, useId, useState } from 'react'
 // Store
 import { useEditorStore } from './store'
 
+// Types
+import { EditorTab } from './types'
+
 // Hooks
 import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
@@ -20,7 +23,7 @@ import { useSelectionBox } from './hooks/useSelectionBox'
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import UploadModal from '@/components/UploadModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
-import ClipToolBar from './components/ClipComponent/ClipToolBar'
+import Toolbars from './components/Toolbars'
 import DragOverlayContent from './components/DragOverlayContent'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
@@ -52,7 +55,7 @@ export default function EditorPage() {
   } = useEditorStore()
 
   // Local state
-  const [activeTab, setActiveTab] = useState('home')
+  const [activeTab, setActiveTab] = useState<EditorTab>('home')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [editorHistory] = useState(() => new EditorHistory())
   const [windowWidth, setWindowWidth] = useState(
@@ -485,12 +488,19 @@ export default function EditorPage() {
       onDragCancel={handleDragCancel}
     >
       <div className="min-h-screen bg-gray-900 text-white">
-        <EditorHeaderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <EditorHeaderTabs
+          activeTab={activeTab}
+          onTabChange={(tabId: string) => setActiveTab(tabId as EditorTab)}
+        />
 
-        <ClipToolBar
+        <Toolbars
+          activeTab={activeTab}
+          clips={clips}
           selectedClipIds={selectedClipIds}
+          activeClipId={activeClipId}
           canUndo={editorHistory.canUndo()}
           canRedo={editorHistory.canRedo()}
+          onSelectionChange={setSelectedClipIds}
           onNewClick={() => setIsUploadModalOpen(true)}
           onMergeClips={handleMergeClips}
           onUndo={handleUndo}

@@ -20,6 +20,7 @@ export interface ClipItem {
 
 export interface ClipComponentProps {
   clip: ClipItem
+  index: number
   isSelected: boolean
   isChecked?: boolean
   isMultiSelected?: boolean
