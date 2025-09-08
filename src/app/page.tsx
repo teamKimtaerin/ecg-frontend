@@ -4,9 +4,11 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { NewLandingPage } from '@/components/NewLandingPage'
 import WelcomeModal from '@/components/WelcomeModal'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 
 export default function Home() {
   const router = useRouter()
+  const { isLoggedIn, user, isLoading } = useAuthStatus()
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const handleTryClick = () => {
     console.log('Try button clicked')
@@ -47,6 +49,9 @@ export default function Home() {
         onApplyDynamicSubtitleClick={handleApplyDynamicSubtitleClick}
         onCustomEditingQuickStartClick={handleCustomEditingQuickStartClick}
         onTryAutoSubtitleClick={handleTryAutoSubtitleClick}
+        isLoggedIn={isLoggedIn}
+        user={user}
+        isLoading={isLoading}
       />
 
       <WelcomeModal

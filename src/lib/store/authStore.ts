@@ -22,6 +22,7 @@ interface AuthActions {
   getCurrentUser: () => Promise<void>
   clearError: () => void
   setLoading: (loading: boolean) => void
+  setAuthData: (user: User, token: string) => void
 }
 
 type AuthStore = AuthState & AuthActions
@@ -127,6 +128,16 @@ const useAuthStore = create<AuthStore>()(
       clearError: () => set({ error: null }),
 
       setLoading: (loading: boolean) => set({ isLoading: loading }),
+
+      setAuthData: (user: User, token: string) => {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        })
+      },
     }),
     {
       name: 'ecg-auth-storage',

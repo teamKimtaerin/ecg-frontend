@@ -14,8 +14,11 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
   const handleGoogleAuth = () => {
     if (disabled) return
 
+    const googleAuthUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/google/login`
+    console.log('Redirecting to Google OAuth:', googleAuthUrl)
+
     // 백엔드 Google OAuth 엔드포인트로 직접 리디렉션
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/google/login`
+    window.location.href = googleAuthUrl
   }
 
   const getButtonText = () => {

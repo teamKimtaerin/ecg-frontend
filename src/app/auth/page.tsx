@@ -2,13 +2,15 @@
 
 import Checkbox from '@/components/ui/Checkbox'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { useRouter, useSearchParams } from 'next/navigation'
-import React, { Suspense, useCallback, useState } from 'react'
+import React, { Suspense, useCallback, useState, useEffect } from 'react'
 import { LuEye, LuEyeOff } from 'react-icons/lu'
 
 const AuthPageContent: React.FC = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { isLoggedIn, isLoading: authLoading } = useAuthStatus()
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login'
   const provider = searchParams.get('provider')
   const emailFromUrl = searchParams.get('email') || ''
@@ -27,9 +29,10 @@ const AuthPageContent: React.FC = () => {
 
   const { login, signup, getGoogleLoginUrl } = useAuth()
 
-  const handleGoogleLogin = useCallback(async () => {
+  // 모든 Hook들을 early return 전에 배치
+  const handleGoogleLogin = useCallback(() => {
     try {
-      const googleUrl = await getGoogleLoginUrl()
+      const googleUrl = getGoogleLoginUrl()
       // 현재 창에서 Google OAuth로 이동
       window.location.href = googleUrl
     } catch (error) {
@@ -38,46 +41,23 @@ const AuthPageContent: React.FC = () => {
     }
   }, [getGoogleLoginUrl])
 
-  // Google OAuth 자동 리디렉션 및 토큰 처리
-  React.useEffect(() => {
-    if (provider === 'google') {
-      handleGoogleLogin()
-    }
-
-    // URL에서 토큰 확인 (Google OAuth 콜백 처리)
-    const urlParams = new URLSearchParams(window.location.search)
-    const token = urlParams.get('token')
-    const error = urlParams.get('error')
-
-    if (token) {
-      // OAuth 성공 - 토큰 저장 후 홈으로 이동
-      localStorage.setItem('token', token)
-      router.push('/')
-    } else if (error) {
-      // OAuth 실패 - 에러 메시지 표시
-      const message =
-        urlParams.get('message') || 'Google 로그인 중 오류가 발생했습니다.'
-      setErrors({ general: message })
-      // URL 정리
-      window.history.replaceState({}, '', '/auth')
-    }
-  }, [provider, handleGoogleLogin, router])
-
-  const handleForgotPassword = (e: React.MouseEvent) => {
+  const handleForgotPassword = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     // TODO: 비밀번호 찾기 기능 구현
     console.log('Forgot password clicked')
-  }
+  }, [])
 
-  const handleInputChange =
+  const handleInputChange = useCallback(
     (field: keyof typeof formData) => (value: string) => {
       setFormData((prev) => ({ ...prev, [field]: value }))
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: '' }))
       }
-    }
+    },
+    [formData, errors]
+  )
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.email) {
@@ -106,38 +86,87 @@ const AuthPageContent: React.FC = () => {
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }
+  }, [formData, mode])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault()
 
-    if (!validateForm()) return
+      if (!validateForm()) return
 
-    setIsLoading(true)
+      setIsLoading(true)
 
-    try {
-      if (mode === 'login') {
-        await login({
-          email: formData.email,
-          password: formData.password,
+      try {
+        if (mode === 'login') {
+          await login({
+            email: formData.email,
+            password: formData.password,
+          })
+        } else {
+          await signup({
+            email: formData.email,
+            password: formData.password,
+            username: formData.username,
+          })
+        }
+
+        router.push('/')
+      } catch (error) {
+        setErrors({
+          general:
+            error instanceof Error ? error.message : '오류가 발생했습니다.',
         })
-      } else {
-        await signup({
-          email: formData.email,
-          password: formData.password,
-          username: formData.username,
-        })
+      } finally {
+        setIsLoading(false)
       }
+    },
+    [mode, formData, login, signup, router, validateForm]
+  )
 
+  // 로그인 상태 체크 및 리디렉션
+  useEffect(() => {
+    console.log('Auth redirect check:', { authLoading, isLoggedIn })
+    if (!authLoading && isLoggedIn) {
+      console.log('Redirecting to home page...')
       router.push('/')
-    } catch (error) {
-      setErrors({
-        general:
-          error instanceof Error ? error.message : '오류가 발생했습니다.',
-      })
-    } finally {
-      setIsLoading(false)
     }
+  }, [isLoggedIn, authLoading, router])
+
+  // Google OAuth 자동 리디렉션 및 토큰 처리
+  React.useEffect(() => {
+    if (provider === 'google') {
+      handleGoogleLogin()
+    }
+
+    // URL에서 토큰 확인 (Google OAuth 콜백 처리)
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+    const error = urlParams.get('error')
+
+    if (token) {
+      // OAuth 성공 - 토큰 저장 후 홈으로 이동
+      localStorage.setItem('token', token)
+      router.push('/')
+    } else if (error) {
+      // OAuth 실패 - 에러 메시지 표시
+      const message =
+        urlParams.get('message') || 'Google 로그인 중 오류가 발생했습니다.'
+      setErrors({ general: message })
+      // URL 정리
+      window.history.replaceState({}, '', '/auth')
+    }
+  }, [provider, handleGoogleLogin, router])
+
+  // 인증 상태 로딩 중이거나 로그인된 경우 로딩 화면 표시
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+          <p className="mt-4 text-gray-300">로딩 중...</p>
+        </div>
+      </div>
+    )
   }
 
   return (

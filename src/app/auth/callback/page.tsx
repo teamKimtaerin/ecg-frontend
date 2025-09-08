@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useAuthStore } from '@/lib/store/authStore'
 
 export default function AuthCallbackPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
@@ -10,6 +11,7 @@ export default function AuthCallbackPage() {
   const [message, setMessage] = useState('')
   const searchParams = useSearchParams()
   const router = useRouter()
+  const authStore = useAuthStore()
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -36,9 +38,6 @@ export default function AuthCallbackPage() {
           return
         }
 
-        // 토큰을 localStorage에 저장
-        localStorage.setItem('access_token', token)
-
         // 사용자 정보 가져오기
         const userResponse = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/me`,
@@ -51,8 +50,14 @@ export default function AuthCallbackPage() {
 
         if (userResponse.ok) {
           const userData = await userResponse.json()
-          // 필요하다면 사용자 정보도 저장
-          localStorage.setItem('user', JSON.stringify(userData))
+
+          // Zustand store에 토큰과 사용자 정보 저장
+          authStore.setAuthData(userData, token)
+
+          console.log('Token and user data saved to store:', {
+            token,
+            userData,
+          })
 
           setStatus('success')
           setMessage(`환영합니다, ${userData.username}님!`)
