@@ -7,7 +7,6 @@ import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
 import ClipText from './ClipText'
-import { useSpeakerManagement } from '../../hooks/useSpeakerManagement'
 import { useClipDragAndDrop } from '../../hooks/useClipDragAndDrop'
 import { useClipStyles } from '../../hooks/useClipStyles'
 
@@ -18,14 +17,15 @@ export default function ClipComponent({
   isChecked = false,
   isMultiSelected = false,
   enableDragAndDrop = false,
+  speakers = [],
   onSelect,
   onCheck,
   onWordEdit,
   onSpeakerChange,
+  onSpeakerRemove,
+  onBatchSpeakerChange,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
-
-  const { speakers } = useSpeakerManagement()
   const { dragProps, isDragging } = useClipDragAndDrop(
     clip.id,
     enableDragAndDrop
@@ -76,6 +76,8 @@ export default function ClipComponent({
                   speaker={clip.speaker}
                   speakers={speakers}
                   onSpeakerChange={onSpeakerChange}
+                  onSpeakerRemove={onSpeakerRemove}
+                  onBatchSpeakerChange={onBatchSpeakerChange}
                 />
                 <div className="w-12" />
                 <ClipWords

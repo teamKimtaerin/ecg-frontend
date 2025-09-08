@@ -1,11 +1,7 @@
 import { useState } from 'react'
 
 export function useSpeakerManagement(initialSpeakers: string[] = []) {
-  const [speakers, setSpeakers] = useState(
-    initialSpeakers.length > 0
-      ? initialSpeakers
-      : ['Speaker 1', 'Speaker 2', 'Speaker 3']
-  )
+  const [speakers, setSpeakers] = useState(initialSpeakers)
 
   const addSpeaker = (newSpeaker: string) => {
     if (newSpeaker && !speakers.includes(newSpeaker)) {
@@ -13,8 +9,13 @@ export function useSpeakerManagement(initialSpeakers: string[] = []) {
     }
   }
 
+  const removeSpeaker = (speakerToRemove: string) => {
+    setSpeakers(speakers.filter((speaker) => speaker !== speakerToRemove))
+  }
+
   return {
     speakers,
     addSpeaker,
+    removeSpeaker,
   }
 }

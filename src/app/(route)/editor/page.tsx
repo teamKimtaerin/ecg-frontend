@@ -17,6 +17,7 @@ import { projectStorage } from '@/utils/storage/projectStorage'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { projectInfoManager } from '@/utils/managers/ProjectInfoManager'
 import { log } from '@/utils/logger'
+import { loadTranscriptionData } from '@/utils/transcription/segmentConverter'
 
 // Types
 import { EditorTab } from './types'
@@ -43,6 +44,9 @@ import { areClipsConsecutive } from '@/utils/editor/clipMerger'
 import { MergeClipsCommand } from '@/utils/editor/commands/MergeClipsCommand'
 import { SplitClipCommand } from '@/utils/editor/commands/SplitClipCommand'
 import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
+import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
+import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
+import { BatchChangeSpeakerCommand } from '@/utils/editor/commands/BatchChangeSpeakerCommand'
 import { showToast } from '@/utils/ui/toast'
 
 export default function EditorPage() {
@@ -80,6 +84,8 @@ export default function EditorPage() {
     typeof window !== 'undefined' ? window.innerWidth : 1920
   )
   const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
+  const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
+  const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -95,6 +101,22 @@ export default function EditorPage() {
 
         // Initialize AutosaveManager
         const autosaveManager = AutosaveManager.getInstance()
+
+        // Load real.json data first (temporary for development)
+        const transcriptionClips = await loadTranscriptionData('/real.json')
+        if (transcriptionClips.length > 0) {
+          log(
+            'EditorPage.tsx',
+            `Loaded ${transcriptionClips.length} clips from real.json`
+          )
+          setClips(transcriptionClips)
+
+          // Extract unique speakers from clips
+          const uniqueSpeakers = Array.from(
+            new Set(transcriptionClips.map((clip) => clip.speaker))
+          )
+          setSpeakers(uniqueSpeakers)
+        }
 
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
@@ -139,9 +161,13 @@ export default function EditorPage() {
 
             // Load saved project data
             const savedProject = projectStorage.loadCurrentProject()
-            if (savedProject) {
+            if (
+              savedProject &&
+              savedProject.clips &&
+              savedProject.clips.length > 0
+            ) {
               log('EditorPage.tsx', `Recovered project: ${savedProject.name}`)
-              setClips(savedProject.clips || [])
+              setClips(savedProject.clips)
 
               // Restore media information if available
               if (savedProject.mediaId || savedProject.videoUrl) {
@@ -168,12 +194,16 @@ export default function EditorPage() {
         } else {
           // No session to recover - check for autosaved project
           const currentProject = projectStorage.loadCurrentProject()
-          if (currentProject) {
+          if (
+            currentProject &&
+            currentProject.clips &&
+            currentProject.clips.length > 0
+          ) {
             log(
               'EditorPage.tsx',
               `Found autosaved project: ${currentProject.name}`
             )
-            setClips(currentProject.clips || [])
+            setClips(currentProject.clips)
             autosaveManager.setProject(currentProject.id, 'browser')
           } else {
             // New project
@@ -217,6 +247,15 @@ export default function EditorPage() {
     selectionBox,
   } = useSelectionBox()
 
+  // Scroll progress handler
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget
+    const scrollTop = element.scrollTop
+    const scrollHeight = element.scrollHeight - element.clientHeight
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0
+    setScrollProgress(progress)
+  }, [])
+
   // Panel resize handler
   const handlePanelResize = useCallback(
     (delta: number) => {
@@ -245,10 +284,60 @@ export default function EditorPage() {
   }
 
   const handleSpeakerChange = (clipId: string, newSpeaker: string) => {
-    const updatedClips = clips.map((clip) =>
-      clip.id === clipId ? { ...clip, speaker: newSpeaker } : clip
+    // Use Command pattern for undo/redo support
+    const command = new ChangeSpeakerCommand(
+      clips,
+      speakers,
+      clipId,
+      newSpeaker,
+      setClips,
+      setSpeakers
     )
-    setClips(updatedClips)
+    editorHistory.executeCommand(command)
+  }
+
+  const handleSpeakerRemove = (speakerToRemove: string) => {
+    // Use Command pattern for undo/redo support
+    const command = new RemoveSpeakerCommand(
+      clips,
+      speakers,
+      speakerToRemove,
+      setClips,
+      setSpeakers
+    )
+    editorHistory.executeCommand(command)
+  }
+
+  const handleBatchSpeakerChange = (clipIds: string[], newSpeaker: string) => {
+    // If only one clipId is passed, check if we should apply to all empty clips
+    let targetClipIds = clipIds
+
+    if (clipIds.length === 1) {
+      // Check if the current clip is empty and find all empty clips
+      const currentClip = clips.find((c) => c.id === clipIds[0])
+      if (currentClip && !currentClip.speaker) {
+        // Find all clips without speakers
+        const emptyClipIds = clips
+          .filter((clip) => !clip.speaker)
+          .map((clip) => clip.id)
+
+        // If there are multiple empty clips, we'll apply to all of them
+        if (emptyClipIds.length > 1) {
+          targetClipIds = emptyClipIds
+        }
+      }
+    }
+
+    // Use Command pattern for batch speaker change
+    const command = new BatchChangeSpeakerCommand(
+      clips,
+      speakers,
+      targetClipIds,
+      newSpeaker,
+      setClips,
+      setSpeakers
+    )
+    editorHistory.executeCommand(command)
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
@@ -671,7 +760,9 @@ export default function EditorPage() {
         />
 
         <div className="flex h-[calc(100vh-120px)] relative">
-          <VideoSection width={videoPanelWidth} />
+          <div className="sticky top-0 h-fit">
+            <VideoSection width={videoPanelWidth} />
+          </div>
 
           <ResizablePanelDivider
             orientation="vertical"
@@ -680,20 +771,29 @@ export default function EditorPage() {
           />
 
           <div
-            className="flex-1 flex justify-center relative overflow-hidden"
+            className="flex-1 flex justify-center relative overflow-y-auto custom-scrollbar"
             ref={containerRef}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            onScroll={handleScroll}
+            style={
+              {
+                '--scroll-progress': `${scrollProgress}%`,
+              } as React.CSSProperties
+            }
           >
             <SubtitleEditList
               clips={clips}
               selectedClipIds={selectedClipIds}
               activeClipId={activeClipId}
+              speakers={speakers}
               onClipSelect={handleClipSelect}
               onClipCheck={handleClipCheck}
               onWordEdit={handleWordEdit}
               onSpeakerChange={handleSpeakerChange}
+              onSpeakerRemove={handleSpeakerRemove}
+              onBatchSpeakerChange={handleBatchSpeakerChange}
               onEmptySpaceClick={handleEmptySpaceClick}
             />
 

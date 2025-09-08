@@ -8,10 +8,13 @@ interface SubtitleEditListProps {
   clips: ClipItem[]
   selectedClipIds: Set<string>
   activeClipId?: string | null
+  speakers?: string[]
   onClipSelect: (clipId: string) => void
   onClipCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
+  onSpeakerRemove?: (speaker: string) => void
+  onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
   onEmptySpaceClick?: () => void
 }
 
@@ -19,10 +22,13 @@ export default function SubtitleEditList({
   clips,
   selectedClipIds,
   activeClipId,
+  speakers = [],
   onClipSelect,
   onClipCheck,
   onWordEdit,
   onSpeakerChange,
+  onSpeakerRemove,
+  onBatchSpeakerChange,
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
   // 빈 공간 클릭 핸들러
@@ -48,10 +54,13 @@ export default function SubtitleEditList({
               isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
               isMultiSelected={selectedClipIds.has(clip.id)}
               enableDragAndDrop={true}
+              speakers={speakers}
               onSelect={onClipSelect}
               onCheck={onClipCheck}
               onWordEdit={onWordEdit}
               onSpeakerChange={onSpeakerChange}
+              onSpeakerRemove={onSpeakerRemove}
+              onBatchSpeakerChange={onBatchSpeakerChange}
             />
           ))}
         </div>
