@@ -52,18 +52,11 @@ export default function Home() {
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        onLogin={(email, password, rememberMe) => {
-          console.log('Login attempted:', { email, password, rememberMe })
-          // Add actual login logic here
+        onSuccess={() => {
+          console.log('Login/signup successful')
           setShowLoginModal(false)
-        }}
-        onGoogleLogin={() => {
-          console.log('Google login clicked')
-          // Add Google login logic here
-        }}
-        onSignup={() => {
-          console.log('Signup clicked')
-          window.location.href = '/signup'
+          // Navigate to dashboard or editor
+          window.location.href = '/editor'
         }}
         onForgotPassword={() => {
           console.log('Forgot password clicked')
