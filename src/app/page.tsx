@@ -3,9 +3,11 @@
 import React, { useState } from 'react'
 import { NewLandingPage } from '@/components/NewLandingPage'
 import { LoginModal } from '@/components'
+import WelcomeModal from '@/components/WelcomeModal'
 
 export default function Home() {
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const handleTryClick = () => {
     console.log('Try button clicked')
     // Add navigation logic here
@@ -18,7 +20,7 @@ export default function Home() {
 
   const handleQuickStartClick = () => {
     console.log('Quick start button clicked')
-    // Add navigation logic here
+    setShowWelcomeModal(true)
   }
 
   const handleApplyDynamicSubtitleClick = () => {
@@ -71,6 +73,17 @@ export default function Home() {
           console.log('Skip clicked')
           setShowLoginModal(false)
         }}
+      />
+
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        onAgreeAndStart={() => {
+          setShowWelcomeModal(false)
+          // Navigate to editor or upload page
+          window.location.href = '/editor'
+        }}
+        onGoBack={() => setShowWelcomeModal(false)}
       />
     </>
   )

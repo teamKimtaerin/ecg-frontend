@@ -26,7 +26,7 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
         <section className="py-8 text-center">
           <button
             onClick={onTryAutoSubtitleClick}
-            className="px-8 py-3 text-base font-bold bg-white text-black border-2 border-black rounded-full hover:bg-black hover:text-white transition-all shadow-md hover:shadow-lg"
+            className="px-8 py-3 text-base font-bold bg-white text-black border-2 border-black rounded-full hover:bg-black hover:text-white transition-all shadow-md hover:shadow-lg cursor-pointer"
           >
             다양한 자막 체험하기
           </button>

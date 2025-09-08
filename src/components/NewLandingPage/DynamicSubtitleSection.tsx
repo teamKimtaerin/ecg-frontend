@@ -27,7 +27,7 @@ const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = ({
         <section className="py-8 text-center">
           <button
             onClick={onApplyDynamicSubtitleClick}
-            className="px-8 py-3 text-base font-bold bg-white text-black border-2 border-black rounded-full hover:bg-black hover:text-white transition-all shadow-md hover:shadow-lg"
+            className="px-8 py-3 text-base font-bold bg-white text-black border-2 border-black rounded-full hover:bg-black hover:text-white transition-all shadow-md hover:shadow-lg cursor-pointer"
           >
             템플릿 적용해보기
           </button>
@@ -35,19 +35,19 @@ const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = ({
 
         {/* Subtitle style tabs */}
         <div className="flex justify-center space-x-3 mb-8 flex-wrap gap-2">
-          <span className="px-4 py-2 bg-black text-white rounded-full text-xs font-semibold shadow-md">
+          <span className="px-4 py-2 bg-black text-white rounded-full text-xs font-semibold shadow-md cursor-pointer">
             CI
           </span>
-          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors">
+          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
             modern
           </span>
-          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors">
+          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
             daisy
           </span>
-          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors">
+          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
             minimal
           </span>
-          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors">
+          <span className="px-4 py-2 bg-white text-black border-2 border-black rounded-full text-xs font-semibold hover:bg-gray-50 transition-colors cursor-pointer">
             dynamic
           </span>
         </div>

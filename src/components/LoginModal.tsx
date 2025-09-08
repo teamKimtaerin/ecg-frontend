@@ -134,7 +134,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           />
           <button
             onClick={handleForgotPassword}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
           >
             비밀번호 찾기
           </button>
@@ -143,7 +143,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
         {/* Login Button */}
         <button
           onClick={handleLogin}
-          className="w-full h-[50px] bg-gray-900 text-white rounded-3xl font-bold text-base hover:bg-gray-800 transition-colors"
+          className="w-full h-[50px] bg-gray-900 text-white rounded-3xl font-bold text-base hover:bg-gray-800 transition-colors cursor-pointer"
         >
           로그인
         </button>
@@ -156,7 +156,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
           <button
             onClick={handleSignup}
-            className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors"
+            className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors cursor-pointer"
           >
             회원가입
           </button>
@@ -164,7 +164,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
           <div className="flex justify-end">
             <button
               onClick={handleSkip}
-              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
             >
               나중에 하기
             </button>

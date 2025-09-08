@@ -22,13 +22,14 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
-import UploadModal from '@/components/UploadModal'
+import NewUploadModal from '@/components/NewUploadModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import Toolbars from './components/Toolbars'
 import DragOverlayContent from './components/DragOverlayContent'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
+import EmptyState from './components/EmptyState'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -162,14 +163,33 @@ export default function EditorPage() {
   }
 
   // Upload modal handler
-  const wrappedHandleStartTranscription = (
-    data: Parameters<typeof handleStartTranscription>[0]
-  ) => {
-    return handleStartTranscription(
-      data,
-      () => setIsUploadModalOpen(false),
-      false
-    )
+  const wrappedHandleStartTranscription = async (data: {
+    files: File[]
+    settings: { language: string }
+  }) => {
+    try {
+      // Convert File[] to FileList-like object
+      const fileList = new DataTransfer()
+      data.files.forEach((file) => fileList.items.add(file))
+
+      // Convert to the expected format for the original handleStartTranscription
+      const transcriptionData = {
+        files: fileList.files,
+        language: data.settings.language,
+        useDictionary: false,
+        autoSubmit: true,
+        method: 'file' as const,
+      }
+
+      await handleStartTranscription(
+        transcriptionData,
+        () => setIsUploadModalOpen(false),
+        false
+      )
+    } catch (error) {
+      console.error('Transcription failed:', error)
+      throw error
+    }
   }
 
   // Merge clips handler
@@ -529,47 +549,62 @@ export default function EditorPage() {
           onSplitClip={handleSplitClip}
         />
 
-        <div className="flex h-[calc(100vh-120px)] relative">
-          <VideoSection width={videoPanelWidth} />
-
-          <ResizablePanelDivider
-            orientation="vertical"
-            onResize={handlePanelResize}
-            className="z-10"
+        {clips.length === 0 ? (
+          <EmptyState
+            onNewProjectClick={() => setIsUploadModalOpen(true)}
+            onOpenProjectClick={() => {
+              console.log('Open project clicked')
+              // TODO: Implement project opening logic
+            }}
           />
+        ) : (
+          <div className="flex h-[calc(100vh-120px)] relative">
+            <VideoSection width={videoPanelWidth} />
 
-          <div
-            className="flex-1 flex justify-center relative overflow-hidden"
-            ref={containerRef}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-          >
-            <SubtitleEditList
-              clips={clips}
-              selectedClipIds={selectedClipIds}
-              activeClipId={activeClipId}
-              onClipSelect={handleClipSelect}
-              onClipCheck={handleClipCheck}
-              onWordEdit={handleWordEdit}
-              onSpeakerChange={handleSpeakerChange}
-              onEmptySpaceClick={handleEmptySpaceClick}
+            <ResizablePanelDivider
+              orientation="vertical"
+              onResize={handlePanelResize}
+              className="z-10"
             />
 
-            <SelectionBox
-              startX={selectionBox.startX}
-              startY={selectionBox.startY}
-              endX={selectionBox.endX}
-              endY={selectionBox.endY}
-              isSelecting={isSelecting}
-            />
+            <div
+              className="flex-1 flex justify-center relative overflow-hidden"
+              ref={containerRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+            >
+              <SubtitleEditList
+                clips={clips}
+                selectedClipIds={selectedClipIds}
+                activeClipId={activeClipId}
+                onClipSelect={handleClipSelect}
+                onClipCheck={handleClipCheck}
+                onWordEdit={handleWordEdit}
+                onSpeakerChange={handleSpeakerChange}
+                onEmptySpaceClick={handleEmptySpaceClick}
+              />
+
+              <SelectionBox
+                startX={selectionBox.startX}
+                startY={selectionBox.startY}
+                endX={selectionBox.endX}
+                endY={selectionBox.endY}
+                isSelecting={isSelecting}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        <UploadModal
+        <NewUploadModal
           isOpen={isUploadModalOpen}
           onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
-          onFileSelect={handleFileSelect}
+          onFileSelect={(files: File[]) => {
+            // Convert File[] to FileList for compatibility
+            const fileList = new DataTransfer()
+            files.forEach((file) => fileList.items.add(file))
+            handleFileSelect(fileList.files)
+          }}
           onStartTranscription={wrappedHandleStartTranscription}
           acceptedTypes={['audio/*', 'video/*']}
           maxFileSize={100 * 1024 * 1024} // 100MB

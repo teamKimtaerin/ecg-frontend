@@ -27,7 +27,7 @@ const CustomEditingSection: React.FC<CustomEditingSectionProps> = ({
         <div className="mb-12">
           <button
             onClick={onQuickStartClick}
-            className="px-8 py-4 text-lg font-semibold bg-black text-white rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="px-8 py-4 text-lg font-semibold bg-black text-white rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
           >
             빠른 시작
           </button>

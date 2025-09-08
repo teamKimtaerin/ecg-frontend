@@ -19,25 +19,25 @@ const Header: React.FC<HeaderProps> = ({ onTryClick, onLoginClick }) => {
         <nav className="hidden md:flex items-center space-x-8">
           <a
             href="#"
-            className="text-sm font-medium text-gray-700 hover:text-black transition-colors"
+            className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
           >
             주요 기능
           </a>
           <a
             href="#"
-            className="text-sm font-medium text-gray-700 hover:text-black transition-colors"
+            className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
           >
             애님 템플릿
           </a>
           <a
             href="#"
-            className="text-sm font-medium text-gray-700 hover:text-black transition-colors"
+            className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
           >
             사용법 배우기
           </a>
           <a
             href="#"
-            className="text-sm font-medium text-gray-700 hover:text-black transition-colors"
+            className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
           >
             커뮤니티
           </a>
@@ -46,13 +46,13 @@ const Header: React.FC<HeaderProps> = ({ onTryClick, onLoginClick }) => {
         <div className="flex items-center space-x-4">
           <button
             onClick={onTryClick}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-black transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-black transition-colors cursor-pointer"
           >
             체험하기 →
           </button>
           <button
             onClick={onLoginClick}
-            className="px-4 py-2 text-sm font-medium bg-black text-white rounded-xl hover:bg-gray-800 transition-colors"
+            className="px-4 py-2 text-sm font-medium bg-black text-white rounded-xl hover:bg-gray-800 transition-colors cursor-pointer"
           >
             로그인 / 회원가입
           </button>
