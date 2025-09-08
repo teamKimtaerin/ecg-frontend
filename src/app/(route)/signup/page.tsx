@@ -20,8 +20,6 @@ export default function SignupPage() {
     setShowPassword,
     setShowConfirmPassword,
     handleSubmit,
-    handleGoogleSignup,
-    handleGoogleSignupError,
   } = useSignupForm()
 
   return (
@@ -46,11 +44,7 @@ export default function SignupPage() {
 
           <ErrorMessage message={errors.general} />
 
-          <GoogleSignupButton
-            onSuccess={handleGoogleSignup}
-            onError={handleGoogleSignupError}
-            disabled={isLoading}
-          />
+          <GoogleSignupButton disabled={isLoading} />
 
           <FormDivider text="혹은 이메일로 회원가입" />
 
