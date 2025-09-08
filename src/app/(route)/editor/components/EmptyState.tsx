@@ -87,7 +87,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       `}</style>
 
       {/* Center Cards - Positioned to avoid toolbar but stay visible */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-20 translate-y-2.5 flex space-x-6">
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-10 flex space-x-6">
         {/* New Project Card */}
         <button
           onClick={onNewProjectClick}
