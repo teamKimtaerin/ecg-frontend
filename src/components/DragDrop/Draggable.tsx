@@ -18,7 +18,13 @@ const Draggable: React.FC<DraggableProps> = ({ children, id }) => {
     : undefined
 
   return (
-    <button ref={setNodeRef} style={style} {...listeners} {...attributes}>
+    <button
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className="cursor-pointer"
+    >
       {children}
     </button>
   )

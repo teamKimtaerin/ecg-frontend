@@ -1,7 +1,15 @@
 'use client'
 
-import AlertBanner from '@/components/ui/AlertBanner'
 import React from 'react'
+import {
+  LuYoutube,
+  LuMonitor,
+  LuLink2,
+  LuLink,
+  LuCheck,
+  LuX,
+} from 'react-icons/lu'
+import AlertBanner from '@/components/ui/AlertBanner'
 
 interface UrlImportTabProps {
   url: string
@@ -19,11 +27,19 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
   }
 
   const supportedPlatforms = [
-    { name: 'YouTube', icon: '🎬', example: 'https://youtube.com/watch?v=...' },
-    { name: 'Vimeo', icon: '📺', example: 'https://vimeo.com/...' },
+    {
+      name: 'YouTube',
+      IconComponent: LuYoutube,
+      example: 'https://youtube.com/watch?v=...',
+    },
+    {
+      name: 'Vimeo',
+      IconComponent: LuMonitor,
+      example: 'https://vimeo.com/...',
+    },
     {
       name: 'Direct URL',
-      icon: '🔗',
+      IconComponent: LuLink2,
       example: 'https://example.com/video.mp4',
     },
   ]
@@ -33,19 +49,7 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
       <div className="space-y-4">
         <div className="text-center space-y-2">
           <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-            <svg
-              className="w-8 h-8 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-              />
-            </svg>
+            <LuLink className="w-8 h-8 text-primary" />
           </div>
           <h3 className="text-lg font-medium text-text-primary">
             Import from URL
@@ -84,33 +88,9 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
               {url &&
                 (isValidUrl ? (
-                  <svg
-                    className="w-5 h-5 text-status-positive"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
+                  <LuCheck className="w-5 h-5 text-status-positive" />
                 ) : (
-                  <svg
-                    className="w-5 h-5 text-status-negative"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <LuX className="w-5 h-5 text-status-negative" />
                 ))}
             </div>
           </div>
@@ -132,7 +112,9 @@ const UrlImportTab: React.FC<UrlImportTabProps> = ({
               key={index}
               className="flex items-center space-x-3 p-3 bg-surface-secondary rounded-lg border border-border"
             >
-              <span className="text-2xl">{platform.icon}</span>
+              <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary/10">
+                <platform.IconComponent className="w-6 h-6 text-primary" />
+              </div>
               <div>
                 <p className="text-sm font-medium text-text-primary">
                   {platform.name}

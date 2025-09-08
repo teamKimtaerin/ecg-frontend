@@ -77,3 +77,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .api-backup
+
+package-lock.json

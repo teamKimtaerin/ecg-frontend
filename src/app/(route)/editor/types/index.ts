@@ -63,7 +63,10 @@ export interface ClipTableProps {
 }
 
 // Initial data
-export const INITIAL_CLIPS: ClipItem[] = [
+export const INITIAL_CLIPS: ClipItem[] = []
+
+// 개발용 샘플 데이터 (필요시 사용)
+export const SAMPLE_CLIPS: ClipItem[] = [
   {
     id: '1',
     timeline: '0:00:15',
