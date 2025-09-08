@@ -8,12 +8,7 @@ import DynamicSubtitleSection from './DynamicSubtitleSection'
 import CustomEditingSection from './CustomEditingSection'
 import FreeAssetsSection from './FreeAssetsSection'
 import Footer from './Footer'
-
-interface User {
-  id: number
-  username: string
-  email: string
-}
+import { type User } from '@/lib/api/auth'
 
 export interface NewLandingPageProps {
   // Header event handlers

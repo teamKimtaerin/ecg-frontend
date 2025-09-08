@@ -54,7 +54,7 @@ const AuthPageContent: React.FC = () => {
         setErrors((prev) => ({ ...prev, [field]: '' }))
       }
     },
-    [formData, errors]
+    [errors]
   )
 
   const validateForm = useCallback(() => {

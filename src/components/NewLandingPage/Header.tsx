@@ -3,12 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
-
-interface User {
-  id: number
-  username: string
-  email: string
-}
+import { type User } from '@/lib/api/auth'
 
 export interface HeaderProps {
   onTryClick?: () => void

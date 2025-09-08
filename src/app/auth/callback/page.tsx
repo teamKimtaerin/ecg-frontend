@@ -80,7 +80,7 @@ export default function AuthCallbackPage() {
     }
 
     handleAuthCallback()
-  }, [searchParams, router])
+  }, [searchParams, router, authStore])
 
   const getStatusIcon = () => {
     switch (status) {

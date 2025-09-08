@@ -2,12 +2,6 @@
 
 import { useAuth } from './useAuth'
 
-interface User {
-  id: number
-  username: string
-  email: string
-}
-
 export const useAuthStatus = () => {
   const {
     user,
