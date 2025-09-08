@@ -1,83 +1,23 @@
 'use client'
 
-import React from 'react'
-import PageLayout from '@/components/layout/PageLayout'
-import {
-  SignupHeader,
-  GoogleSignupButton,
-  FormDivider,
-  SignupFormFields,
-  SignupButton,
-  LoginLink,
-  ErrorMessage,
-} from './components'
-import { useSignupForm } from './hooks/useSignupForm'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function SignupPage() {
-  const {
-    formData,
-    errors,
-    showPassword,
-    showConfirmPassword,
-    isLoading,
-    handleInputChange,
-    setShowPassword,
-    setShowConfirmPassword,
-    handleSubmit,
-    handleGoogleSignup,
-    handleGoogleSignupError,
-  } = useSignupForm()
+  const router = useRouter()
 
-  const handleLoginRedirect = () => {
-    console.log('Redirect to login')
-    // TODO: Implement navigation to login page
-  }
+  useEffect(() => {
+    // Redirect to auth page with signup mode
+    router.replace('/auth?mode=signup')
+  }, [router])
 
-  const handleTryClick = () => {
-    console.log('Try button clicked')
-    // TODO: Implement navigation to demo page
-  }
-
-  const handleLoginClick = () => {
-    console.log('Login button clicked')
-    // TODO: Open login modal or navigate to login page
-  }
-
+  // Show loading state while redirecting
   return (
-    <PageLayout onTryClick={handleTryClick} onLoginClick={handleLoginClick}>
-      <div className="min-h-screen bg-white py-20">
-        <div className="container mx-auto max-w-md px-4">
-          <SignupHeader />
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <ErrorMessage message={errors.general} />
-
-            <GoogleSignupButton
-              onSuccess={handleGoogleSignup}
-              onError={handleGoogleSignupError}
-              disabled={isLoading}
-            />
-
-            <FormDivider text="또는 이메일로 회원가입" />
-
-            <SignupFormFields
-              formData={formData}
-              errors={errors}
-              showPassword={showPassword}
-              showConfirmPassword={showConfirmPassword}
-              onInputChange={handleInputChange}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-              onToggleConfirmPassword={() =>
-                setShowConfirmPassword(!showConfirmPassword)
-              }
-            />
-
-            <SignupButton isLoading={isLoading} />
-          </form>
-
-          <LoginLink onLoginRedirect={handleLoginRedirect} />
-        </div>
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+        <p className="mt-4 text-gray-600">회원가입 페이지로 이동 중...</p>
       </div>
-    </PageLayout>
+    </div>
   )
 }
