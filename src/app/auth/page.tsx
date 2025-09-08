@@ -1,17 +1,16 @@
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import React, { useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { LuEye, LuEyeOff } from 'react-icons/lu'
 import Checkbox from '@/components/ui/Checkbox'
-import GoogleLoginButton from '@/components/auth/GoogleLoginButton'
 import { useAuth } from '@/hooks/useAuth'
-import { GoogleUserInfo } from '@/types/google-auth'
 
 const AuthPageContent: React.FC = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login'
+  const provider = searchParams.get('provider')
   const emailFromUrl = searchParams.get('email') || ''
 
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode)
@@ -26,17 +25,25 @@ const AuthPageContent: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
 
-  const { login, signup } = useAuth()
+  const { login, signup, getGoogleLoginUrl } = useAuth()
 
-  const handleGoogleLoginSuccess = (userInfo: GoogleUserInfo) => {
-    console.log('Google login success:', userInfo)
-    router.push('/')
-  }
+  const handleGoogleLogin = useCallback(async () => {
+    try {
+      const googleUrl = await getGoogleLoginUrl()
+      // 현재 창에서 Google OAuth로 이동
+      window.location.href = googleUrl
+    } catch (error) {
+      console.error('Google OAuth 오류:', error)
+      setErrors({ general: 'Google 로그인을 시작할 수 없습니다.' })
+    }
+  }, [getGoogleLoginUrl])
 
-  const handleGoogleLoginError = () => {
-    console.log('Google login failed')
-    setErrors({ general: 'Google 로그인에 실패했습니다.' })
-  }
+  // Google OAuth 자동 리디렉션
+  React.useEffect(() => {
+    if (provider === 'google') {
+      handleGoogleLogin()
+    }
+  }, [provider, handleGoogleLogin])
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -148,10 +155,17 @@ const AuthPageContent: React.FC = () => {
           )}
 
           {/* Google Login Button */}
-          <GoogleLoginButton
-            onSuccess={handleGoogleLoginSuccess}
-            onError={handleGoogleLoginError}
-          />
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            className="w-full h-[50px] bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
+          >
+            <span className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-black font-bold text-xs border border-gray-300">
+              G
+            </span>
+            <span>Google로 {mode === 'login' ? '로그인' : '가입'}</span>
+          </button>
 
           {/* Divider */}
           <div className="flex items-center space-x-4">
