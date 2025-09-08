@@ -9,12 +9,17 @@ function AuthCallbackContent() {
     'loading'
   )
   const [message, setMessage] = useState('')
+  const [isProcessed, setIsProcessed] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
   const authStore = useAuthStore()
 
   useEffect(() => {
+    // 이미 처리된 경우 중복 실행 방지
+    if (isProcessed) return
+
     const handleAuthCallback = async () => {
+      setIsProcessed(true)
       try {
         // URL에서 토큰 파라미터 확인
         const token = searchParams.get('token')
@@ -54,10 +59,7 @@ function AuthCallbackContent() {
           // Zustand store에 토큰과 사용자 정보 저장
           authStore.setAuthData(userData, token)
 
-          console.log('Token and user data saved to store:', {
-            token,
-            userData,
-          })
+          console.log('✅ Google OAuth 로그인 성공:', userData.username)
 
           setStatus('success')
           setMessage(`환영합니다, ${userData.username}님!`)
@@ -80,7 +82,8 @@ function AuthCallbackContent() {
     }
 
     handleAuthCallback()
-  }, [searchParams, router, authStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, router])
 
   const getStatusIcon = () => {
     switch (status) {
