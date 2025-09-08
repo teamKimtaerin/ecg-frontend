@@ -7,9 +7,6 @@ export * from './icons'
 // Landing Pages
 export { NewLandingPage } from './NewLandingPage'
 
-// Auth Components
-export { default as LoginModal } from './LoginModal'
-
 // Layout Components
 export { default as PageLayout } from './layout/PageLayout'
 

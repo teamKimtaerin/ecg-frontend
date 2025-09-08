@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { NewLandingPage } from '@/components/NewLandingPage'
-import { LoginModal } from '@/components'
 import WelcomeModal from '@/components/WelcomeModal'
 
 export default function Home() {
-  const [showLoginModal, setShowLoginModal] = useState(false)
+  const router = useRouter()
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const handleTryClick = () => {
     console.log('Try button clicked')
@@ -15,7 +15,7 @@ export default function Home() {
 
   const handleLoginClick = () => {
     console.log('Login button clicked')
-    setShowLoginModal(true)
+    router.push('/auth')
   }
 
   const handleQuickStartClick = () => {
@@ -47,25 +47,6 @@ export default function Home() {
         onApplyDynamicSubtitleClick={handleApplyDynamicSubtitleClick}
         onCustomEditingQuickStartClick={handleCustomEditingQuickStartClick}
         onTryAutoSubtitleClick={handleTryAutoSubtitleClick}
-      />
-
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSuccess={() => {
-          console.log('Login/signup successful')
-          setShowLoginModal(false)
-          // Navigate to dashboard or editor
-          window.location.href = '/editor'
-        }}
-        onForgotPassword={() => {
-          console.log('Forgot password clicked')
-          // Add forgot password logic here
-        }}
-        onSkip={() => {
-          console.log('Skip clicked')
-          setShowLoginModal(false)
-        }}
       />
 
       <WelcomeModal
