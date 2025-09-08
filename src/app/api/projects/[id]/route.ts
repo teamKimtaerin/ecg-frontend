@@ -11,6 +11,11 @@ import { ProjectData } from '@/app/(route)/editor/types/project'
 // Required for static export
 export const dynamic = 'force-static'
 
+// 정적 생성을 위한 파라미터 목록 (빈 배열로 설정)
+export function generateStaticParams() {
+  return []
+}
+
 // In-memory storage (shared with main route.ts)
 // In production, this would be a database
 const projects = new Map<string, ProjectData>()

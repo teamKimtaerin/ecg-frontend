@@ -2,7 +2,7 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   // S3 정적 호스팅을 위한 설정
-  output: 'export', // 정적 파일로 빌드
+  // output: 'export', // 정적 파일로 빌드 - API 라우트 사용 시 비활성화
   trailingSlash: true, // S3용 URL 형식
 
   // 이미지 최적화 비활성화 (정적 export용)
