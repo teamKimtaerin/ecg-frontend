@@ -15,4 +15,4 @@ export { default as GoogleSignInButton } from './auth/GoogleSignInButton'
 export { default as GoogleLoginButton } from './auth/GoogleLoginButton'
 
 // Providers
-export { default as GoogleAuthProvider } from './providers/GoogleAuthProvider'
+// GoogleAuthProvider 제거됨 - 백엔드 중심 OAuth 사용
