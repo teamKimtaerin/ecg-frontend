@@ -1,7 +1,7 @@
-import { Command } from '../EditorHistory'
+import { EditorCommand } from '../EditorHistory'
 import { ClipItem } from '@/app/(route)/editor/types'
 
-export class RemoveSpeakerCommand implements Command {
+export class RemoveSpeakerCommand implements EditorCommand {
   description: string
   private clips: ClipItem[]
   private speakerToRemove: string
@@ -52,9 +52,5 @@ export class RemoveSpeakerCommand implements Command {
 
     // Restore previous clips
     this.setClips(this.previousClips)
-  }
-
-  getDescription(): string {
-    return `Remove speaker: ${this.speakerToRemove}`
   }
 }

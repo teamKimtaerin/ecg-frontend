@@ -1,7 +1,7 @@
-import { Command } from '../EditorHistory'
+import { EditorCommand } from '../EditorHistory'
 import { ClipItem } from '@/app/(route)/editor/types'
 
-export class ChangeSpeakerCommand implements Command {
+export class ChangeSpeakerCommand implements EditorCommand {
   description: string
   private clips: ClipItem[]
   private clipId: string
@@ -61,9 +61,5 @@ export class ChangeSpeakerCommand implements Command {
 
     // Restore previous speakers list
     this.setSpeakers(this.previousSpeakers)
-  }
-
-  getDescription(): string {
-    return `Change speaker from ${this.previousSpeaker} to ${this.newSpeaker}`
   }
 }
