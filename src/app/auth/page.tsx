@@ -2,7 +2,8 @@
 
 import React, { useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Button from '@/components/ui/Button'
+import { LuEye, LuEyeOff } from 'react-icons/lu'
+import Checkbox from '@/components/ui/Checkbox'
 import { useAuth } from '@/hooks/useAuth'
 
 const AuthPageContent: React.FC = () => {
@@ -19,6 +20,8 @@ const AuthPageContent: React.FC = () => {
     confirmPassword: '',
     username: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
 
@@ -41,6 +44,12 @@ const AuthPageContent: React.FC = () => {
       handleGoogleLogin()
     }
   }, [provider, handleGoogleLogin])
+
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault()
+    // TODO: 비밀번호 찾기 기능 구현
+    console.log('Forgot password clicked')
+  }
 
   const handleInputChange =
     (field: keyof typeof formData) => (value: string) => {
@@ -130,176 +139,241 @@ const AuthPageContent: React.FC = () => {
 
       {/* Main content */}
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-gray-slate/30 rounded-2xl p-8 border border-gray-slate/30">
-          {/* Logo/Title */}
+        <div className="bg-white rounded-2xl p-10 shadow-2xl border border-gray-200">
+          {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-black mb-2">
-              <span className="text-primary">ECG</span>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {mode === 'login' ? '로그인' : '회원가입'}
             </h1>
-            <p className="text-gray-medium">
-              {mode === 'login'
-                ? '로그인하여 계속하기'
-                : '계정을 생성하여 시작하기'}
-            </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {errors.general && (
-              <div className="text-red-500 text-sm text-center bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                {errors.general}
-              </div>
-            )}
+          {/* Error Message */}
+          {errors.general && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{errors.general}</p>
+            </div>
+          )}
 
-            <div className="space-y-4">
-              {mode === 'signup' && (
-                <div className="w-full">
+          {/* Google Login Button */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            className="w-full h-[50px] bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
+          >
+            <span className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-black font-bold text-xs border border-gray-300">
+              G
+            </span>
+            <span>Google로 {mode === 'login' ? '로그인' : '가입'}</span>
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="text-xs text-gray-500 px-2">
+              {mode === 'login'
+                ? '혹은 이메일로 로그인'
+                : '혹은 이메일로 회원가입'}
+            </span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-900">
+                  사용자명
+                </label>
+                <div className="relative">
                   <input
-                    id="username"
                     type="text"
-                    placeholder="사용자명"
+                    id="username"
+                    name="username"
+                    autoComplete="username"
                     value={formData.username}
                     onChange={(e) =>
                       handleInputChange('username')(e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-slate/50 rounded-full text-white placeholder-gray-medium focus:outline-none focus:border-primary transition-colors"
+                    placeholder="사용자명 입력"
+                    className={`w-full h-[50px] px-4 bg-gray-50 border rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.username ? 'border-red-300' : 'border-gray-200'
+                    }`}
+                    disabled={isLoading}
                   />
-                  {errors.username && (
-                    <p className="text-red-500 text-sm mt-1 px-4">
-                      {errors.username}
-                    </p>
-                  )}
                 </div>
-              )}
-
-              <div className="w-full">
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="이메일 주소"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email')(e.target.value)}
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-slate/50 rounded-full text-white placeholder-gray-medium focus:outline-none focus:border-primary transition-colors"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1 px-4">
-                    {errors.email}
-                  </p>
+                {errors.username && (
+                  <p className="text-xs text-red-600">{errors.username}</p>
                 )}
               </div>
+            )}
 
-              <div className="w-full">
+            {/* Email Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-900">
+                이메일
+              </label>
+              <div className="relative">
                 <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  autoComplete="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email')(e.target.value)}
+                  placeholder="이메일 주소 입력"
+                  className={`w-full h-[50px] px-4 bg-gray-50 border rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.email ? 'border-red-300' : 'border-gray-200'
+                  }`}
+                  disabled={isLoading}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-xs text-red-600">{errors.email}</p>
+              )}
+            </div>
+
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-900">
+                비밀번호
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
-                  type="password"
-                  placeholder="비밀번호"
+                  name="password"
+                  autoComplete={
+                    mode === 'login' ? 'current-password' : 'new-password'
+                  }
                   value={formData.password}
                   onChange={(e) =>
                     handleInputChange('password')(e.target.value)
                   }
-                  className="w-full px-4 py-3 bg-black/50 border border-gray-slate/50 rounded-full text-white placeholder-gray-medium focus:outline-none focus:border-primary transition-colors"
+                  placeholder="비밀번호 입력"
+                  className={`w-full h-[50px] px-4 pr-12 bg-gray-50 border rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.password ? 'border-red-300' : 'border-gray-200'
+                  }`}
+                  disabled={isLoading}
                 />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1 px-4">
-                    {errors.password}
-                  </p>
-                )}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                  disabled={isLoading}
+                >
+                  {showPassword ? (
+                    <LuEye className="w-5 h-5" />
+                  ) : (
+                    <LuEyeOff className="w-5 h-5" />
+                  )}
+                </button>
               </div>
+              {errors.password && (
+                <p className="text-xs text-red-600">{errors.password}</p>
+              )}
+            </div>
 
-              {mode === 'signup' && (
-                <div className="w-full">
+            {mode === 'signup' && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-900">
+                  비밀번호 확인
+                </label>
+                <div className="relative">
                   <input
-                    id="confirmPassword"
                     type="password"
-                    placeholder="비밀번호 확인"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={(e) =>
                       handleInputChange('confirmPassword')(e.target.value)
                     }
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-slate/50 rounded-full text-white placeholder-gray-medium focus:outline-none focus:border-primary transition-colors"
+                    placeholder="비밀번호 다시 입력"
+                    className={`w-full h-[50px] px-4 bg-gray-50 border rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      errors.confirmPassword
+                        ? 'border-red-300'
+                        : 'border-gray-200'
+                    }`}
+                    disabled={isLoading}
                   />
-                  {errors.confirmPassword && (
-                    <p className="text-red-500 text-sm mt-1 px-4">
-                      {errors.confirmPassword}
-                    </p>
-                  )}
                 </div>
-              )}
-            </div>
+                {errors.confirmPassword && (
+                  <p className="text-xs text-red-600">
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+            )}
 
-            <Button
+            {/* Remember Me and Forgot Password (Login mode only) */}
+            {mode === 'login' && (
+              <div className="flex items-center justify-between">
+                <Checkbox
+                  checked={rememberMe}
+                  onChange={setRememberMe}
+                  label="로그인 상태 유지"
+                />
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                  disabled={isLoading}
+                >
+                  비밀번호 찾기
+                </button>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
               type="submit"
-              variant="accent"
-              size="large"
-              className="w-full font-bold bg-status-positive hover:bg-status-positive hover:opacity-70 hover:scale-105 rounded-full"
-              isDisabled={isLoading}
+              disabled={isLoading}
+              className={`w-full h-[50px] rounded-3xl font-bold text-base transition-colors cursor-pointer ${
+                isLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gray-900 text-white hover:bg-gray-800'
+              }`}
             >
               {isLoading
-                ? mode === 'login'
-                  ? '로그인 중...'
-                  : '계정 생성 중...'
+                ? '처리 중...'
                 : mode === 'login'
                   ? '로그인'
-                  : '계정 생성'}
-            </Button>
-
-            {/* Divider */}
-            <div className="flex items-center space-x-3">
-              <div className="flex-1 h-px bg-gray-slate/30"></div>
-              <span className="text-gray-medium text-sm">또는</span>
-              <div className="flex-1 h-px bg-gray-slate/30"></div>
-            </div>
-
-            {/* Google Login */}
-            <Button
-              type="button"
-              variant="secondary"
-              style="outline"
-              size="large"
-              className="w-full rounded-full border-gray-slate/50 text-white hover:border-white"
-              onClick={handleGoogleLogin}
-            >
-              <span className="flex items-center justify-center space-x-2">
-                <span className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-black font-bold text-xs">
-                  G
-                </span>
-                <span>Google로 {mode === 'login' ? '로그인' : '가입'}</span>
-              </span>
-            </Button>
+                  : '회원가입'}
+            </button>
           </form>
 
-          {/* Mode Switch */}
-          <div className="text-center mt-6">
-            <p className="text-gray-medium">
-              {mode === 'login'
-                ? '계정이 없으신가요?'
-                : '이미 계정이 있으신가요?'}{' '}
-              <button
-                type="button"
-                onClick={() => {
-                  const newMode = mode === 'login' ? 'signup' : 'login'
-                  setMode(newMode)
-                  // URL도 함께 업데이트 (이메일 파라미터 유지)
-                  const currentUrl = new URL(window.location.href)
-                  currentUrl.searchParams.set('mode', newMode)
-                  window.history.replaceState({}, '', currentUrl.toString())
-                }}
-                className="text-primary hover:underline font-medium"
-              >
-                {mode === 'login' ? '회원가입' : '로그인'}
-              </button>
+          {/* Footer */}
+          <div className="space-y-4 text-center">
+            <p className="text-xs text-gray-500">
+              Coup과 함께 멋진 영상을 만들어보세요!
             </p>
-          </div>
 
-          {/* Back to Home */}
-          <div className="text-center mt-4">
             <button
               type="button"
-              onClick={() => router.push('/')}
-              className="text-gray-medium hover:text-white text-sm"
+              onClick={() => {
+                const newMode = mode === 'login' ? 'signup' : 'login'
+                setMode(newMode)
+                // URL도 함께 업데이트 (이메일 파라미터 유지)
+                const currentUrl = new URL(window.location.href)
+                currentUrl.searchParams.set('mode', newMode)
+                window.history.replaceState({}, '', currentUrl.toString())
+              }}
+              className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors cursor-pointer"
+              disabled={isLoading}
             >
-              ← 홈으로 돌아가기
+              {mode === 'login' ? '회원가입' : '로그인으로 돌아가기'}
             </button>
+
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => router.push('/')}
+                className="text-xs text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                disabled={isLoading}
+              >
+                홈으로 돌아가기
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -313,8 +387,8 @@ const AuthPage: React.FC = () => {
       fallback={
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-gray-medium">로딩 중...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+            <p className="mt-4 text-gray-300">로딩 중...</p>
           </div>
         </div>
       }

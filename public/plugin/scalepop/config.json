@@ -1,0 +1,66 @@
+{
+  "name": "Scale Pop Effect",
+  "version": "1.0.0",
+  "description": "글자들이 작은 크기에서 크게 팝업되며 임팩트 있게 나타나는 애니메이션 효과입니다.",
+  "category": "Text Effect",
+  "author": "ECG Team",
+  "pluginFile": "/plugin/scalepop/scalepop.mjs",
+  "className": "ScalePopPlugin",
+  "dependencies": ["gsap"],
+  "schema": {
+    "startScale": {
+      "type": "number",
+      "label": "시작 크기",
+      "description": "애니메이션 시작 시 글자의 크기 비율",
+      "default": 0,
+      "min": 0,
+      "max": 0.5,
+      "step": 0.05
+    },
+    "maxScale": {
+      "type": "number",
+      "label": "최대 크기",
+      "description": "팝업 시 글자의 최대 크기 비율",
+      "default": 1.3,
+      "min": 1,
+      "max": 2,
+      "step": 0.1
+    },
+    "popDuration": {
+      "type": "number",
+      "label": "팝업 속도",
+      "description": "글자가 팝업되는 애니메이션 속도 (초)",
+      "default": 0.6,
+      "min": 0.2,
+      "max": 1.5,
+      "step": 0.1
+    },
+    "staggerDelay": {
+      "type": "number",
+      "label": "순차 간격",
+      "description": "각 글자 사이의 시작 간격 (초)",
+      "default": 0.08,
+      "min": 0.02,
+      "max": 0.3,
+      "step": 0.01
+    },
+    "rotationAmount": {
+      "type": "number",
+      "label": "회전 각도",
+      "description": "팝업 시 글자의 회전 각도 (도)",
+      "default": 10,
+      "min": 0,
+      "max": 45,
+      "step": 5
+    }
+  },
+  "preview": {
+    "thumbnail": "/asset-store/scale-pop-thumb.svg",
+    "demoText": "SCALE POP",
+    "previewBackground": "#000000"
+  },
+  "tags": ["text", "scale", "pop", "impact", "zoom", "gsap"],
+  "license": "MIT",
+  "homepage": "https://ecg-frontend.com/plugins/scalepop",
+  "repository": "https://github.com/ecg-team/scalepop-plugin"
+}

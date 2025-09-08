@@ -1,0 +1,49 @@
+'use client'
+
+import React from 'react'
+
+export interface CustomEditingSectionProps {
+  onQuickStartClick?: () => void
+}
+
+const CustomEditingSection: React.FC<CustomEditingSectionProps> = ({
+  onQuickStartClick,
+}) => {
+  return (
+    <section className="py-20 px-4 bg-white">
+      <div className="container mx-auto text-center max-w-7xl">
+        <div className="mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-500 mb-6">
+            나만의 영상과 나만의 자막
+          </h2>
+          <p className="text-base text-black max-w-3xl mx-auto leading-relaxed">
+            음성 인식으로 만든 자동 자막을 약간만 수정하면 긴 영상도 순식간에
+            자막 완성.
+            <br />
+            자동으로 대본을 인식해서 영상 속 자막으로 넣을 수도 있어요
+          </p>
+        </div>
+
+        <div className="mb-12">
+          <button
+            onClick={onQuickStartClick}
+            className="px-8 py-4 text-lg font-semibold bg-black text-white rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+          >
+            빠른 시작
+          </button>
+        </div>
+
+        {/* Editor interface image */}
+        <div className="bg-gray-50 rounded-3xl p-8 mx-auto max-w-5xl border border-gray-200">
+          <div className="aspect-[5/3] bg-white border border-gray-300 rounded-3xl shadow-sm flex items-center justify-center">
+            <span className="text-gray-600 font-medium text-lg">
+              편집 인터페이스
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default CustomEditingSection

@@ -1,5 +1,6 @@
-import React from 'react'
 import Button from '@/components/ui/Button'
+import Link from 'next/link'
+import React from 'react'
 
 interface OpenLibrarySectionProps {
   libraryRef: React.RefObject<HTMLElement | null>
@@ -28,13 +29,15 @@ const OpenLibrarySection: React.FC<OpenLibrarySectionProps> = ({
               or find exactly what your video needs!
             </p>
           </div>
-          <Button
-            variant="accent"
-            size="large"
-            className="bg-status-positive hover:opacity-80 rounded-full px-8 font-bold hover:scale-105"
-          >
-            Explore Subtitles
-          </Button>
+          <Link href="/asset-store">
+            <Button
+              variant="accent"
+              size="large"
+              className="bg-status-positive hover:opacity-80 rounded-full px-8 font-bold hover:scale-105"
+            >
+              Explore Subtitles
+            </Button>
+          </Link>
         </div>
 
         <div className="relative">

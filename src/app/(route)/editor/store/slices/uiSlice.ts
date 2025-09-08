@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand'
 import { EditorTab } from '../../types'
+import { UI_PANEL_DEFAULTS } from '@/lib/utils/constants'
 
 export interface UISlice {
   // Tab state
@@ -33,6 +34,6 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   setIsVideoPlaying: (playing) => set({ isVideoPlaying: playing }),
 
   // Panel resize state
-  videoPanelWidth: 300, // Default width (minimum width)
+  videoPanelWidth: UI_PANEL_DEFAULTS.VIDEO_PANEL_MIN_WIDTH, // Default width (minimum width)
   setVideoPanelWidth: (width) => set({ videoPanelWidth: width }),
 })

@@ -30,13 +30,15 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
-import UploadModal from '@/components/UploadModal'
+import NewUploadModal from '@/components/NewUploadModal'
+import TutorialModal from '@/components/TutorialModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import Toolbars from './components/Toolbars'
 import DragOverlayContent from './components/DragOverlayContent'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
+import EmptyState from './components/EmptyState'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -72,6 +74,7 @@ export default function EditorPage() {
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [showTutorialModal, setShowTutorialModal] = useState(false)
   const [editorHistory] = useState(() => {
     const history = new EditorHistory()
     // Connect history to save state
@@ -117,6 +120,7 @@ export default function EditorPage() {
           )
           setSpeakers(uniqueSpeakers)
         }
+
 
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
@@ -371,14 +375,109 @@ export default function EditorPage() {
   }
 
   // Upload modal handler
-  const wrappedHandleStartTranscription = (
-    data: Parameters<typeof handleStartTranscription>[0]
-  ) => {
-    return handleStartTranscription(
-      data,
-      () => setIsUploadModalOpen(false),
-      false
-    )
+  const wrappedHandleStartTranscription = async (data: {
+    files: File[]
+    settings: { language: string }
+  }) => {
+    try {
+      // Close modal first
+      setIsUploadModalOpen(false)
+
+      // Create sample clips for demo purposes
+      const sampleClips = [
+        {
+          id: 'clip-1',
+          timeline: '00:00-00:05',
+          speaker: '화자1',
+          subtitle: '안녕하세요, 오늘은',
+          fullText: '안녕하세요, 오늘은',
+          duration: '5초',
+          thumbnail: '/placeholder.jpg',
+          words: [
+            {
+              id: 'word-1-1',
+              text: '안녕하세요,',
+              start: 0,
+              end: 2,
+              isEditable: true,
+            },
+            {
+              id: 'word-1-2',
+              text: '오늘은',
+              start: 2.5,
+              end: 5,
+              isEditable: true,
+            },
+          ],
+        },
+        {
+          id: 'clip-2',
+          timeline: '00:05-00:10',
+          speaker: '화자1',
+          subtitle: '좋은 날씨네요',
+          fullText: '좋은 날씨네요',
+          duration: '5초',
+          thumbnail: '/placeholder.jpg',
+          words: [
+            {
+              id: 'word-2-1',
+              text: '좋은',
+              start: 5,
+              end: 6.5,
+              isEditable: true,
+            },
+            {
+              id: 'word-2-2',
+              text: '날씨네요',
+              start: 7,
+              end: 10,
+              isEditable: true,
+            },
+          ],
+        },
+        {
+          id: 'clip-3',
+          timeline: '00:10-00:15',
+          speaker: '화자2',
+          subtitle: '네, 정말 좋네요',
+          fullText: '네, 정말 좋네요',
+          duration: '5초',
+          thumbnail: '/placeholder.jpg',
+          words: [
+            {
+              id: 'word-3-1',
+              text: '네,',
+              start: 10,
+              end: 11,
+              isEditable: true,
+            },
+            {
+              id: 'word-3-2',
+              text: '정말',
+              start: 11.5,
+              end: 13,
+              isEditable: true,
+            },
+            {
+              id: 'word-3-3',
+              text: '좋네요',
+              start: 13.5,
+              end: 15,
+              isEditable: true,
+            },
+          ],
+        },
+      ]
+
+      // Set the clips in the store
+      setClips(sampleClips)
+
+      // Show success message
+      console.log('Demo clips created successfully!')
+    } catch (error) {
+      console.error('Failed to create demo clips:', error)
+      throw error
+    }
   }
 
   // Merge clips handler
@@ -684,6 +783,23 @@ export default function EditorPage() {
     }
   }, [clips, activeClipId, setActiveClipId, setVideoPanelWidth])
 
+  // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
+  useEffect(() => {
+    const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+    if (!hasSeenEditorTutorial && clips.length > 0) {
+      setShowTutorialModal(true)
+    }
+  }, [clips])
+
+  const handleTutorialClose = () => {
+    setShowTutorialModal(false)
+    localStorage.setItem('hasSeenEditorTutorial', 'true')
+  }
+
+  const handleTutorialComplete = () => {
+    console.log('Editor tutorial completed!')
+  }
+
   // Window resize handler to update max width constraint
   useEffect(() => {
     const handleResize = () => {
@@ -797,25 +913,55 @@ export default function EditorPage() {
               onEmptySpaceClick={handleEmptySpaceClick}
             />
 
-            <SelectionBox
-              startX={selectionBox.startX}
-              startY={selectionBox.startY}
-              endX={selectionBox.endX}
-              endY={selectionBox.endY}
-              isSelecting={isSelecting}
-            />
-          </div>
-        </div>
+            <div
+              className="flex-1 flex justify-center relative overflow-hidden"
+              ref={containerRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+            >
+              <SubtitleEditList
+                clips={clips}
+                selectedClipIds={selectedClipIds}
+                activeClipId={activeClipId}
+                onClipSelect={handleClipSelect}
+                onClipCheck={handleClipCheck}
+                onWordEdit={handleWordEdit}
+                onSpeakerChange={handleSpeakerChange}
+                onEmptySpaceClick={handleEmptySpaceClick}
+              />
 
-        <UploadModal
+              <SelectionBox
+                startX={selectionBox.startX}
+                startY={selectionBox.startY}
+                endX={selectionBox.endX}
+                endY={selectionBox.endY}
+                isSelecting={isSelecting}
+              />
+            </div>
+          </div>
+        )}
+
+        <NewUploadModal
           isOpen={isUploadModalOpen}
           onClose={() => !isTranscriptionLoading && setIsUploadModalOpen(false)}
-          onFileSelect={handleFileSelect}
+          onFileSelect={(files: File[]) => {
+            // Convert File[] to FileList for compatibility
+            const fileList = new DataTransfer()
+            files.forEach((file) => fileList.items.add(file))
+            handleFileSelect(fileList.files)
+          }}
           onStartTranscription={wrappedHandleStartTranscription}
           acceptedTypes={['audio/*', 'video/*']}
           maxFileSize={100 * 1024 * 1024} // 100MB
           multiple={true}
           isLoading={isTranscriptionLoading}
+        />
+
+        <TutorialModal
+          isOpen={showTutorialModal}
+          onClose={handleTutorialClose}
+          onComplete={handleTutorialComplete}
         />
       </div>
 

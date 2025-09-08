@@ -118,7 +118,7 @@ const SortableClipComponent: React.FC<SortableClipComponentProps> = ({
                   {clip.words.map((word) => (
                     <button
                       key={word.id}
-                      className="bg-white border border-gray-300 hover:border-gray-400 rounded px-2 py-1 text-sm text-gray-800 transition-colors"
+                      className="bg-white border border-gray-300 hover:border-gray-400 rounded px-2 py-1 text-sm text-gray-800 transition-colors cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation()
                         onWordEdit(clip.id, word.id, word.text)
@@ -131,13 +131,13 @@ const SortableClipComponent: React.FC<SortableClipComponentProps> = ({
               </div>
 
               <div className="flex space-x-1 flex-shrink-0">
-                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
+                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors cursor-pointer">
                   ▶
                 </button>
-                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
+                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors cursor-pointer">
                   ⏸
                 </button>
-                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors">
+                <button className="w-6 h-6 bg-gray-400 hover:bg-gray-500 rounded flex items-center justify-center text-xs text-white transition-colors cursor-pointer">
                   ⏹
                 </button>
               </div>
