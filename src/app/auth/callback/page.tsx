@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/authStore'
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
     'loading'
   )
@@ -162,5 +162,29 @@ export default function AuthCallbackPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+          <div className="text-center space-y-6">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-white">
+                로그인 처리 중...
+              </h1>
+              <div className="text-sm text-gray-500">
+                잠시만 기다려주세요...
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   )
 }

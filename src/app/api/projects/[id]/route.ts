@@ -8,6 +8,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ProjectData } from '@/app/(route)/editor/types/project'
 
+// Required for static export
+export const dynamic = 'force-static'
+
 // In-memory storage (shared with main route.ts)
 // In production, this would be a database
 const projects = new Map<string, ProjectData>()
