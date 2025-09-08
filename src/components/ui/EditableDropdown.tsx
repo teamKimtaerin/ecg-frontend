@@ -145,7 +145,7 @@ const EditableDropdown: React.FC<EditableDropdownProps> = ({
       {options.length > 0 && (
         <button
           type="button"
-          className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-600/70 rounded transition-colors"
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-600/70 rounded transition-colors cursor-pointer"
           onClick={(e) => {
             e.stopPropagation()
             handleDropdownToggle()
@@ -182,7 +182,7 @@ const EditableDropdown: React.FC<EditableDropdownProps> = ({
             <button
               key={option}
               className={cn(
-                'w-full text-left transition-colors',
+                'w-full text-left transition-colors cursor-pointer',
                 currentSize.option,
                 variantClasses[variant].option
               )}

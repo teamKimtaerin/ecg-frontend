@@ -91,7 +91,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         {/* New Project Card */}
         <button
           onClick={onNewProjectClick}
-          className="bg-black rounded-xl w-[280px] h-[160px] flex flex-col items-center justify-center shadow-lg hover:opacity-90 transition-opacity"
+          className="bg-black rounded-xl w-[280px] h-[160px] flex flex-col items-center justify-center shadow-lg hover:opacity-90 transition-opacity cursor-pointer"
         >
           <LuPlus className="w-12 h-12 text-white font-bold mb-3" />
           <div className="text-white text-base font-medium">새로 만들기</div>
@@ -100,7 +100,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         {/* Open Project Card */}
         <button
           onClick={onOpenProjectClick}
-          className="bg-gray-500 rounded-xl w-[280px] h-[160px] flex flex-col items-center justify-center shadow-lg hover:opacity-90 transition-opacity"
+          className="bg-gray-500 rounded-xl w-[280px] h-[160px] flex flex-col items-center justify-center shadow-lg hover:opacity-90 transition-opacity cursor-pointer"
         >
           <LuFolderOpen className="w-12 h-12 text-white mb-3" />
           <div className="text-white text-base font-medium">프로젝트 열기</div>

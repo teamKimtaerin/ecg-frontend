@@ -33,7 +33,10 @@ export default function SubtitleEditList({
     }
   }
   return (
-    <div className="w-[800px] bg-gray-900 p-4" onClick={handleEmptySpaceClick}>
+    <div
+      className="w-[800px] bg-gray-900 p-4 cursor-pointer"
+      onClick={handleEmptySpaceClick}
+    >
       <SortableContext
         items={clips.map((c) => c.id)}
         strategy={verticalListSortingStrategy}

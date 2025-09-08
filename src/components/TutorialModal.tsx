@@ -377,7 +377,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
                         : button.active
                           ? 'bg-gray-900 text-white'
                           : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-                  } ${(currentStep === 2 && button.speaker) || (currentStep === 4 && button.styleType) ? 'cursor-pointer' : ''}`}
+                  } ${(currentStep === 2 && button.speaker) || (currentStep === 4 && button.styleType) ? 'cursor-pointer' : 'cursor-pointer'}`}
                 >
                   {button.label}
                   {button.hasError && (
@@ -438,7 +438,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
         <div className="flex justify-between items-center">
           <button
             onClick={handleSkip}
-            className="text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors"
+            className="text-gray-500 hover:text-gray-700 text-sm font-medium transition-colors cursor-pointer"
           >
             건너뛰기
           </button>
@@ -447,14 +447,14 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
             {currentStep > 1 && (
               <button
                 onClick={handlePrev}
-                className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
               >
                 이전
               </button>
             )}
             <button
               onClick={handleNext}
-              className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors"
+              className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium transition-colors cursor-pointer"
             >
               {currentStep === totalSteps ? '완료' : '다음'}
             </button>

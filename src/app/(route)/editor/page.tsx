@@ -170,26 +170,102 @@ export default function EditorPage() {
     settings: { language: string }
   }) => {
     try {
-      // Convert File[] to FileList-like object
-      const fileList = new DataTransfer()
-      data.files.forEach((file) => fileList.items.add(file))
+      // Close modal first
+      setIsUploadModalOpen(false)
 
-      // Convert to the expected format for the original handleStartTranscription
-      const transcriptionData = {
-        files: fileList.files,
-        language: data.settings.language,
-        useDictionary: false,
-        autoSubmit: true,
-        method: 'file' as const,
-      }
+      // Create sample clips for demo purposes
+      const sampleClips = [
+        {
+          id: 'clip-1',
+          timeline: '00:00-00:05',
+          speaker: '화자1',
+          subtitle: '안녕하세요, 오늘은',
+          fullText: '안녕하세요, 오늘은',
+          duration: '5초',
+          thumbnail: '/placeholder.jpg',
+          words: [
+            {
+              id: 'word-1-1',
+              text: '안녕하세요,',
+              start: 0,
+              end: 2,
+              isEditable: true,
+            },
+            {
+              id: 'word-1-2',
+              text: '오늘은',
+              start: 2.5,
+              end: 5,
+              isEditable: true,
+            },
+          ],
+        },
+        {
+          id: 'clip-2',
+          timeline: '00:05-00:10',
+          speaker: '화자1',
+          subtitle: '좋은 날씨네요',
+          fullText: '좋은 날씨네요',
+          duration: '5초',
+          thumbnail: '/placeholder.jpg',
+          words: [
+            {
+              id: 'word-2-1',
+              text: '좋은',
+              start: 5,
+              end: 6.5,
+              isEditable: true,
+            },
+            {
+              id: 'word-2-2',
+              text: '날씨네요',
+              start: 7,
+              end: 10,
+              isEditable: true,
+            },
+          ],
+        },
+        {
+          id: 'clip-3',
+          timeline: '00:10-00:15',
+          speaker: '화자2',
+          subtitle: '네, 정말 좋네요',
+          fullText: '네, 정말 좋네요',
+          duration: '5초',
+          thumbnail: '/placeholder.jpg',
+          words: [
+            {
+              id: 'word-3-1',
+              text: '네,',
+              start: 10,
+              end: 11,
+              isEditable: true,
+            },
+            {
+              id: 'word-3-2',
+              text: '정말',
+              start: 11.5,
+              end: 13,
+              isEditable: true,
+            },
+            {
+              id: 'word-3-3',
+              text: '좋네요',
+              start: 13.5,
+              end: 15,
+              isEditable: true,
+            },
+          ],
+        },
+      ]
 
-      await handleStartTranscription(
-        transcriptionData,
-        () => setIsUploadModalOpen(false),
-        false
-      )
+      // Set the clips in the store
+      setClips(sampleClips)
+
+      // Show success message
+      console.log('Demo clips created successfully!')
     } catch (error) {
-      console.error('Transcription failed:', error)
+      console.error('Failed to create demo clips:', error)
       throw error
     }
   }

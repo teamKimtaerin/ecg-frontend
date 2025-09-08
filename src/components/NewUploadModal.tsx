@@ -157,7 +157,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
           <div className="flex">
             <button
               onClick={() => setActiveTab('upload')}
-              className={`flex-1 h-12 text-base font-bold transition-colors ${
+              className={`flex-1 h-12 text-base font-bold transition-colors cursor-pointer ${
                 activeTab === 'upload'
                   ? 'bg-gray-900 text-white rounded-l-lg'
                   : 'bg-gray-100 text-gray-900 rounded-l-lg border border-gray-300'
@@ -167,7 +167,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('link')}
-              className={`flex-1 h-12 text-base font-medium transition-colors ${
+              className={`flex-1 h-12 text-base font-medium transition-colors cursor-pointer ${
                 activeTab === 'link'
                   ? 'bg-gray-900 text-white rounded-r-lg'
                   : 'bg-gray-100 text-gray-900 rounded-r-lg border border-gray-300'
@@ -203,7 +203,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
               <button
                 onClick={handleFileSelectClick}
-                className="bg-gray-900 text-white px-6 py-2 rounded font-bold hover:bg-gray-800 transition-colors"
+                className="bg-gray-900 text-white px-6 py-2 rounded font-bold hover:bg-gray-800 transition-colors cursor-pointer"
                 disabled={isLoading}
               >
                 파일 선택
@@ -380,7 +380,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         <div className="flex justify-end space-x-4">
           <button
             onClick={handleGoBack}
-            className="px-6 py-2 text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors"
+            className="px-6 py-2 text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors cursor-pointer"
             disabled={isLoading}
           >
             뒤로가기
@@ -397,7 +397,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading
                 ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-gray-900 hover:bg-gray-800'
+                : 'bg-gray-900 hover:bg-gray-800 cursor-pointer'
             }`}
           >
             {isLoading ? '처리 중...' : '시작하기'}
