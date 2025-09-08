@@ -41,6 +41,8 @@ export class AuthAPI {
   }
 
   static async signup(data: SignupRequest): Promise<AuthResponse> {
+    console.log('Signup request data:', data)
+
     const response = await fetch(`${BASE_URL}/api/auth/signup`, {
       method: 'POST',
       headers: this.getHeaders(),
@@ -48,8 +50,40 @@ export class AuthAPI {
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.detail || '회원가입 중 오류가 발생했습니다.')
+      const errorData = await response.json().catch(() => ({}))
+      console.error('Signup error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+      })
+
+      if (response.status === 422) {
+        // 유효성 검사 오류 상세 메시지 표시
+        let message = '입력 데이터가 올바르지 않습니다.'
+
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            message = errorData.detail
+              .map(
+                (err: { msg?: string; message?: string }) =>
+                  err.msg || err.message || '유효성 검사 실패'
+              )
+              .join('\n')
+          } else {
+            message = errorData.detail
+          }
+        } else if (errorData.message) {
+          message = errorData.message
+        }
+
+        throw new Error(message)
+      }
+
+      throw new Error(
+        errorData.detail ||
+          errorData.message ||
+          '회원가입 중 오류가 발생했습니다.'
+      )
     }
 
     return response.json()

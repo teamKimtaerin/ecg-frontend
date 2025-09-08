@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { LuLink, LuPlay } from 'react-icons/lu'
+import { LuLink } from 'react-icons/lu'
 import { FaYoutube, FaVimeo } from 'react-icons/fa'
 import Modal from '@/components/ui/Modal'
 

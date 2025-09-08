@@ -121,7 +121,6 @@ export default function EditorPage() {
           setSpeakers(uniqueSpeakers)
         }
 
-
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
@@ -913,34 +912,15 @@ export default function EditorPage() {
               onEmptySpaceClick={handleEmptySpaceClick}
             />
 
-            <div
-              className="flex-1 flex justify-center relative overflow-hidden"
-              ref={containerRef}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-            >
-              <SubtitleEditList
-                clips={clips}
-                selectedClipIds={selectedClipIds}
-                activeClipId={activeClipId}
-                onClipSelect={handleClipSelect}
-                onClipCheck={handleClipCheck}
-                onWordEdit={handleWordEdit}
-                onSpeakerChange={handleSpeakerChange}
-                onEmptySpaceClick={handleEmptySpaceClick}
-              />
-
-              <SelectionBox
-                startX={selectionBox.startX}
-                startY={selectionBox.startY}
-                endX={selectionBox.endX}
-                endY={selectionBox.endY}
-                isSelecting={isSelecting}
-              />
-            </div>
+            <SelectionBox
+              startX={selectionBox.startX}
+              startY={selectionBox.startY}
+              endX={selectionBox.endX}
+              endY={selectionBox.endY}
+              isSelecting={isSelecting}
+            />
           </div>
-        )}
+        </div>
 
         <NewUploadModal
           isOpen={isUploadModalOpen}

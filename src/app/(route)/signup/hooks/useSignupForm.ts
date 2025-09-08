@@ -1,10 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { SignupFormData, SignupFormErrors } from '../types'
 import { GoogleUserInfo } from '@/types/google-auth'
+import { useAuth } from '@/hooks/useAuth'
 
 export const useSignupForm = () => {
+  const router = useRouter()
+  const { signup } = useAuth()
+
   const [formData, setFormData] = useState<SignupFormData>({
     name: '',
     email: '',
@@ -73,16 +78,21 @@ export const useSignupForm = () => {
 
     setIsLoading(true)
     try {
-      // TODO: Implement actual signup logic
-      console.log('Signup form submitted:', formData)
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate API call
+      await signup({
+        username: formData.name,
+        email: formData.email,
+        password: formData.password,
+      })
 
-      // Handle successful signup
-      console.log('Signup successful')
+      // Handle successful signup - redirect to home
+      router.push('/')
     } catch (error) {
       console.error('Signup failed:', error)
       setErrors({
-        general: '회원가입 중 오류가 발생했습니다. 다시 시도해주세요.',
+        general:
+          error instanceof Error
+            ? error.message
+            : '회원가입 중 오류가 발생했습니다.',
       })
     } finally {
       setIsLoading(false)

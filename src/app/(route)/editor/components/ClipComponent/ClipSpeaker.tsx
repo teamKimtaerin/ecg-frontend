@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { LuSquareX } from 'react-icons/lu'
 import { ChevronDownIcon } from '@/components/icons'
-import Dropdown from '@/components/ui/Dropdown'
 import { EDITOR_COLORS } from '../../constants/colors'
 
 interface ClipSpeakerProps {

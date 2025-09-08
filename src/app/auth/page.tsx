@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useCallback, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { LuEye, LuEyeOff } from 'react-icons/lu'
 import Checkbox from '@/components/ui/Checkbox'
 import { useAuth } from '@/hooks/useAuth'
+import { useRouter, useSearchParams } from 'next/navigation'
+import React, { Suspense, useCallback, useState } from 'react'
+import { LuEye, LuEyeOff } from 'react-icons/lu'
 
 const AuthPageContent: React.FC = () => {
   const router = useRouter()
@@ -38,12 +38,30 @@ const AuthPageContent: React.FC = () => {
     }
   }, [getGoogleLoginUrl])
 
-  // Google OAuth 자동 리디렉션
+  // Google OAuth 자동 리디렉션 및 토큰 처리
   React.useEffect(() => {
     if (provider === 'google') {
       handleGoogleLogin()
     }
-  }, [provider, handleGoogleLogin])
+
+    // URL에서 토큰 확인 (Google OAuth 콜백 처리)
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get('token')
+    const error = urlParams.get('error')
+
+    if (token) {
+      // OAuth 성공 - 토큰 저장 후 홈으로 이동
+      localStorage.setItem('token', token)
+      router.push('/')
+    } else if (error) {
+      // OAuth 실패 - 에러 메시지 표시
+      const message =
+        urlParams.get('message') || 'Google 로그인 중 오류가 발생했습니다.'
+      setErrors({ general: message })
+      // URL 정리
+      window.history.replaceState({}, '', '/auth')
+    }
+  }, [provider, handleGoogleLogin, router])
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault()

@@ -182,7 +182,7 @@ const TutorialPage = () => {
           <div className="p-6">
             {/* Tutorial Steps */}
             <div className="space-y-4">
-              {tutorialSteps.map((step, index) => (
+              {tutorialSteps.map((step) => (
                 <div
                   key={step.id}
                   onClick={() => handleStepClick(step.id)}
