@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
 
 interface VideoPlayerProps {
   className?: string
@@ -85,7 +86,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
     if (videoRef.current) {
       videoRef.current.currentTime = Math.max(
         0,
-        videoRef.current.currentTime - 10
+        videoRef.current.currentTime - VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS
       )
     }
   }
@@ -95,15 +96,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
     if (videoRef.current) {
       videoRef.current.currentTime = Math.min(
         duration,
-        videoRef.current.currentTime + 10
+        videoRef.current.currentTime + VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS
       )
     }
   }
 
   // 재생 속도 변경
   const changePlaybackRate = () => {
-    const rates = [0.5, 1, 1.25, 1.5, 2]
-    const currentIndex = rates.indexOf(playbackRate)
+    const rates = VIDEO_PLAYER_CONSTANTS.PLAYBACK_RATES
+    const currentIndex = rates.indexOf(playbackRate as (typeof rates)[number])
     const nextRate = rates[(currentIndex + 1) % rates.length]
     setPlaybackRate(nextRate)
     if (videoRef.current) {
@@ -217,7 +218,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
 
   // 시간 포맷팅 함수
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
+    const minutes = Math.floor(time / VIDEO_PLAYER_CONSTANTS.SECONDS_PER_MINUTE)
     const seconds = Math.floor(time % 60)
     return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
@@ -280,7 +281,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
             <button
               onClick={skipBackward}
               className="text-white hover:text-slate-300 transition-colors"
-              title="10초 뒤로"
+              title={`${VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS}초 뒤로`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
@@ -314,7 +315,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
             <button
               onClick={skipForward}
               className="text-white hover:text-slate-300 transition-colors"
-              title="10초 앞으로"
+              title={`${VIDEO_PLAYER_CONSTANTS.SKIP_TIME_SECONDS}초 앞으로`}
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />

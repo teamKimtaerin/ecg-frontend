@@ -12,6 +12,7 @@ import VoTSection from '@/components/LandingPage/VoTSection'
 import Header from '@/components/ui/Header'
 import UploadModal from '@/components/UploadModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
+import { SCROLL_CONSTANTS, FILE_SIZE_LIMITS } from '@/lib/utils/constants'
 
 export default function Home() {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
@@ -31,9 +32,12 @@ export default function Home() {
   const handleScroll = useCallback(() => {
     const currentScrollY = window.scrollY
 
-    if (currentScrollY < 50) {
+    if (currentScrollY < SCROLL_CONSTANTS.HEADER_SHOW_THRESHOLD) {
       if (!isHeaderVisible) setIsHeaderVisible(true)
-    } else if (Math.abs(currentScrollY - lastScrollY) > 15) {
+    } else if (
+      Math.abs(currentScrollY - lastScrollY) >
+      SCROLL_CONSTANTS.SCROLL_SENSITIVITY
+    ) {
       const shouldShow = currentScrollY < lastScrollY
       if (shouldShow !== isHeaderVisible) {
         setIsHeaderVisible(shouldShow)
@@ -46,7 +50,7 @@ export default function Home() {
     let timeoutId: NodeJS.Timeout
     const throttledScroll = () => {
       clearTimeout(timeoutId)
-      timeoutId = setTimeout(handleScroll, 16) // ~60fps
+      timeoutId = setTimeout(handleScroll, SCROLL_CONSTANTS.THROTTLE_FPS) // ~60fps
     }
 
     window.addEventListener('scroll', throttledScroll, { passive: true })
@@ -70,8 +74,8 @@ export default function Home() {
         })
       },
       {
-        rootMargin: '0px 0px -100px 0px',
-        threshold: 0.2,
+        rootMargin: SCROLL_CONSTANTS.INTERSECTION_ROOT_MARGIN,
+        threshold: SCROLL_CONSTANTS.INTERSECTION_THRESHOLD,
       }
     )
 
@@ -114,12 +118,12 @@ export default function Home() {
       <div className="fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -inset-10 opacity-40">
           <div className="absolute bottom-1/4 left-3/11 w-86 h-86 bg-primary rounded-full filter blur-3xl bg-blob animate-blob animation-delay-0"></div>
-          <div className="absolute top-1/3 left-4/7 w-72 h-72 bg-primary-light rounded-full filter blur-3xl bg-blob animate-blob animation-delay-1000"></div>
-          <div className="absolute bottom-1/7 left-6/11 w-64 h-64 bg-amber-300 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-2500"></div>
-          <div className="absolute bottom-2/4 left-4/11 w-86 h-86 bg-red-500 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-4000"></div>
-          <div className="absolute bottom-1/9 left-1/11 w-56 h-56 bg-green-500 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-5000"></div>
-          <div className="absolute bottom-1/3 left-5/11 w-56 h-56 bg-white rounded-full filter blur-3xl bg-blob animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-6/11 left-9/11 w-56 h-56 bg-fuchsia-600 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-3000"></div>
+          <div className="absolute top-1/3 left-4/7 w-72 h-72 bg-primary-light rounded-full filter blur-3xl bg-blob animate-blob animation-delay-[1000ms]"></div>
+          <div className="absolute bottom-1/7 left-6/11 w-64 h-64 bg-amber-300 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-[2500ms]"></div>
+          <div className="absolute bottom-2/4 left-4/11 w-86 h-86 bg-red-500 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-[4000ms]"></div>
+          <div className="absolute bottom-1/9 left-1/11 w-56 h-56 bg-green-500 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-[5000ms]"></div>
+          <div className="absolute bottom-1/3 left-5/11 w-56 h-56 bg-white rounded-full filter blur-3xl bg-blob animate-blob animation-delay-[2000ms]"></div>
+          <div className="absolute bottom-6/11 left-9/11 w-56 h-56 bg-fuchsia-600 rounded-full filter blur-3xl bg-blob animate-blob animation-delay-[3000ms]"></div>
         </div>
       </div>
 
@@ -162,7 +166,7 @@ export default function Home() {
         onFileSelect={handleFileSelect}
         onStartTranscription={wrappedHandleStartTranscription}
         acceptedTypes={['audio/*', 'video/*']}
-        maxFileSize={100 * 1024 * 1024} // 100MB
+        maxFileSize={FILE_SIZE_LIMITS.large} // 100MB
         multiple={true}
         isLoading={isTranscriptionLoading}
       />
