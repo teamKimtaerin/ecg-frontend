@@ -90,6 +90,7 @@ export default function ClipComponent({
           {/* Divider */}
           <div className="border-t border-[#383842]" />
 
+
           {/* Lower section */}
           <ClipText fullText={clip.fullText} />
         </div>

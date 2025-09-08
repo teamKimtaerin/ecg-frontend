@@ -14,6 +14,7 @@ export const EDITOR_COLORS = {
     accent: '#E6E6E6', // 강조색 (밝은 회색)
     divider: '#383842', // 구분선 (어두운 회색)
     hover: '#383842', // 호버 상태 색상
+
   },
 
   // 툴바 색상

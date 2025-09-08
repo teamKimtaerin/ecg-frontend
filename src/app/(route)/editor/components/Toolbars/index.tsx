@@ -5,6 +5,7 @@ import { EditorTab, ClipItem } from '../../types'
 import HomeToolbar from './HomeToolbar'
 import EditToolbar from './EditToolbar'
 import FormatToolbar from './FormatToolbar'
+
 import ToolbarWrapper from './shared/ToolbarWrapper'
 
 interface ToolbarsProps {
@@ -99,6 +100,7 @@ export default function Toolbars({
       return (
         <ToolbarWrapper variant="base" onExport={handleExport}>
           <FormatToolbar {...commonProps} />
+
         </ToolbarWrapper>
       )
 

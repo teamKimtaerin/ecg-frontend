@@ -4,12 +4,16 @@ import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import { UserProfile } from '@/components/auth'
+import { useAuth } from '@/hooks/useAuth'
 
 interface HeaderProps {
   isVisible?: boolean
 }
 
 export default function Header({ isVisible = true }: HeaderProps) {
+  const { isAuthenticated } = useAuth()
+
   return (
     <header
       className={`fixed top-0 w-full bg-black/90 border-b border-gray-slate/20 z-50 transition-transform duration-300 ${
@@ -53,15 +57,29 @@ export default function Header({ isVisible = true }: HeaderProps) {
             >
               <span>VoT</span>
             </a>
-            <a
-              href="#"
-              className="text-sm text-gray-medium font-bold hover:text-white transition-colors"
-            >
-              Login
-            </a>
-            <Button variant="accent" size="medium" className="rounded-full">
-              Sign up
-            </Button>
+
+            {/* Auth Section */}
+            {isAuthenticated ? (
+              <UserProfile />
+            ) : (
+              <>
+                <Link
+                  href="/auth?mode=login"
+                  className="text-sm text-gray-medium font-bold hover:text-white transition-colors"
+                >
+                  Login
+                </Link>
+                <Link href="/auth?mode=signup">
+                  <Button
+                    variant="accent"
+                    size="medium"
+                    className="rounded-full"
+                  >
+                    Sign up
+                  </Button>
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </div>

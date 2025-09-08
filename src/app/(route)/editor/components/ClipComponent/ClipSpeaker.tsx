@@ -32,6 +32,7 @@ export default function ClipSpeaker({
       {/* 화자 앞의 동그라미 표시 */}
       <div className="w-2 h-2 rounded-full bg-[#E6E6E6] flex-shrink-0" />
 
+
       <Dropdown
         value={speaker}
         options={[
