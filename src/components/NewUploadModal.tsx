@@ -1,6 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
+import { LuLink, LuPlay } from 'react-icons/lu'
+import { FaYoutube, FaVimeo } from 'react-icons/fa'
 import Modal from '@/components/ui/Modal'
 
 interface NewUploadModalProps {
@@ -37,6 +39,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [language, setLanguage] = useState('Korean (South Korea)')
   const [isDragOver, setIsDragOver] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -138,23 +141,15 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[800px] max-w-[90vw] max-h-[90vh]"
+      className="w-[700px] max-w-[90vw] max-h-[85vh]"
       closeOnBackdropClick={!isLoading}
       closeOnEsc={!isLoading}
+      scrollable={true}
     >
-      <div className="bg-white rounded-xl p-12 relative">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 text-black text-2xl font-bold hover:opacity-70"
-          disabled={isLoading}
-        >
-          ×
-        </button>
-
+      <div className="bg-white rounded-xl p-8 relative">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
             1. Choose input method
           </h1>
 
@@ -185,7 +180,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
         {/* Upload Tab Content */}
         {activeTab === 'upload' && (
-          <div className="mb-8">
+          <div className="mb-6">
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 isDragOver
@@ -246,20 +241,92 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
         {/* Link Tab Content */}
         {activeTab === 'link' && (
-          <div className="mb-8">
-            <div className="border-2 border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-              <p className="text-gray-500">Link import feature coming soon</p>
+          <div className="mb-6">
+            {/* Import from URL Section */}
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <LuLink className="w-8 h-8 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Import from URL
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Paste a video URL from supported platforms
+              </p>
+            </div>
+
+            {/* Video URL Input */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-900 mb-2">
+                Video URL
+              </label>
+              <input
+                type="url"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Supported Platforms */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 mb-3">
+                Supported Platforms
+              </h4>
+              <div className="space-y-3">
+                {/* YouTube */}
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="w-10 h-10 bg-red-500 rounded flex items-center justify-center mr-3">
+                    <FaYoutube className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">YouTube</p>
+                    <p className="text-xs text-gray-500">
+                      https://youtube.com/watch?v=...
+                    </p>
+                  </div>
+                </div>
+
+                {/* Vimeo */}
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="w-10 h-10 bg-blue-500 rounded flex items-center justify-center mr-3">
+                    <FaVimeo className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Vimeo</p>
+                    <p className="text-xs text-gray-500">
+                      https://vimeo.com/...
+                    </p>
+                  </div>
+                </div>
+
+                {/* Direct URL */}
+                <div className="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="w-10 h-10 bg-gray-600 rounded flex items-center justify-center mr-3">
+                    <LuLink className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Direct URL
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      https://example.com/video.mp4
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* Transcription Settings */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
             2. Configure transcription settings
           </h2>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <h3 className="text-base font-bold text-gray-900 mb-4">
               Transcription Settings
             </h3>
@@ -320,9 +387,15 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
           </button>
           <button
             onClick={handleStartTranscription}
-            disabled={selectedFiles.length === 0 || isLoading}
+            disabled={
+              (activeTab === 'upload' && selectedFiles.length === 0) ||
+              (activeTab === 'link' && !videoUrl.trim()) ||
+              isLoading
+            }
             className={`px-8 py-2 rounded font-bold text-white transition-colors ${
-              selectedFiles.length === 0 || isLoading
+              (activeTab === 'upload' && selectedFiles.length === 0) ||
+              (activeTab === 'link' && !videoUrl.trim()) ||
+              isLoading
                 ? 'bg-gray-300 cursor-not-allowed'
                 : 'bg-gray-900 hover:bg-gray-800'
             }`}

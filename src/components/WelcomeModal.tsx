@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { LuCheck } from 'react-icons/lu'
 import Modal from '@/components/ui/Modal'
 
 export interface WelcomeModalProps {
@@ -136,9 +137,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
               isAgreed ? 'bg-gray-800' : 'bg-gray-200 border border-gray-300'
             }`}
           >
-            {isAgreed && (
-              <span className="text-white text-lg font-bold">✓</span>
-            )}
+            {isAgreed && <LuCheck className="w-5 h-5 text-white font-bold" />}
           </button>
           <span className="text-gray-800 text-sm">
             위 내용을 모두 확인했으며 동의합니다.

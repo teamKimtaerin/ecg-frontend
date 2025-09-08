@@ -23,6 +23,7 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
+import TutorialModal from '@/components/TutorialModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import Toolbars from './components/Toolbars'
 import DragOverlayContent from './components/DragOverlayContent'
@@ -62,6 +63,7 @@ export default function EditorPage() {
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [showTutorialModal, setShowTutorialModal] = useState(false)
   const [editorHistory] = useState(() => {
     const history = new EditorHistory()
     // Connect history to save state
@@ -486,6 +488,23 @@ export default function EditorPage() {
     }
   }, [clips, activeClipId, setActiveClipId, setVideoPanelWidth])
 
+  // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
+  useEffect(() => {
+    const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+    if (!hasSeenEditorTutorial && clips.length > 0) {
+      setShowTutorialModal(true)
+    }
+  }, [clips])
+
+  const handleTutorialClose = () => {
+    setShowTutorialModal(false)
+    localStorage.setItem('hasSeenEditorTutorial', 'true')
+  }
+
+  const handleTutorialComplete = () => {
+    console.log('Editor tutorial completed!')
+  }
+
   // Window resize handler to update max width constraint
   useEffect(() => {
     const handleResize = () => {
@@ -610,6 +629,12 @@ export default function EditorPage() {
           maxFileSize={100 * 1024 * 1024} // 100MB
           multiple={true}
           isLoading={isTranscriptionLoading}
+        />
+
+        <TutorialModal
+          isOpen={showTutorialModal}
+          onClose={handleTutorialClose}
+          onComplete={handleTutorialComplete}
         />
       </div>
 

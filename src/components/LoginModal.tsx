@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { LuEye, LuEyeOff } from 'react-icons/lu'
 import Modal from '@/components/ui/Modal'
 import Checkbox from '@/components/ui/Checkbox'
 import GoogleLoginButton from './auth/GoogleLoginButton'
@@ -248,9 +249,14 @@ const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-xl flex items-center justify-center"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+                disabled={isLoading}
               >
-                <span className="text-base">👁</span>
+                {showPassword ? (
+                  <LuEye className="w-5 h-5" />
+                ) : (
+                  <LuEyeOff className="w-5 h-5" />
+                )}
               </button>
             </div>
             {errors.password && (

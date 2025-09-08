@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 
 export interface HeaderProps {
   onTryClick?: () => void
@@ -29,12 +30,12 @@ const Header: React.FC<HeaderProps> = ({ onTryClick, onLoginClick }) => {
           >
             애님 템플릿
           </a>
-          <a
-            href="#"
+          <Link
+            href="/tutorial"
             className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
           >
             사용법 배우기
-          </a>
+          </Link>
           <a
             href="#"
             className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"

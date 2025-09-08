@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { LuCheck } from 'react-icons/lu'
 import { cn } from '@/lib/utils'
 
 export interface CheckboxProps {
@@ -46,7 +47,7 @@ const Checkbox: React.FC<CheckboxProps> = ({
           className={checkboxClasses}
           onClick={() => !disabled && onChange?.(!checked)}
         >
-          {checked && <span className="text-white text-sm font-bold">✓</span>}
+          {checked && <LuCheck className="w-4 h-4 text-white font-bold" />}
         </div>
       </div>
       {label && (
