@@ -145,6 +145,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
       closeOnBackdropClick={!isLoading}
       closeOnEsc={!isLoading}
       scrollable={true}
+      aria-label="파일 업로드"
     >
       <div className="bg-white rounded-xl p-8 relative">
         {/* Header */}

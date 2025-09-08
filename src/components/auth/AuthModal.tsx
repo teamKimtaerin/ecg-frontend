@@ -27,7 +27,12 @@ const AuthModal: React.FC<AuthModalProps> = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} className="max-w-md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-w-md"
+      aria-label={mode === 'login' ? '로그인' : '회원가입'}
+    >
       <div className="p-6">
         {mode === 'login' ? (
           <LoginForm

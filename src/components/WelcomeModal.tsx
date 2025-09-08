@@ -38,6 +38,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
       closeOnEsc={true}
       scrollable={true}
       className="w-[700px] max-w-[90vw] max-h-[90vh]"
+      aria-label="환영 메시지"
     >
       <div className="p-12 space-y-8">
         {/* Header */}
