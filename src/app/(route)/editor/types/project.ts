@@ -5,6 +5,23 @@ export interface ProjectData {
   settings: ProjectSettings
   createdAt: Date
   updatedAt: Date
+  // Video information
+  mediaId?: string // IndexedDB media ID
+  videoUrl?: string // External URL or Blob URL
+  videoName?: string // Original file name
+  videoType?: string // MIME type (e.g., video/mp4)
+  videoDuration?: number // Duration in seconds
+  videoMetadata?: {
+    width?: number
+    height?: number
+    frameRate?: number
+    videoCodec?: string
+    audioCodec?: string
+  }
+  // Server sync information
+  serverSyncedAt?: Date // Last server sync time
+  changeCount?: number // Number of changes since last server save
+  syncStatus?: 'pending' | 'synced' | 'error' // Sync status
 }
 
 export interface ProjectSettings {

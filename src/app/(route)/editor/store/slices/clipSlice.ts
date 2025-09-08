@@ -1,11 +1,12 @@
 import { arrayMove } from '@/lib/utils/array'
 import {
+  projectStorage,
   defaultProjectSettings,
   generateProjectId,
-  hybridProjectStorage,
-} from '@/utils/storage/serverProjectStorage'
+} from '@/utils/storage/projectStorage'
+import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { StateCreator } from 'zustand'
-import { ClipItem, INITIAL_CLIPS } from '../../types'
+import { ClipItem } from '../../types'
 import { ProjectData } from '../../types/project'
 import { SaveSlice } from './saveSlice'
 
@@ -32,7 +33,7 @@ export const createClipSlice: StateCreator<
   [],
   ClipSlice
 > = (set, get) => ({
-  clips: INITIAL_CLIPS,
+  clips: [], // 초기 더미 데이터 제거
   currentProject: null,
 
   setClips: (clips) => set({ clips }),
@@ -105,7 +106,14 @@ export const createClipSlice: StateCreator<
 
   // Project management methods
   saveProject: async (name?: string) => {
-    const state = get()
+    const state = get() as ClipSlice & {
+      mediaId?: string | null
+      videoUrl?: string | null
+      videoName?: string | null
+      videoType?: string | null
+      videoDuration?: number | null
+      videoMetadata?: Record<string, unknown>
+    }
     let project = state.currentProject
 
     if (!project) {
@@ -117,6 +125,13 @@ export const createClipSlice: StateCreator<
         settings: defaultProjectSettings,
         createdAt: new Date(),
         updatedAt: new Date(),
+        // Include media information
+        mediaId: state.mediaId || undefined,
+        videoUrl: state.videoUrl || undefined,
+        videoName: state.videoName || undefined,
+        videoType: state.videoType || undefined,
+        videoDuration: state.videoDuration || undefined,
+        videoMetadata: state.videoMetadata || undefined,
       }
     } else {
       // Update existing project
@@ -125,11 +140,27 @@ export const createClipSlice: StateCreator<
         name: name || project.name,
         clips: state.clips,
         updatedAt: new Date(),
+        // Update media information
+        mediaId: state.mediaId || project.mediaId,
+        videoUrl: state.videoUrl || project.videoUrl,
+        videoName: state.videoName || project.videoName,
+        videoType: state.videoType || project.videoType,
+        videoDuration: state.videoDuration || project.videoDuration,
+        videoMetadata: state.videoMetadata || project.videoMetadata,
       }
     }
 
-    await hybridProjectStorage.saveProject(project)
+    // 로컬에 저장
+    await projectStorage.saveProject(project)
+
+    // 현재 프로젝트 상태 저장 (세션 복구용)
+    projectStorage.saveCurrentProject(project)
+
     set({ currentProject: project })
+
+    // AutosaveManager 동기화
+    const autosaveManager = AutosaveManager.getInstance()
+    autosaveManager.setProject(project.id, 'browser')
 
     // Mark as saved in save state
     const currentState = get() as ClipSlice & SaveSlice
@@ -139,7 +170,7 @@ export const createClipSlice: StateCreator<
   },
 
   loadProject: async (id: string) => {
-    const project = await hybridProjectStorage.loadProject(id)
+    const project = await projectStorage.loadProject(id)
     if (project) {
       set({
         clips: project.clips,

@@ -11,6 +11,13 @@ import { useCallback, useEffect, useId, useState } from 'react'
 // Store
 import { useEditorStore } from './store'
 
+// Storage & Managers
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { projectStorage } from '@/utils/storage/projectStorage'
+import { AutosaveManager } from '@/utils/managers/AutosaveManager'
+import { projectInfoManager } from '@/utils/managers/ProjectInfoManager'
+import { log } from '@/utils/logger'
+
 // Types
 import { EditorTab } from './types'
 
@@ -72,9 +79,122 @@ export default function EditorPage() {
   const [windowWidth, setWindowWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 1920
   )
+  const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
+
+  // Get media actions from store
+  const { setMediaInfo } = useEditorStore()
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
+
+  // Session recovery and initialization
+  useEffect(() => {
+    const initializeEditor = async () => {
+      try {
+        log('EditorPage.tsx', 'Initializing editor...')
+
+        // Initialize AutosaveManager
+        const autosaveManager = AutosaveManager.getInstance()
+
+        // Check for project to recover
+        const projectId = sessionStorage.getItem('currentProjectId')
+        const mediaId = sessionStorage.getItem('currentMediaId')
+
+        if (projectId || mediaId) {
+          log(
+            'EditorPage.tsx',
+            `Found session data - projectId: ${projectId}, mediaId: ${mediaId}`
+          )
+
+          try {
+            // Load project media info
+            if (projectId) {
+              const projectMediaInfo =
+                await mediaStorage.loadProjectMedia(projectId)
+              if (projectMediaInfo) {
+                log(
+                  'EditorPage.tsx',
+                  `Loaded project media info: ${projectMediaInfo.fileName}`
+                )
+
+                // Set media info in store
+                setMediaInfo({
+                  mediaId: projectMediaInfo.mediaId,
+                  videoName: projectMediaInfo.fileName,
+                  videoType: projectMediaInfo.fileType,
+                  videoDuration: projectMediaInfo.duration,
+                  videoMetadata: projectMediaInfo.metadata,
+                })
+
+                // Notify ProjectInfoManager
+                projectInfoManager.notifyFileOpen('browser', 'recovery', {
+                  id: projectId,
+                  name: projectMediaInfo.fileName.replace(/\.[^/.]+$/, ''), // Remove extension
+                })
+
+                // Set project in AutosaveManager
+                autosaveManager.setProject(projectId, 'browser')
+              }
+            }
+
+            // Load saved project data
+            const savedProject = projectStorage.loadCurrentProject()
+            if (savedProject) {
+              log('EditorPage.tsx', `Recovered project: ${savedProject.name}`)
+              setClips(savedProject.clips || [])
+
+              // Restore media information if available
+              if (savedProject.mediaId || savedProject.videoUrl) {
+                setMediaInfo({
+                  mediaId: savedProject.mediaId || null,
+                  videoUrl: savedProject.videoUrl || null,
+                  videoName: savedProject.videoName || null,
+                  videoType: savedProject.videoType || null,
+                  videoDuration: savedProject.videoDuration || null,
+                  videoMetadata: savedProject.videoMetadata || null,
+                })
+              }
+
+              // Set project in AutosaveManager
+              autosaveManager.setProject(savedProject.id, 'browser')
+
+              // Show recovery notification
+              showToast('이전 세션이 복구되었습니다', 'success')
+            }
+          } catch (error) {
+            console.error('Failed to recover session:', error)
+            showToast('세션 복구에 실패했습니다', 'error')
+          }
+        } else {
+          // No session to recover - check for autosaved project
+          const currentProject = projectStorage.loadCurrentProject()
+          if (currentProject) {
+            log(
+              'EditorPage.tsx',
+              `Found autosaved project: ${currentProject.name}`
+            )
+            setClips(currentProject.clips || [])
+            autosaveManager.setProject(currentProject.id, 'browser')
+          } else {
+            // New project
+            const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+            log('EditorPage.tsx', `Creating new project: ${newProjectId}`)
+            autosaveManager.setProject(newProjectId, 'browser')
+            projectInfoManager.notifyFileOpen('browser', 'newProject')
+          }
+        }
+
+        // Clear session storage after recovery
+        sessionStorage.removeItem('currentProjectId')
+        sessionStorage.removeItem('currentMediaId')
+      } finally {
+        // Always set recovering to false
+        setIsRecovering(false)
+      }
+    }
+
+    initializeEditor()
+  }, [setClips, setMediaInfo])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
@@ -359,18 +479,27 @@ export default function EditorPage() {
   }, [activeClipId, clips, setClips, editorHistory, setActiveClipId])
 
   // TODO : 자동 저장 기능 나중에 사용
-  // useEffect(() => {
-  //   const autoSave = () => {
-  //     if (clips.length > 0) {
-  //       saveProject().catch((error) => {
-  //         console.error('Auto-save failed:', error)
-  //       })
-  //     }
-  //   }
+  // 3초마다 자동 저장
+  useEffect(() => {
+    if (!clips.length) return
 
-  //   const interval = setInterval(autoSave, 3000) // 3초마다 자동 저장
-  //   return () => clearInterval(interval)
-  // }, [clips, saveProject])
+    const autoSave = () => {
+      saveProject().catch((error) => {
+        console.error('Auto-save failed:', error)
+      })
+    }
+
+    const interval = setInterval(autoSave, 3000)
+    return () => clearInterval(interval)
+  }, [clips, saveProject])
+
+  // clips 변경 시 AutosaveManager에 알림
+  useEffect(() => {
+    const autosaveManager = AutosaveManager.getInstance()
+    if (clips.length > 0) {
+      autosaveManager.incrementChangeCounter()
+    }
+  }, [clips])
 
   // 키보드 단축키 처리 (macOS Command + Windows/Linux Ctrl 지원)
   useEffect(() => {
@@ -495,6 +624,18 @@ export default function EditorPage() {
       setActiveClipId(clips[0].id)
     }
   }, [clips, activeClipId, setActiveClipId])
+
+  // 복구 중일 때 로딩 화면 표시
+  if (isRecovering) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-gray-600 border-t-white rounded-full animate-spin"></div>
+          <p className="text-gray-400">세션 복구 중...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <DndContext

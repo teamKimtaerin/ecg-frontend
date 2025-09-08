@@ -1,6 +1,9 @@
 'use client'
 
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { useEditorStore } from '../../store/editorStore'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { log } from '@/utils/logger'
 
 interface VideoPlayerProps {
   className?: string
@@ -16,11 +19,64 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
   const [isMuted, setIsMuted] = useState(false)
   const [showVolumeSlider, setShowVolumeSlider] = useState(false)
   const [isDraggingVolume, setIsDraggingVolume] = useState(false)
+  const [videoSrc, setVideoSrc] = useState<string | null>(null)
+
+  // Get media state from store
+  const { mediaId, videoUrl, videoName, setVideoLoading, setVideoError } =
+    useEditorStore()
+
+  // Load video from IndexedDB or URL
+  useEffect(() => {
+    const loadVideo = async () => {
+      // First check if we have a video URL from store
+      if (videoUrl) {
+        log('VideoPlayer.tsx', `Using video URL from store: ${videoUrl}`)
+        setVideoSrc(videoUrl)
+        return
+      }
+
+      // Check if we have a media ID from store
+      if (mediaId) {
+        log(
+          'VideoPlayer.tsx',
+          `Loading video from IndexedDB with mediaId: ${mediaId}`
+        )
+        setVideoLoading(true)
+
+        try {
+          const blobUrl = await mediaStorage.createBlobUrl(mediaId)
+          if (blobUrl) {
+            log(
+              'VideoPlayer.tsx',
+              `Video loaded from IndexedDB: ${videoName || 'unknown'}`
+            )
+            setVideoSrc(blobUrl)
+          } else {
+            setVideoError('Failed to load video from storage')
+          }
+        } catch (error) {
+          console.error('Failed to load video:', error)
+          setVideoError('Failed to load video')
+        } finally {
+          setVideoLoading(false)
+        }
+        return
+      }
+
+      // Fallback to demo video if no media
+      log('VideoPlayer.tsx', 'No media found, using demo video')
+      setVideoSrc(
+        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      )
+    }
+
+    loadVideo()
+  }, [mediaId, videoUrl, videoName, setVideoLoading, setVideoError])
 
   // 비디오 상태 체크를 위한 useEffect
   useEffect(() => {
     const video = videoRef.current
-    if (video) {
+    if (video && videoSrc) {
       if (process.env.NODE_ENV === 'development') {
         console.log('Video element found:', video)
         console.log('Video readyState:', video.readyState)
@@ -46,7 +102,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
           console.log('Video can play')
         }
       }
-      const handleError = (e: Event) => console.error('Video error:', e)
+      const handleError = (e: Event) => {
+        console.error('Video error:', e)
+        setVideoError('Video playback error')
+      }
 
       video.addEventListener('loadstart', handleLoadStart)
       video.addEventListener('canplay', handleCanPlay)
@@ -58,7 +117,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         video.removeEventListener('error', handleError)
       }
     }
-  }, [])
+  }, [videoSrc, setVideoError])
 
   // 재생/일시정지 토글
   const togglePlay = async () => {
@@ -232,20 +291,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
           <video
             ref={videoRef}
             className="w-full h-full rounded-lg"
+            src={videoSrc || undefined}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
             crossOrigin="anonymous"
           >
-            <source
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-              type="video/mp4"
-            />
-            <source
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-              type="video/mp4"
-            />
             비디오를 지원하지 않는 브라우저입니다.
           </video>
 
