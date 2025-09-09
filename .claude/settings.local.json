@@ -9,7 +9,10 @@
       "Bash(git rm:*)",
       "Bash(git commit:*)",
       "Bash(npm run type-check:*)",
-      "Bash(yarn type-check)"
+      "Bash(yarn type-check)",
+      "Bash(prm:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": [],
     "ask": []
