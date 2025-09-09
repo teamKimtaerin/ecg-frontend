@@ -32,14 +32,16 @@ export function useClipDragAndDrop(clipId: string, enabled: boolean = false) {
       }
     : undefined
 
-  const dragProps = enabled
-    ? {
-        ref: setNodeRef,
-        style,
-        ...attributes,
-        ...listeners,
-      }
-    : {}
+  const dragProps = {
+    ref: setNodeRef, // Always provide ref for position tracking
+    ...(enabled
+      ? {
+          style,
+          ...attributes,
+          ...listeners,
+        }
+      : { style: undefined }), // Only add drag functionality when enabled
+  }
 
   return {
     dragProps,

@@ -462,12 +462,12 @@ export default function EditorPage() {
       const newSet = new Set(selectedClipIds)
       newSet.add(clipId)
       setSelectedClipIds(newSet)
-      setActiveClipId(clipId) // 체크 시 포커싱도 해당 클립으로 이동
+      // 체크 시에는 포커싱을 변경하지 않음 (포커스와 선택을 분리)
     } else {
       const newSet = new Set(selectedClipIds)
       newSet.delete(clipId)
       setSelectedClipIds(newSet)
-      // 체크 해제 시에는 포커싱 유지 (UX 개선)
+      // 체크 해제 시에도 포커싱 유지
     }
   }
 
