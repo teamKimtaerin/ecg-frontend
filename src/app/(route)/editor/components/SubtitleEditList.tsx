@@ -3,6 +3,8 @@
 import React from 'react'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ClipComponent, { ClipItem } from './ClipComponent'
+import DropIndicator from './DropIndicator'
+import { useEditorStore } from '../store'
 
 interface SubtitleEditListProps {
   clips: ClipItem[]
@@ -35,6 +37,8 @@ export default function SubtitleEditList({
   onRenameSpeaker,
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
+  const { overId, activeId } = useEditorStore()
+
   // 빈 공간 클릭 핸들러
   const handleEmptySpaceClick = (e: React.MouseEvent) => {
     // 클릭된 대상이 현재 div(배경)인 경우에만 처리
@@ -42,6 +46,11 @@ export default function SubtitleEditList({
       onEmptySpaceClick()
     }
   }
+
+  // 드래그 중인 클립의 현재 인덱스 찾기
+  const draggedIndex = clips.findIndex((clip) => clip.id === activeId)
+  const overIndex = clips.findIndex((clip) => clip.id === overId)
+
   return (
     <div
       className="w-[800px] bg-gray-900 p-4 cursor-pointer"
@@ -53,24 +62,47 @@ export default function SubtitleEditList({
       >
         <div className="space-y-3">
           {clips.map((clip, index) => (
-            <ClipComponent
-              key={clip.id}
-              clip={clip}
-              index={index + 1} // 인덱스는 1부터 시작
-              isSelected={activeClipId === clip.id} // 포커스 상태
-              isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
-              isMultiSelected={selectedClipIds.has(clip.id)}
-              enableDragAndDrop={true}
-              speakers={speakers}
-              onSelect={onClipSelect}
-              onCheck={onClipCheck}
-              onWordEdit={onWordEdit}
-              onSpeakerChange={onSpeakerChange}
-              onBatchSpeakerChange={onBatchSpeakerChange}
-              onOpenSpeakerManagement={onOpenSpeakerManagement}
-              onAddSpeaker={onAddSpeaker}
-              onRenameSpeaker={onRenameSpeaker}
-            />
+            <React.Fragment key={clip.id}>
+              {/* 드롭 인디케이터 - 현재 위치 위에 표시 */}
+              <DropIndicator
+                isActive={
+                  activeId !== null &&
+                  overId === clip.id &&
+                  draggedIndex !== -1 &&
+                  overIndex !== -1 &&
+                  draggedIndex > overIndex
+                }
+              />
+
+              <ClipComponent
+                clip={clip}
+                index={index + 1} // 인덱스는 1부터 시작
+                isSelected={activeClipId === clip.id} // 포커스 상태
+                isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
+                isMultiSelected={selectedClipIds.has(clip.id)}
+                enableDragAndDrop={true}
+                speakers={speakers}
+                onSelect={onClipSelect}
+                onCheck={onClipCheck}
+                onWordEdit={onWordEdit}
+                onSpeakerChange={onSpeakerChange}
+                onBatchSpeakerChange={onBatchSpeakerChange}
+                onOpenSpeakerManagement={onOpenSpeakerManagement}
+                onAddSpeaker={onAddSpeaker}
+                onRenameSpeaker={onRenameSpeaker}
+              />
+
+              {/* 드롭 인디케이터 - 현재 위치 아래에 표시 */}
+              <DropIndicator
+                isActive={
+                  activeId !== null &&
+                  overId === clip.id &&
+                  draggedIndex !== -1 &&
+                  overIndex !== -1 &&
+                  draggedIndex < overIndex
+                }
+              />
+            </React.Fragment>
           ))}
         </div>
       </SortableContext>

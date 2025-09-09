@@ -1,20 +1,24 @@
 import {
   DragEndEvent,
   DragStartEvent,
-  KeyboardSensor,
+  DragOverEvent,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useCallback } from 'react'
 import { useEditorStore } from '../store'
 import { DRAG_ACTIVATION_DISTANCE } from '../types'
 
 export function useDragAndDrop() {
-  const { selectedClipIds, setSelectedClipIds, setActiveId, reorderClips } =
-    useEditorStore()
+  const {
+    selectedClipIds,
+    setSelectedClipIds,
+    setActiveId,
+    setOverId,
+    reorderClips,
+  } = useEditorStore()
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -27,9 +31,6 @@ export function useDragAndDrop() {
         delay: 250,
         tolerance: 5,
       },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     })
   )
 
@@ -46,6 +47,14 @@ export function useDragAndDrop() {
     [selectedClipIds, setActiveId, setSelectedClipIds]
   )
 
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { over } = event
+      setOverId(over?.id as string | null)
+    },
+    [setOverId]
+  )
+
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event
@@ -55,17 +64,20 @@ export function useDragAndDrop() {
       }
 
       setActiveId(null)
+      setOverId(null)
     },
-    [selectedClipIds, reorderClips, setActiveId]
+    [selectedClipIds, reorderClips, setActiveId, setOverId]
   )
 
   const handleDragCancel = useCallback(() => {
     setActiveId(null)
-  }, [setActiveId])
+    setOverId(null)
+  }, [setActiveId, setOverId])
 
   return {
     sensors,
     handleDragStart,
+    handleDragOver,
     handleDragEnd,
     handleDragCancel,
   }

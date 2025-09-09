@@ -10,6 +10,8 @@ export interface UISlice {
   // DnD state
   activeId: string | null
   setActiveId: (id: string | null) => void
+  overId: string | null
+  setOverId: (id: string | null) => void
 
   // Other UI states can be added here
   isVideoPlaying: boolean
@@ -28,6 +30,8 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // DnD state
   activeId: null,
   setActiveId: (id) => set({ activeId: id }),
+  overId: null,
+  setOverId: (id) => set({ overId: id }),
 
   // Video state
   isVideoPlaying: false,
