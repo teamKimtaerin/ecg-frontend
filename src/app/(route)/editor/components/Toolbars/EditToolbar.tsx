@@ -22,6 +22,7 @@ interface EditToolbarProps {
   onPaste?: () => void
   onMergeClips: () => void
   onSplitClip?: () => void
+  onRestore?: () => void
 }
 
 /**
@@ -42,6 +43,7 @@ export default function EditToolbar({
   onPaste,
   onMergeClips,
   onSplitClip,
+  onRestore,
 }: EditToolbarProps) {
   const [isVideoLocked, setIsVideoLocked] = useState(false)
 
@@ -213,6 +215,22 @@ export default function EditToolbar({
         />
         <span className="text-xs text-slate-400 mt-1">영상 잠그기</span>
       </div>
+
+      {/* 원본 복원 버튼 */}
+      <ToolbarButton
+        icon={
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+        }
+        label="원본 복원"
+        onClick={onRestore}
+      />
     </>
   )
 }

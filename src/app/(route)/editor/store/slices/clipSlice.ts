@@ -12,14 +12,25 @@ import { SaveSlice } from './saveSlice'
 
 export interface ClipSlice {
   clips: ClipItem[]
+  originalClips: ClipItem[] // 원본 클립 데이터 저장 (메모리)
+  deletedClipIds: Set<string>
   currentProject: ProjectData | null
   setClips: (clips: ClipItem[]) => void
+  setOriginalClips: (clips: ClipItem[]) => void // 원본 클립 설정
+  restoreOriginalClips: () => void // 원본으로 복원
+  saveOriginalClipsToStorage: () => Promise<void> // IndexedDB에 원본 클립 영구 저장
+  loadOriginalClipsFromStorage: () => Promise<void> // IndexedDB에서 원본 클립 로드
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
   reorderClips: (
     activeId: string,
     overId: string,
     selectedIds: Set<string>
   ) => void
+  // Clip deletion management
+  markClipAsDeleted: (clipId: string) => void
+  restoreDeletedClip: (clipId: string) => void
+  clearDeletedClips: () => void
+  getActiveClips: () => ClipItem[]
   // Project management
   saveProject: (name?: string) => Promise<void>
   loadProject: (id: string) => Promise<void>
@@ -34,9 +45,81 @@ export const createClipSlice: StateCreator<
   ClipSlice
 > = (set, get) => ({
   clips: [], // 초기 더미 데이터 제거
+  originalClips: [], // 원본 클립 데이터
+  deletedClipIds: new Set<string>(),
   currentProject: null,
 
   setClips: (clips) => set({ clips }),
+
+  setOriginalClips: (clips) => set({ originalClips: clips }),
+
+  restoreOriginalClips: () => {
+    const { originalClips } = get()
+    if (originalClips.length > 0) {
+      set({ clips: [...originalClips] })
+    }
+  },
+
+  saveOriginalClipsToStorage: async () => {
+    const { currentProject, originalClips } = get()
+    if (currentProject?.id && originalClips.length > 0) {
+      try {
+        const { projectStorage } = await import(
+          '@/utils/storage/projectStorage'
+        )
+        await projectStorage.saveOriginalClips(currentProject.id, originalClips)
+        console.log('Original clips saved to IndexedDB')
+      } catch (error) {
+        console.error('Failed to save original clips to storage:', error)
+      }
+    }
+  },
+
+  loadOriginalClipsFromStorage: async () => {
+    const { currentProject } = get()
+    if (currentProject?.id) {
+      try {
+        const { projectStorage } = await import(
+          '@/utils/storage/projectStorage'
+        )
+        const storedOriginalClips = await projectStorage.loadOriginalClips(
+          currentProject.id
+        )
+        if (storedOriginalClips && storedOriginalClips.length > 0) {
+          set({ originalClips: storedOriginalClips })
+          console.log('Original clips loaded from IndexedDB')
+        }
+      } catch (error) {
+        console.error('Failed to load original clips from storage:', error)
+      }
+    }
+  },
+
+  // Clip deletion management
+  markClipAsDeleted: (clipId) => {
+    set((state) => {
+      const newDeletedIds = new Set(state.deletedClipIds)
+      newDeletedIds.add(clipId)
+      return { deletedClipIds: newDeletedIds }
+    })
+  },
+
+  restoreDeletedClip: (clipId) => {
+    set((state) => {
+      const newDeletedIds = new Set(state.deletedClipIds)
+      newDeletedIds.delete(clipId)
+      return { deletedClipIds: newDeletedIds }
+    })
+  },
+
+  clearDeletedClips: () => {
+    set({ deletedClipIds: new Set<string>() })
+  },
+
+  getActiveClips: () => {
+    const state = get()
+    return state.clips.filter((clip) => !state.deletedClipIds.has(clip.id))
+  },
 
   updateClipWords: (clipId, wordId, newText) => {
     set((state) => ({

@@ -21,12 +21,16 @@ export function useSelectionBox() {
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
+      // 스크롤 위치를 고려한 좌표 계산
+      const scrollTop = containerRef.current?.scrollTop || 0
+      const scrollLeft = containerRef.current?.scrollLeft || 0
+
       setIsSelecting(true)
       setSelectionBox({
-        startX: e.clientX - rect.left,
-        startY: e.clientY - rect.top,
-        endX: e.clientX - rect.left,
-        endY: e.clientY - rect.top,
+        startX: e.clientX - rect.left + scrollLeft,
+        startY: e.clientY - rect.top + scrollTop,
+        endX: e.clientX - rect.left + scrollLeft,
+        endY: e.clientY - rect.top + scrollTop,
       })
 
       // Clear selection if not holding Ctrl/Cmd
@@ -44,10 +48,14 @@ export function useSelectionBox() {
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
+      // 스크롤 위치를 고려한 좌표 계산
+      const scrollTop = containerRef.current?.scrollTop || 0
+      const scrollLeft = containerRef.current?.scrollLeft || 0
+
       setSelectionBox({
         ...selectionBox,
-        endX: e.clientX - rect.left,
-        endY: e.clientY - rect.top,
+        endX: e.clientX - rect.left + scrollLeft,
+        endY: e.clientY - rect.top + scrollTop,
       })
     },
     [isSelecting, selectionBox, setSelectionBox]
@@ -61,14 +69,19 @@ export function useSelectionBox() {
       containerRef.current?.querySelectorAll('[data-clip-id]')
     const selected: string[] = []
 
+    // 스크롤 위치 가져오기
+    const scrollTop = containerRef.current?.scrollTop || 0
+    const scrollLeft = containerRef.current?.scrollLeft || 0
+
     clipElements?.forEach((element) => {
       const clipRect = element.getBoundingClientRect()
       const containerRect = containerRef.current!.getBoundingClientRect()
 
-      const clipTop = clipRect.top - containerRect.top
-      const clipBottom = clipRect.bottom - containerRect.top
-      const clipLeft = clipRect.left - containerRect.left
-      const clipRight = clipRect.right - containerRect.left
+      // 스크롤을 고려한 절대 위치 계산
+      const clipTop = clipRect.top - containerRect.top + scrollTop
+      const clipBottom = clipRect.bottom - containerRect.top + scrollTop
+      const clipLeft = clipRect.left - containerRect.left + scrollLeft
+      const clipRight = clipRect.right - containerRect.left + scrollLeft
 
       const selLeft = Math.min(selectionBox.startX, selectionBox.endX)
       const selRight = Math.max(selectionBox.startX, selectionBox.endX)

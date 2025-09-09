@@ -4,10 +4,16 @@ import {
   ProjectStorage,
   ProjectSettings,
 } from '@/app/(route)/editor/types/project'
+import { indexedDBProjectStorage } from './indexedDBProjectStorage'
+import { migrationManager } from './migrationManager'
 
 const STORAGE_KEY = 'ecg-projects'
 const CURRENT_PROJECT_KEY = 'ecg-current-project'
 
+/**
+ * @deprecated LocalProjectStorage는 IndexedDB로 마이그레이션되었습니다.
+ * 호환성을 위해 유지되지만 새로운 코드에서는 사용하지 마세요.
+ */
 class LocalProjectStorage implements ProjectStorage {
   async saveProject(project: ProjectData): Promise<void> {
     try {
@@ -234,8 +240,107 @@ class LocalProjectStorage implements ProjectStorage {
   }
 }
 
-// Singleton instance
-export const projectStorage = new LocalProjectStorage()
+/**
+ * IndexedDB 기반 프로젝트 저장소 (마이그레이션 지원)
+ */
+class MigratedProjectStorage implements ProjectStorage {
+  private initialized = false
+
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return
+
+    // 마이그레이션 실행
+    if (migrationManager.needsMigration()) {
+      console.log('Starting localStorage to IndexedDB migration...')
+      const result = await migrationManager.migrate()
+
+      if (!result.success) {
+        console.warn('Migration failed, some errors occurred:', result.errors)
+        // 마이그레이션이 실패해도 IndexedDB는 사용 가능
+      } else {
+        console.log(
+          `Migration completed: ${result.migratedCount} projects migrated`
+        )
+      }
+    }
+
+    // IndexedDB 초기화
+    await indexedDBProjectStorage.initialize()
+    this.initialized = true
+  }
+
+  async saveProject(project: ProjectData): Promise<void> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.saveProject(project)
+  }
+
+  async loadProject(id: string): Promise<ProjectData | null> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.loadProject(id)
+  }
+
+  async listProjects(): Promise<SavedProject[]> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.listProjects()
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.deleteProject(id)
+  }
+
+  async exportProject(
+    id: string,
+    format: 'srt' | 'vtt' | 'ass'
+  ): Promise<string> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.exportProject(id, format)
+  }
+
+  // 원본 클립 데이터 관리
+  async saveOriginalClips(
+    projectId: string,
+    originalClips: unknown[]
+  ): Promise<void> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.saveOriginalClips(projectId, originalClips)
+  }
+
+  async loadOriginalClips(projectId: string): Promise<unknown[] | null> {
+    await this.ensureInitialized()
+    return indexedDBProjectStorage.loadOriginalClips(projectId)
+  }
+
+  // 마이그레이션 유틸리티
+  getMigrationStatus() {
+    return migrationManager.getMigrationStatus()
+  }
+
+  async rollbackMigration(): Promise<boolean> {
+    return migrationManager.rollback()
+  }
+
+  // Legacy compatibility methods
+  loadCurrentProject(): ProjectData | null {
+    // 임시로 레거시 localStorage에서 읽기 (마이그레이션 전까지)
+    return legacyProjectStorage.loadCurrentProject()
+  }
+
+  saveCurrentProject(project: ProjectData): void {
+    // 임시로 레거시 localStorage에 저장 (호환성)
+    legacyProjectStorage.saveCurrentProject(project)
+  }
+
+  clearCurrentProject(): void {
+    legacyProjectStorage.clearCurrentProject()
+  }
+}
+
+// Export project storage instance (IndexedDB 기반)
+export const projectStorage = new MigratedProjectStorage()
+
+// 레거시 지원용 (기존 localStorage 저장소)
+export const legacyProjectStorage = new LocalProjectStorage()
 
 // Default project settings
 export const defaultProjectSettings: ProjectSettings = {

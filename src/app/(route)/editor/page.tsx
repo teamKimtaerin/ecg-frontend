@@ -32,6 +32,7 @@ import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import AlertDialog from '@/components/ui/AlertDialog'
 import Toolbars from './components/Toolbars'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
@@ -57,6 +58,10 @@ export default function EditorPage() {
   const {
     clips,
     setClips,
+    setOriginalClips,
+    restoreOriginalClips,
+    saveOriginalClipsToStorage,
+    loadOriginalClipsFromStorage,
     selectedClipIds,
     setSelectedClipIds,
     clearSelection,
@@ -92,6 +97,7 @@ export default function EditorPage() {
   const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
+  const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
 
   // Get media actions from store
   const { setMediaInfo } = useEditorStore()
@@ -138,7 +144,13 @@ export default function EditorPage() {
           const numberedSpeakers = Object.values(speakerMapping)
 
           setClips(updatedClips)
+          setOriginalClips(updatedClips) // 메모리에 원본 클립 데이터 저장
           setSpeakers(numberedSpeakers)
+
+          // IndexedDB에도 원본 클립 저장 (세션 간 유지)
+          saveOriginalClipsToStorage().catch((error) => {
+            console.error('Failed to save original clips to IndexedDB:', error)
+          })
 
           // Set media info when in mock mode
           if (API_CONFIG.USE_MOCK_DATA) {
@@ -207,6 +219,17 @@ export default function EditorPage() {
               log('EditorPage.tsx', `Recovered project: ${savedProject.name}`)
               setClips(savedProject.clips)
 
+              // 프로젝트 복구 시 IndexedDB에서 원본 클립 로드 시도
+              if (projectId) {
+                loadOriginalClipsFromStorage().catch((error) => {
+                  console.warn(
+                    'Failed to load original clips from storage:',
+                    error
+                  )
+                  // 실패해도 프로젝트 복구는 계속 진행
+                })
+              }
+
               // Restore media information if available
               if (savedProject.mediaId || savedProject.videoUrl) {
                 setMediaInfo({
@@ -265,7 +288,13 @@ export default function EditorPage() {
     }
 
     initializeEditor()
-  }, [setClips, setMediaInfo])
+  }, [
+    setClips,
+    setOriginalClips,
+    setMediaInfo,
+    saveOriginalClipsToStorage,
+    loadOriginalClipsFromStorage,
+  ])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
@@ -433,10 +462,12 @@ export default function EditorPage() {
       const newSet = new Set(selectedClipIds)
       newSet.add(clipId)
       setSelectedClipIds(newSet)
+      setActiveClipId(clipId) // 체크 시 포커싱도 해당 클립으로 이동
     } else {
       const newSet = new Set(selectedClipIds)
       newSet.delete(clipId)
       setSelectedClipIds(newSet)
+      // 체크 해제 시에는 포커싱 유지 (UX 개선)
     }
   }
 
@@ -808,6 +839,19 @@ export default function EditorPage() {
     }
   }, [clips, clipboard, setClips, editorHistory])
 
+  // 원본 복원 핸들러
+  const handleRestore = useCallback(() => {
+    setShowRestoreModal(true)
+  }, [])
+
+  const handleConfirmRestore = useCallback(() => {
+    restoreOriginalClips()
+    clearSelection()
+    setActiveClipId(null)
+    setShowRestoreModal(false)
+    showToast('원본으로 복원되었습니다.', 'success')
+  }, [restoreOriginalClips, clearSelection, setActiveClipId])
+
   // Auto-save every 3 seconds
   useEffect(() => {
     if (!clips.length) return
@@ -1053,6 +1097,7 @@ export default function EditorPage() {
           onCopy={handleCopyClips}
           onPaste={handlePasteClips}
           onSplitClip={handleSplitClip}
+          onRestore={handleRestore}
         />
 
         <div className="flex h-[calc(100vh-120px)] relative">
@@ -1141,6 +1186,19 @@ export default function EditorPage() {
           isOpen={showTutorialModal}
           onClose={handleTutorialClose}
           onComplete={handleTutorialComplete}
+        />
+
+        {/* 원본 복원 확인 모달 */}
+        <AlertDialog
+          isOpen={showRestoreModal}
+          title="원본으로 복원"
+          description="원본으로 돌아가시겠습니까? 모든 변경사항이 초기화됩니다."
+          variant="warning"
+          primaryActionLabel="예"
+          cancelActionLabel="아니오"
+          onPrimaryAction={handleConfirmRestore}
+          onCancel={() => setShowRestoreModal(false)}
+          onClose={() => setShowRestoreModal(false)}
         />
       </div>
     </DndContext>

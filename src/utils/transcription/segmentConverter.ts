@@ -59,22 +59,25 @@ export function convertSegmentToClip(
 ): ClipItem {
   const clipId = `clip_${index + 1}_${Date.now()}`
 
-  // words 변환
+  // words 변환 - ensure text is properly preserved
   const words: Word[] = segment.words.map((word, wordIndex) => ({
     id: `${clipId}_word_${wordIndex}`,
-    text: word.word,
+    text: word.word.trim(), // Trim any whitespace
     start: word.start,
     end: word.end,
     isEditable: true,
     confidence: word.confidence,
   }))
 
+  // Ensure text is properly decoded and preserved
+  const text = segment.text || words.map((w) => w.text).join(' ')
+
   return {
     id: clipId,
     timeline: formatTime(segment.start_time),
-    speaker: segment.speaker.speaker_id.replace('SPEAKER_', 'Speaker '),
-    subtitle: segment.text,
-    fullText: segment.text,
+    speaker: segment.speaker.speaker_id, // Keep original speaker ID for now
+    subtitle: text,
+    fullText: text,
     duration: `${segment.duration.toFixed(1)}초`,
     thumbnail: '/placeholder-thumb.jpg',
     words,
@@ -110,7 +113,8 @@ export async function loadTranscriptionData(url: string): Promise<ClipItem[]> {
       return []
     }
 
-    return convertSegmentsToClips(data.segments)
+    const clips = convertSegmentsToClips(data.segments)
+    return clips
   } catch (error) {
     console.error('Error loading transcription data:', error)
     return []

@@ -24,7 +24,7 @@ const SelectionBox: React.FC<SelectionBoxProps> = ({
 
   return (
     <div
-      className="absolute border-2 border-gray-400 pointer-events-none z-50"
+      className="absolute border-2 border-blue-200 pointer-events-none z-50"
       style={{
         left: `${left}px`,
         top: `${top}px`,

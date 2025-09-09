@@ -247,7 +247,7 @@ export default function ClipSpeaker({
               if (e.key === 'Enter') handleSaveEdit()
               if (e.key === 'Escape') handleCancelEdit()
             }}
-            onBlur={(e) => {
+            onBlur={() => {
               // 포커스가 모달로 이동하는 경우 무시
               setTimeout(() => handleSaveEdit(), 100)
             }}

@@ -24,6 +24,7 @@ interface ToolbarsProps {
   onCopy?: () => void
   onPaste?: () => void
   onSplitClip?: () => void
+  onRestore?: () => void
 }
 
 /**
@@ -46,6 +47,7 @@ export default function Toolbars({
   onCopy,
   onPaste,
   onSplitClip,
+  onRestore,
 }: ToolbarsProps) {
   // 공통 props
   const commonProps = {
@@ -84,6 +86,7 @@ export default function Toolbars({
             clips={clips}
             activeClipId={activeClipId}
             onSelectionChange={onSelectionChange}
+            onRestore={onRestore}
           />
         </ToolbarWrapper>
       )

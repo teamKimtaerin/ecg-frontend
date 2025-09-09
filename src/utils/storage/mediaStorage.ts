@@ -5,9 +5,12 @@
 import { getTimestamp } from '@/utils/logger'
 
 const DB_NAME = 'ECGMediaStorage'
-const DB_VERSION = 1
+const DB_VERSION = 2 // Version bump for new project stores
 const MEDIA_STORE = 'media'
 const PROJECT_MEDIA_STORE = 'projectMedia'
+// New project data stores
+const PROJECTS_STORE = 'projects'
+const PROJECT_HISTORY_STORE = 'projectHistory'
 
 export interface MediaFile {
   id: string
@@ -84,6 +87,25 @@ class MediaStorage {
           db.createObjectStore(PROJECT_MEDIA_STORE, {
             keyPath: 'projectId',
           })
+        }
+
+        // 프로젝트 데이터 저장소
+        if (!db.objectStoreNames.contains(PROJECTS_STORE)) {
+          const projectsStore = db.createObjectStore(PROJECTS_STORE, {
+            keyPath: 'id',
+          })
+          projectsStore.createIndex('name', 'name', { unique: false })
+          projectsStore.createIndex('updatedAt', 'updatedAt', { unique: false })
+          projectsStore.createIndex('createdAt', 'createdAt', { unique: false })
+        }
+
+        // 프로젝트 히스토리 저장소 (undo/redo)
+        if (!db.objectStoreNames.contains(PROJECT_HISTORY_STORE)) {
+          const historyStore = db.createObjectStore(PROJECT_HISTORY_STORE, {
+            keyPath: ['projectId', 'timestamp'],
+          })
+          historyStore.createIndex('projectId', 'projectId', { unique: false })
+          historyStore.createIndex('timestamp', 'timestamp', { unique: false })
         }
 
         console.log(
