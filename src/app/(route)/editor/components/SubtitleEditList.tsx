@@ -5,6 +5,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ClipComponent, { ClipItem } from './ClipComponent'
 import DropIndicator from './DropIndicator'
 import { useEditorStore } from '../store'
+import { useGroupSelection } from '../hooks/useGroupSelection'
 
 interface SubtitleEditListProps {
   clips: ClipItem[]
@@ -38,6 +39,8 @@ export default function SubtitleEditList({
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
   const { overId, activeId } = useEditorStore()
+  const { isGroupSelecting, handleClipPointerDown, handleClipMouseEnter } =
+    useGroupSelection()
 
   // 빈 공간 클릭 핸들러
   const handleEmptySpaceClick = (e: React.MouseEvent) => {
@@ -80,7 +83,10 @@ export default function SubtitleEditList({
                 isSelected={activeClipId === clip.id} // 포커스 상태
                 isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
                 isMultiSelected={selectedClipIds.has(clip.id)}
-                enableDragAndDrop={selectedClipIds.has(clip.id)} // 체크된 클립만 드래그 가능
+                enableDragAndDrop={
+                  selectedClipIds.has(clip.id) && !isGroupSelecting
+                } // 체크된 클립만 드래그 가능 (그룹 선택 중에는 비활성화)
+                isGroupSelecting={isGroupSelecting}
                 speakers={speakers}
                 onSelect={onClipSelect}
                 onCheck={onClipCheck}
@@ -90,6 +96,8 @@ export default function SubtitleEditList({
                 onOpenSpeakerManagement={onOpenSpeakerManagement}
                 onAddSpeaker={onAddSpeaker}
                 onRenameSpeaker={onRenameSpeaker}
+                onMouseDown={() => handleClipPointerDown(clip.id)}
+                onMouseEnter={() => handleClipMouseEnter(clip.id)}
               />
 
               {/* 드롭 인디케이터 - 현재 위치 아래에 표시 */}

@@ -25,6 +25,7 @@ export interface ClipComponentProps {
   isChecked?: boolean
   isMultiSelected?: boolean
   enableDragAndDrop?: boolean
+  isGroupSelecting?: boolean
   speakers?: string[]
   onSelect: (clipId: string) => void
   onCheck?: (clipId: string, checked: boolean) => void
@@ -34,6 +35,8 @@ export interface ClipComponentProps {
   onOpenSpeakerManagement?: () => void
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
+  onMouseDown?: () => void
+  onMouseEnter?: () => void
 }
 
 export interface ClipStyleState {

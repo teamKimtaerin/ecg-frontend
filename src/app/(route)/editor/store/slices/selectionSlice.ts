@@ -18,9 +18,19 @@ export interface SelectionSlice {
   setIsSelecting: (selecting: boolean) => void
   selectionBox: SelectionBox
   setSelectionBox: (box: SelectionBox) => void
+
+  // Group selection state (press and drag)
+  isGroupSelecting: boolean
+  groupSelectionStartClipId: string | null
+  startClipGroupSelection: (clipId: string) => void
+  endClipGroupSelection: () => void
+  addToClipGroupSelection: (clipId: string) => void
 }
 
-export const createSelectionSlice: StateCreator<SelectionSlice> = (set) => ({
+export const createSelectionSlice: StateCreator<SelectionSlice> = (
+  set,
+  get
+) => ({
   // Selection state (체크박스용)
   selectedClipIds: new Set<string>(),
 
@@ -74,4 +84,50 @@ export const createSelectionSlice: StateCreator<SelectionSlice> = (set) => ({
   },
 
   setSelectionBox: (box) => set({ selectionBox: box }),
+
+  // Group selection state (press and drag)
+  isGroupSelecting: false,
+  groupSelectionStartClipId: null,
+
+  startClipGroupSelection: (clipId) => {
+    console.log(
+      '[SelectionSlice] Starting clip group selection with clip:',
+      clipId
+    )
+    const currentState = get()
+    const newSet = new Set(currentState.selectedClipIds)
+    newSet.add(clipId)
+    console.log('[SelectionSlice] New selected clips:', Array.from(newSet))
+    set({
+      isGroupSelecting: true,
+      groupSelectionStartClipId: clipId,
+      selectedClipIds: newSet,
+    })
+  },
+
+  endClipGroupSelection: () => {
+    console.log('[SelectionSlice] Ending clip group selection')
+    set({
+      isGroupSelecting: false,
+      groupSelectionStartClipId: null,
+    })
+  },
+
+  addToClipGroupSelection: (clipId) => {
+    const currentState = get()
+    if (!currentState.isGroupSelecting) {
+      console.log('[SelectionSlice] Not in clip group selection mode, skipping')
+      return
+    }
+
+    const newSet = new Set(currentState.selectedClipIds)
+    newSet.add(clipId)
+    console.log(
+      '[SelectionSlice] Added clip to selection:',
+      clipId,
+      'Total selected:',
+      Array.from(newSet)
+    )
+    set({ selectedClipIds: newSet })
+  },
 })

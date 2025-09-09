@@ -12,7 +12,10 @@
       "Bash(yarn type-check)",
       "Bash(prm:*)",
       "Bash(git push:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(ls:*)",
+      "Bash(yarn dev)",
+      "Bash(jobs)"
     ],
     "deny": [],
     "ask": []

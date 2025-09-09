@@ -17,6 +17,7 @@ export default function ClipComponent({
   isChecked = false,
   isMultiSelected = false,
   enableDragAndDrop = false,
+  isGroupSelecting = false,
   speakers = [],
   onSelect,
   onCheck,
@@ -26,6 +27,8 @@ export default function ClipComponent({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
+  onMouseDown,
+  onMouseEnter,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { dragProps, isDragging } = useClipDragAndDrop(
@@ -37,7 +40,7 @@ export default function ClipComponent({
       isSelected,
       isChecked,
       isMultiSelected,
-      isHovered,
+      isHovered: isHovered || isGroupSelecting,
       isDragging,
     })
 
@@ -60,13 +63,28 @@ export default function ClipComponent({
     onSelect(clip.id)
   }
 
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Start group selection for all clips (using pointer event to avoid conflict with dnd-kit)
+    if (onMouseDown) {
+      onMouseDown()
+    }
+  }
+
+  const handleMouseEnter = () => {
+    setIsHovered(true)
+    if (onMouseEnter) {
+      onMouseEnter()
+    }
+  }
+
   return (
     <div
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
       onClick={handleClick}
-      onMouseEnter={() => setIsHovered(true)}
+      onPointerDownCapture={handlePointerDown}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
