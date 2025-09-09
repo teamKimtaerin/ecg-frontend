@@ -478,6 +478,23 @@ export default function EditorPage() {
       setActiveClipId(null) // 선택 해제 시 포커스도 해제
     } else {
       setActiveClipId(clipId)
+
+      // 선택된 클립의 시작 시간으로 비디오 이동
+      const selectedClip = clips.find((c) => c.id === clipId)
+      if (selectedClip && selectedClip.timeline) {
+        // timeline 형식: "00:00 → 00:07"
+        const [startTimeStr] = selectedClip.timeline.split(' → ')
+        const [mins, secs] = startTimeStr.split(':').map(Number)
+        const timeInSeconds = mins * 60 + secs
+
+        // 비디오 플레이어로 시간 이동
+        const videoPlayer = (
+          window as { videoPlayer?: { seekTo: (time: number) => void } }
+        ).videoPlayer
+        if (videoPlayer) {
+          videoPlayer.seekTo(timeInSeconds)
+        }
+      }
     }
   }
 

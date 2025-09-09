@@ -21,6 +21,11 @@ export interface ClipSlice {
   saveOriginalClipsToStorage: () => Promise<void> // IndexedDB에 원본 클립 영구 저장
   loadOriginalClipsFromStorage: () => Promise<void> // IndexedDB에서 원본 클립 로드
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
+  reorderWordsInClip: (
+    clipId: string,
+    sourceWordId: string,
+    targetWordId: string
+  ) => void
   reorderClips: (
     activeId: string,
     overId: string,
@@ -86,7 +91,7 @@ export const createClipSlice: StateCreator<
           currentProject.id
         )
         if (storedOriginalClips && storedOriginalClips.length > 0) {
-          set({ originalClips: storedOriginalClips })
+          set({ originalClips: storedOriginalClips as ClipItem[] })
           console.log('Original clips loaded from IndexedDB')
         }
       } catch (error) {
@@ -136,6 +141,39 @@ export const createClipSlice: StateCreator<
             }
           : clip
       ),
+    }))
+  },
+
+  reorderWordsInClip: (clipId, sourceWordId, targetWordId) => {
+    set((state) => ({
+      clips: state.clips.map((clip) => {
+        if (clip.id !== clipId) return clip
+
+        const words = [...clip.words]
+        const sourceIndex = words.findIndex((w) => w.id === sourceWordId)
+        const targetIndex = words.findIndex((w) => w.id === targetWordId)
+
+        if (sourceIndex === -1 || targetIndex === -1) return clip
+
+        // Remove source word
+        const [movedWord] = words.splice(sourceIndex, 1)
+
+        // Insert at target position
+        const insertIndex =
+          sourceIndex < targetIndex ? targetIndex : targetIndex
+        words.splice(insertIndex, 0, movedWord)
+
+        // Rebuild fullText and subtitle from reordered words
+        const fullText = words.map((w) => w.text).join(' ')
+        const subtitle = fullText // Or apply any subtitle-specific formatting
+
+        return {
+          ...clip,
+          words,
+          fullText,
+          subtitle,
+        }
+      }),
     }))
   },
 

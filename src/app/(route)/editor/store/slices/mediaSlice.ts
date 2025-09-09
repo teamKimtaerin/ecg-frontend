@@ -21,6 +21,16 @@ export interface MediaState {
   } | null
   isVideoLoading: boolean
   videoError: string | null
+
+  // Playback state
+  currentTime: number
+  isPlaying: boolean
+
+  // Subtitle state
+  activeSubtitleIndex: number | null
+  showSubtitles: boolean
+  subtitleSize: 'small' | 'medium' | 'large'
+  subtitlePosition: 'top' | 'bottom'
 }
 
 export interface MediaActions {
@@ -28,6 +38,16 @@ export interface MediaActions {
   clearMedia: () => void
   setVideoLoading: (loading: boolean) => void
   setVideoError: (error: string | null) => void
+
+  // Playback actions
+  setCurrentTime: (time: number) => void
+  setIsPlaying: (playing: boolean) => void
+
+  // Subtitle actions
+  setActiveSubtitleIndex: (index: number | null) => void
+  toggleSubtitles: () => void
+  setSubtitleSize: (size: 'small' | 'medium' | 'large') => void
+  setSubtitlePosition: (position: 'top' | 'bottom') => void
 }
 
 export type MediaSlice = MediaState & MediaActions
@@ -41,6 +61,16 @@ const initialState: MediaState = {
   videoMetadata: null,
   isVideoLoading: false,
   videoError: null,
+
+  // Playback state
+  currentTime: 0,
+  isPlaying: false,
+
+  // Subtitle state
+  activeSubtitleIndex: null,
+  showSubtitles: true,
+  subtitleSize: 'medium',
+  subtitlePosition: 'bottom',
 }
 
 export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
@@ -72,5 +102,31 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
       log('mediaSlice.ts', `Video error: ${error}`)
     }
     set({ videoError: error })
+  },
+
+  // Playback actions
+  setCurrentTime: (time) => {
+    set({ currentTime: time })
+  },
+
+  setIsPlaying: (playing) => {
+    set({ isPlaying: playing })
+  },
+
+  // Subtitle actions
+  setActiveSubtitleIndex: (index) => {
+    set({ activeSubtitleIndex: index })
+  },
+
+  toggleSubtitles: () => {
+    set((state) => ({ showSubtitles: !state.showSubtitles }))
+  },
+
+  setSubtitleSize: (size) => {
+    set({ subtitleSize: size })
+  },
+
+  setSubtitlePosition: (position) => {
+    set({ subtitlePosition: position })
   },
 })
