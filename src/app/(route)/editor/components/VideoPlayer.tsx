@@ -19,6 +19,7 @@ export default function VideoPlayer({
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [showControls, setShowControls] = useState(true)
+  const [isToggling, setIsToggling] = useState(false)
 
   const { videoUrl, videoName } = useEditorStore()
 
@@ -50,22 +51,42 @@ export default function VideoPlayer({
     }
   }, [onLoadedMetadata])
 
-  // Play/Pause toggle
-  const togglePlayPause = useCallback(() => {
-    if (videoRef.current) {
+  // Play/Pause toggle with debounce to prevent rapid clicks
+  const togglePlayPause = useCallback(async () => {
+    if (!videoRef.current || isToggling) return
+
+    setIsToggling(true)
+
+    try {
       if (isPlaying) {
         videoRef.current.pause()
+        setIsPlaying(false)
+        useEditorStore.getState().setMediaInfo({
+          isPlaying: false,
+        })
       } else {
-        videoRef.current.play()
+        // Handle play() promise properly
+        await videoRef.current.play()
+        setIsPlaying(true)
+        useEditorStore.getState().setMediaInfo({
+          isPlaying: true,
+        })
       }
-      setIsPlaying(!isPlaying)
-
-      // Update store with playing state
+    } catch (error) {
+      // AbortError는 무시 (이미 다른 play/pause가 진행중)
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.warn('Video play/pause failed:', error)
+      }
+      // Reset state on error
+      setIsPlaying(videoRef.current.paused === false)
       useEditorStore.getState().setMediaInfo({
-        isPlaying: !isPlaying,
+        isPlaying: videoRef.current.paused === false,
       })
+    } finally {
+      // 짧은 지연 후 다시 토글 가능하도록
+      setTimeout(() => setIsToggling(false), 100)
     }
-  }, [isPlaying])
+  }, [isPlaying, isToggling])
 
   // Seek to specific time
   const seekTo = useCallback(
