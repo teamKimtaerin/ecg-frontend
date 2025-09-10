@@ -51,7 +51,7 @@ export default function MotionTextDemo() {
             데모 서버가 실행되지 않음
           </h1>
           <p className="text-gray-600 mb-4">
-            MotionText Renderer 데모 서버(localhost:3000)가 실행되지 않았습니다.
+            MotionText Renderer 데모 서버(localhost:3004)가 실행되지 않았습니다.
           </p>
           <div className="text-sm text-gray-500 bg-gray-100 p-3 rounded">
             <p className="font-mono">pnpm dev</p>
