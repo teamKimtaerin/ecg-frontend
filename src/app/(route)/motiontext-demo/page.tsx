@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
+
 /**
  * MotionText Renderer 데모 페이지
  * iframe을 통해 기존 데모(localhost:3000)를 임베딩
@@ -15,6 +16,7 @@ export default function MotionTextDemo() {
     const checkServer = async () => {
       try {
         const response = await fetch('http://localhost:3004')
+
         setIsServerRunning(response.ok)
       } catch (error) {
         setIsServerRunning(false)
