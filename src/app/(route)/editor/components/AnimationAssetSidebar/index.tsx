@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useEditorStore } from '../../store'
 
 // Components
@@ -9,6 +9,7 @@ import SearchBar from './SearchBar'
 import UsedAssetsStrip from './UsedAssetsStrip'
 import TabNavigation from './TabNavigation'
 import AssetGrid from './AssetGrid'
+import AssetControlPanel from './AssetControlPanel'
 import { AssetItem } from './AssetCard'
 
 interface AnimationAssetSidebarProps {
@@ -22,6 +23,11 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 }) => {
   const { isAssetSidebarOpen, assetSidebarWidth, selectedWordId, clips } =
     useEditorStore()
+
+  const [expandedAssetId, setExpandedAssetId] = useState<string | null>(null)
+  const [expandedAssetName, setExpandedAssetName] = useState<string | null>(
+    null
+  )
 
   // Find selected word info
   const selectedWordInfo = React.useMemo(() => {
@@ -49,9 +55,27 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
     // This would integrate with the existing clip editing system
   }
 
+  const handleExpandedAssetChange = (
+    assetId: string | null,
+    assetName: string | null
+  ) => {
+    setExpandedAssetId(assetId)
+    setExpandedAssetName(assetName)
+  }
+
+  const handleControlPanelClose = () => {
+    setExpandedAssetId(null)
+    setExpandedAssetName(null)
+  }
+
+  const handleSettingsChange = (settings: Record<string, unknown>) => {
+    console.log('Settings changed:', settings)
+    // TODO: Apply settings to animation track
+  }
+
   return (
     <div
-      className={`flex-shrink-0 bg-gray-900 border-l border-slate-600/40 flex flex-col h-full ${className || ''}`}
+      className={`relative flex-shrink-0 bg-gray-900 border-l border-slate-600/40 flex flex-col h-full ${className || ''}`}
       style={{ width: assetSidebarWidth }}
     >
       {/* Header */}
@@ -70,11 +94,28 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
       )}
 
       {/* Filter Controls */}
-      <div className="flex-shrink-0 pt-4">
+      <div className="flex-shrink-0 pt-4 relative">
         <SearchBar />
 
         {/* Used Assets Strip */}
-        <UsedAssetsStrip />
+        <UsedAssetsStrip onExpandedAssetChange={handleExpandedAssetChange} />
+
+        {/* AssetControlPanel - Below UsedAssetsStrip, centered vertically in viewport */}
+        {expandedAssetId && expandedAssetName && (
+          <div
+            className="absolute left-0 right-0 px-4 z-50"
+            style={{
+              top: '50%',
+              transform: 'translateY(-50%)',
+            }}
+          >
+            <AssetControlPanel
+              assetName={expandedAssetName}
+              onClose={handleControlPanelClose}
+              onSettingsChange={handleSettingsChange}
+            />
+          </div>
+        )}
 
         <TabNavigation />
       </div>

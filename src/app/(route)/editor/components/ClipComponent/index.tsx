@@ -7,8 +7,10 @@ import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
 import ClipText from './ClipText'
+import ExpandedClipWaveform from './ExpandedClipWaveform'
 import { useClipDragAndDrop } from '../../hooks/useClipDragAndDrop'
 import { useClipStyles } from '../../hooks/useClipStyles'
+import { useEditorStore } from '../../store'
 
 export default function ClipComponent({
   clip,
@@ -28,9 +30,12 @@ export default function ClipComponent({
   onRenameSpeaker,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
+  const { expandedClipId, focusedWordId } = useEditorStore()
+  const isExpanded = expandedClipId === clip.id
+
   const { dragProps, isDragging } = useClipDragAndDrop(
     clip.id,
-    enableDragAndDrop
+    enableDragAndDrop && !isExpanded // Disable drag when expanded
   )
   const { containerClassName, sidebarClassName, contentClassName } =
     useClipStyles({
@@ -57,48 +62,63 @@ export default function ClipComponent({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
-        {/* Left sidebar */}
-        <div className={sidebarClassName}>
+        {/* Left sidebar - extends when expanded */}
+        <div
+          className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''}`}
+        >
           <ClipTimeline index={index} />
           <ClipCheckbox
             clipId={clip.id}
             isChecked={isChecked}
             onCheck={onCheck}
           />
+          {isExpanded && <div className="flex-1" />}
         </div>
 
-        {/* Right content */}
-        <div className={contentClassName}>
-          {/* Upper section */}
-          <div className="p-3">
-            <div className="grid grid-cols-[180px_1fr] gap-3 items-center">
-              <div className="flex items-center gap-3 pl-4 h-8 flex-shrink-0">
-                <ClipSpeaker
-                  clipId={clip.id}
-                  speaker={clip.speaker}
-                  speakers={speakers}
-                  onSpeakerChange={onSpeakerChange}
-                  onBatchSpeakerChange={onBatchSpeakerChange}
-                  onOpenSpeakerManagement={onOpenSpeakerManagement}
-                  onAddSpeaker={onAddSpeaker}
-                  onRenameSpeaker={onRenameSpeaker}
-                />
-              </div>
-              <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
-                <ClipWords
-                  clipId={clip.id}
-                  words={clip.words}
-                  onWordEdit={onWordEdit}
-                />
+        {/* Right content area */}
+        <div className="flex-1 flex flex-col">
+          {/* Main content */}
+          <div className={contentClassName}>
+            {/* Upper section */}
+            <div className="p-3">
+              <div className="grid grid-cols-[180px_1fr] gap-3 items-center">
+                <div className="flex items-center gap-3 pl-4 h-8 flex-shrink-0">
+                  <ClipSpeaker
+                    clipId={clip.id}
+                    speaker={clip.speaker}
+                    speakers={speakers}
+                    onSpeakerChange={onSpeakerChange}
+                    onBatchSpeakerChange={onBatchSpeakerChange}
+                    onOpenSpeakerManagement={onOpenSpeakerManagement}
+                    onAddSpeaker={onAddSpeaker}
+                    onRenameSpeaker={onRenameSpeaker}
+                  />
+                </div>
+                <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
+                  <ClipWords
+                    clipId={clip.id}
+                    words={clip.words}
+                    onWordEdit={onWordEdit}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Divider */}
+            <div className="border-t border-[#383842]" />
+
+            {/* Lower section */}
+            <ClipText fullText={clip.fullText} />
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-[#383842]" />
-
-          {/* Lower section */}
-          <ClipText fullText={clip.fullText} />
+          {/* Expanded Waveform Editor - positioned beside sidebar */}
+          {isExpanded && (
+            <ExpandedClipWaveform
+              clipId={clip.id}
+              words={clip.words}
+              focusedWordId={focusedWordId}
+            />
+          )}
         </div>
       </div>
     </div>

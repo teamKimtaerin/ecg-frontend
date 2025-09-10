@@ -30,6 +30,10 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     selectedWordId,
     applyAssetsToWord,
     clips,
+    focusedWordId,
+    addAnimationTrack,
+    removeAnimationTrack,
+    wordAnimationTracks,
   } = useEditorStore()
 
   // Hardcoded favorite assets for '담은 에셋' tab
@@ -108,7 +112,32 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   })
 
   const handleAssetClick = (asset: AssetItem) => {
-    // 토글 로직: 이미 선택되어 있으면 제거, 없으면 추가
+    // If a word is focused, add/remove animation track for it
+    if (focusedWordId) {
+      const currentTracks = wordAnimationTracks.get(focusedWordId) || []
+
+      // Check if already added
+      if (currentTracks.find((t) => t.assetId === asset.id)) {
+        // If already exists, remove it
+        removeAnimationTrack(focusedWordId, asset.id)
+      } else if (currentTracks.length < 3) {
+        // Find the word to get its timing
+        let wordTiming = undefined
+        for (const clip of clips) {
+          const word = clip.words?.find((w) => w.id === focusedWordId)
+          if (word) {
+            wordTiming = { start: word.start, end: word.end }
+            break
+          }
+        }
+        // Add the animation track with word timing - this creates the bars immediately
+        addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming)
+      } else {
+        console.log('Maximum 3 animations per word')
+      }
+    }
+
+    // Also update the UI state for compatibility
     const isCurrentlySelected = currentWordAssets.includes(asset.id)
     let newSelectedAssets: string[]
 
@@ -171,17 +200,29 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
   return (
     <div className="px-4 pb-4">
       <div className="grid grid-cols-2 gap-3">
-        {filteredAssets.map((asset) => (
-          <AssetCard
-            key={asset.id}
-            asset={{
-              ...asset,
-              isUsed: currentWordAssets.includes(asset.id),
-              isFavorite: favoriteAssetNames.includes(asset.name),
-            }}
-            onClick={handleAssetClick}
-          />
-        ))}
+        {filteredAssets.map((asset) => {
+          // Check if this asset is applied to the focused word
+          const focusedWordTracks = focusedWordId
+            ? wordAnimationTracks.get(focusedWordId) || []
+            : []
+          const isAppliedToFocusedWord = focusedWordTracks.some(
+            (track) => track.assetId === asset.id
+          )
+
+          return (
+            <AssetCard
+              key={asset.id}
+              asset={{
+                ...asset,
+                isUsed:
+                  isAppliedToFocusedWord ||
+                  currentWordAssets.includes(asset.id),
+                isFavorite: favoriteAssetNames.includes(asset.name),
+              }}
+              onClick={handleAssetClick}
+            />
+          )
+        })}
       </div>
 
       {!loading && !error && filteredAssets.length === 0 && (

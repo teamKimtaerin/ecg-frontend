@@ -75,19 +75,22 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   // Transform clips to subtitle format (if using clips instead of real.json)
   const clipsAsSubtitles = useMemo(() => {
     return clips.map((clip) => {
-      // Parse timeline to get start and end times
-      const [startStr, endStr] = clip.timeline.split(' → ')
-      const parseTime = (timeStr: string) => {
-        const [mins, secs] = timeStr.split(':').map(Number)
-        return mins * 60 + secs
-      }
+      // Get start time from first word and end time from last word
+      const startTime = clip.words.length > 0 ? clip.words[0].start : 0
+      const endTime =
+        clip.words.length > 0 ? clip.words[clip.words.length - 1].end : 0
 
       return {
         id: clip.id,
-        startTime: parseTime(startStr || '0:00'),
-        endTime: parseTime(endStr || '0:00'),
+        startTime,
+        endTime,
         text: clip.fullText,
         speaker: clip.speaker,
+        words: clip.words.map((w) => ({
+          word: w.text,
+          start: w.start,
+          end: w.end,
+        })),
       }
     })
   }, [clips])

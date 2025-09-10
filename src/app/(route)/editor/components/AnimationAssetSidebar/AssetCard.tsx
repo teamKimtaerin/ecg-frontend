@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { IoStar } from 'react-icons/io5'
 
 export interface AssetItem {
@@ -62,11 +63,13 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
 
     // For image type
     return (
-      <div className="w-full h-full rounded-lg bg-slate-800/50 flex items-center justify-center overflow-hidden">
-        <img
+      <div className="w-full h-full rounded-lg bg-slate-800/50 flex items-center justify-center overflow-hidden relative">
+        <Image
           src={preview.value}
           alt={asset.name}
-          className="w-full h-full object-cover rounded-lg"
+          fill
+          className="object-cover rounded-lg"
+          sizes="(max-width: 768px) 50vw, 200px"
         />
       </div>
     )

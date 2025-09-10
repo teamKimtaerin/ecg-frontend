@@ -15,7 +15,9 @@
       "Bash(gh pr create:*)",
       "Bash(ls:*)",
       "Bash(yarn dev)",
-      "Bash(jobs)"
+      "Bash(jobs)",
+      "Read(//Users/ahntaeju/Desktop/Screenshots/**)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
