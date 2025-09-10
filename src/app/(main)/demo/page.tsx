@@ -2,13 +2,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 
-import EditTranscriptionSection from '@/components/LandingPage/EditTranscriptionSection'
-import FastTranscriptionSection from '@/components/LandingPage/FastTranscriptionSection'
-import Footer from '@/components/LandingPage/Footer'
-import HeroSection from '@/components/LandingPage/HeroSection'
-import OpenLibrarySection from '@/components/LandingPage/OpenLibrarySection'
-import SubtitleEditorSection from '@/components/LandingPage/SubtitleEditorSection'
-import VoTSection from '@/components/LandingPage/VoTSection'
 import Header from '@/components/ui/Header'
 import UploadModal from '@/components/UploadModal'
 import { useUploadModal } from '@/hooks/useUploadModal'
@@ -131,30 +124,6 @@ export default function Home() {
       <div className="relative z-10">
         {/* Header */}
         <Header isVisible={isHeaderVisible} />
-
-        {/* Hero Section */}
-        <HeroSection heroRef={heroRef} />
-
-        {/* Fast Transcription Section */}
-        <FastTranscriptionSection
-          featuresRef={featuresRef}
-          onTranscriptionClick={() => setIsTranscriptionModalOpen(true)}
-        />
-
-        {/* Edit Transcription Section */}
-        <EditTranscriptionSection editRef={editRef} />
-
-        {/* Subtitle Editor Section */}
-        <SubtitleEditorSection subtitleRef={subtitleRef} />
-
-        {/* VoT Section */}
-        <VoTSection votRef={votRef} />
-
-        {/* Open Library Section */}
-        <OpenLibrarySection libraryRef={libraryRef} />
-
-        {/* Footer */}
-        <Footer />
       </div>
 
       {/* Upload Modal */}
