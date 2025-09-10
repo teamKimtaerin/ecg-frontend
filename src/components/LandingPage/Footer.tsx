@@ -1,5 +1,5 @@
 import React from 'react'
-import Image from 'next/image'
+import HoitLogo from '@/components/ui/HoitLogo'
 
 const Footer: React.FC = () => {
   return (
@@ -8,14 +8,8 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <Image
-                src="/logo.svg"
-                alt="ECG Logo"
-                width={32}
-                height={32}
-                className="w-8 h-8 rounded-full"
-              />
-              <h3 className="text-h3 text-white font-bold">ECG</h3>
+              <HoitLogo size="sm" />
+              <h3 className="text-h3 text-white font-bold">Hoit</h3>
             </div>
             <p className="text-gray-medium">
               Expressive Caption Generator platform for creating vibrant,

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Inter } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({
@@ -19,13 +19,13 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'ECG - Expressive Caption Generator',
+  title: 'Hoit - 영상 자막 편집을 쉽고 빠르게',
   description:
-    'Create vibrant, emotion-driven subtitles with ECG platform. Fast transcription, easy editing, and dynamic subtitle creation.',
+    '호잇은 자동으로 애니메이션 자막 생성과 함께 편집까지 할 수 있는 편집 프로그램입니다.',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 }
 

@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { type User } from '@/lib/api/auth'
+import HoitLogo from '@/components/ui/HoitLogo'
 
 export interface HeaderProps {
   onTryClick?: () => void
@@ -25,8 +26,8 @@ const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
         <div className="flex items-center space-x-2">
-          <div className="h-10 w-16 bg-black rounded-lg"></div>
-          <span className="text-xl font-bold text-black">Coup</span>
+          <HoitLogo size="md" />
+          <span className="text-xl font-bold text-black">Hoit</span>
         </div>
 
         <nav className="hidden md:flex items-center space-x-8">
@@ -36,12 +37,12 @@ const Header: React.FC<HeaderProps> = ({
           >
             주요 기능
           </a>
-          <a
-            href="#"
+          <Link
+            href="/asset-store"
             className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
           >
-            애님 템플릿
-          </a>
+            이펙트 스토어
+          </Link>
           <Link
             href="/tutorial"
             className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"

@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
+import HoitLogo from '@/components/ui/HoitLogo'
 import { UserProfile } from '@/components/auth'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -23,14 +23,8 @@ export default function Header({ isVisible = true }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3">
-            <Image
-              src="/logo.svg"
-              alt="ECG Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10 rounded-full"
-            />
-            <h1 className="text-h3 text-white font-bold">ECG</h1>
+            <HoitLogo size="md" />
+            <h1 className="text-h3 text-white font-bold">Hoit</h1>
           </Link>
           <nav className="hidden md:flex items-center space-x-8">
             <Link

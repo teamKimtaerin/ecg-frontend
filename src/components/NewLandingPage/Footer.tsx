@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import HoitLogo from '@/components/ui/HoitLogo'
 
 const Footer: React.FC = () => {
   return (
@@ -9,8 +10,8 @@ const Footer: React.FC = () => {
         <div className="grid md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-2 mb-6">
-              <div className="h-10 w-16 bg-black rounded-lg"></div>
-              <span className="text-xl font-bold text-black">Coup</span>
+              <HoitLogo size="md" />
+              <span className="text-xl font-bold text-black">Hoit</span>
             </div>
           </div>
 

@@ -21,9 +21,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuickStartClick }) => {
           <TypingText
             texts={[
               '누구나 영상 편집을 쉽고 즐겁게',
-              'AI가 만드는 완벽한 자막',
-              '클릭 한 번으로 전문가 수준',
-              '동적 자막으로 생생한 영상',
+              'AI가 도와주는 완벽한 자막',
+              '혼자서도 쉽고 빠르게 만드는 자막 영상',
+              '동적 자막으로 더욱 생생한 영상',
             ]}
             className="block"
             typingSpeed={120}
@@ -35,9 +35,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuickStartClick }) => {
 
         <div className="space-y-4 text-xl text-gray-600 mb-12 max-w-4xl mx-auto">
           <p>음성 인식 기능을 통한 자막 자동 생성</p>
-          <p>직접 녹음하지 않아도 되는 500여 개의 AI 목소리</p>
-          <p>상업적으로 사용가능한 무료 이미지, 비디오, 배경 음악</p>
-          <p>AI가 대본과 영상을 한 번에, 텍스트로 비디오 만들기</p>
+          <p>살아 숨쉬는 것 같은 애니메이션 자막을 한 번에!</p>
+          <p>무료로 이용 가능한 다양한 스타일의 리소스</p>
+          <p>AI가 자막과 영상을 한 번에, 나만의 영상 만들기</p>
         </div>
 
         <div className="mb-8">
@@ -58,10 +58,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuickStartClick }) => {
 
         {/* Video Placeholder */}
         <div className="mt-16 mx-auto max-w-4xl">
-          <div className="aspect-video bg-gray-200 border border-gray-300 rounded-2xl shadow-lg flex items-center justify-center">
-            <span className="text-gray-500 text-lg font-medium">
-              영상 미리보기
-            </span>
+          <div className="aspect-video bg-gray-200 border border-gray-300 rounded-2xl shadow-lg overflow-hidden">
+            <img
+              src="/Adobe Express - Adobe Express - Chicago Hearing Society - Caption With Intention (case study) [F48khKZhKHM].gif"
+              alt="영상 미리보기"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </div>

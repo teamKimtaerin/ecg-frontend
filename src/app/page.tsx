@@ -64,7 +64,7 @@ export default function Home() {
 
   const handleTryAutoSubtitleClick = () => {
     console.log('Try auto subtitle button clicked')
-    // Add navigation logic here
+    router.push('/asset-store')
   }
 
   return (

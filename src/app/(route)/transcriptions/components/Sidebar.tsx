@@ -1,6 +1,7 @@
 'use client'
 
 import Badge from '@/components/ui/Badge'
+import HoitLogo from '@/components/ui/HoitLogo'
 import { cn } from '@/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -102,10 +103,8 @@ export function Sidebar() {
       {/* Logo Section */}
       <div className="p-6 border-b border-[#404040]">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">E</span>
-          </div>
-          <h1 className="text-white text-xl font-bold">ECG</h1>
+          <HoitLogo size="sm" />
+          <h1 className="text-white text-xl font-bold">Hoit</h1>
         </div>
       </div>
 

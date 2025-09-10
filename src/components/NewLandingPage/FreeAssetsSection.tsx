@@ -14,13 +14,13 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
       <div className="container mx-auto text-center max-w-7xl">
         <div className="mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-500 mb-6">
-            다양한 무료 에셋과 리소스
+            다양한 무료 리소스
           </h2>
           <p className="text-base text-black max-w-3xl mx-auto leading-relaxed">
-            음성 인식으로 만든 자동 자막을 약간만 수정하면 긴 영상도 순식간에
-            자막 완성.
+            다양한 무료 이펙트로 영상을 더욱 풍성하게 만드세요.
             <br />
-            자동으로 대본을 인식해서 영상 속 자막으로 넣을 수도 있어요
+            상업적 이용 가능한 고품질 자막 애니메이션을 무제한으로 활용할 수
+            있어요
           </p>
         </div>
         <section className="py-8 text-center">
@@ -32,12 +32,15 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
           </button>
         </section>
 
-        {/* Assets interface image */}
+        {/* Assets interface - embedded asset store */}
         <div className="bg-white rounded-3xl p-8 mx-auto max-w-5xl mb-12 border border-gray-200 shadow-lg">
-          <div className="aspect-[5/3] bg-gray-100 border border-gray-300 rounded-3xl shadow-sm flex items-center justify-center">
-            <span className="text-gray-600 font-medium text-lg">
-              에셋 라이브러리 인터페이스
-            </span>
+          <div className="aspect-[5/3] bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-300">
+            <iframe
+              src="/asset-store"
+              className="w-full h-full"
+              style={{ border: 'none', borderRadius: '1.5rem' }}
+              title="Asset Store Preview"
+            />
           </div>
         </div>
       </div>

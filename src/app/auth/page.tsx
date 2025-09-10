@@ -392,7 +392,7 @@ const AuthPageContent: React.FC = () => {
           {/* Footer */}
           <div className="space-y-4 text-center">
             <p className="text-xs text-gray-500">
-              Coup과 함께 멋진 영상을 만들어보세요!
+              Hoit과 함께 멋진 영상을 만들어보세요!
             </p>
 
             <button

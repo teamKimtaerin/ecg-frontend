@@ -1,8 +1,8 @@
 'use client'
 
+import Modal from '@/components/ui/Modal'
 import React, { useState } from 'react'
 import { LuCheck } from 'react-icons/lu'
-import Modal from '@/components/ui/Modal'
 
 export interface WelcomeModalProps {
   isOpen: boolean
@@ -44,10 +44,10 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
         {/* Header */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-gray-800">
-            Coup에 오신 것을 환영합니다!
+            Hoit에 오신 것을 환영합니다!
           </h1>
           <p className="text-sm text-gray-600">
-            Coup을 사용하시기 전에 아래 이용약관 및 개인정보처리방침을
+            Hoit을 사용하시기 전에 아래 이용약관 및 개인정보처리방침을
             확인해주세요.
           </p>
         </div>
@@ -62,7 +62,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
             <div className="text-xs text-gray-600 leading-relaxed space-y-3">
               <p>
-                (주)김태린(이하 &quot;회사&quot;)가 제공하는 Coup(이하
+                (주)김태린(이하 &quot;회사&quot;)가 제공하는 Hoit(이하
                 &quot;서비스&quot;)를 이용해 주셔서 감사합니다. 본 이용약관은
                 서비스의 이용과 관련하여 회사와 사용자 간에 체결되는 계약입니다.
                 사용자란 본 약관에 동의하고 서비스를 설치 및 사용하는 개인, 기업
@@ -101,7 +101,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
             <div className="text-xs text-gray-600 leading-relaxed space-y-3">
               <p>
-                (주)보이저엑스(이하 &quot;회사&quot;)는 Coup(이하
+                (주)김태린(이하 &quot;회사&quot;)는 Hoit(이하
                 &quot;서비스&quot;)를 제공하면서 사용자의 개인정보보호를 매우
                 중요하게 생각하며, 「정보 통신망 이용촉진 및 정보보호 등에 관한
                 법률」, 「개인정보 보호법」 등 관련법규를 준수하기 위하여
