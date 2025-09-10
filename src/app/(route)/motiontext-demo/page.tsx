@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * MotionText Renderer 데모 페이지
@@ -14,7 +14,7 @@ export default function MotionTextDemo() {
   useEffect(() => {
     const checkServer = async () => {
       try {
-        const response = await fetch('http://localhost:3000')
+        const response = await fetch('http://localhost:3004')
         setIsServerRunning(response.ok)
       } catch (error) {
         setIsServerRunning(false)
