@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 
-
 /**
  * MotionText Renderer 데모 페이지
  * iframe을 통해 기존 데모(localhost:3000)를 임베딩
