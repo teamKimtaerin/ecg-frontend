@@ -142,7 +142,7 @@ export default function WordDetailEditor({
             .fill(0)
             .map(() => Math.random() * 0.8 + 0.2)
 
-      ws.load('', peaks)
+      ws.load('', [peaks])
     } else {
       // Generate mock data for testing
       const duration = word.end - word.start
@@ -151,7 +151,7 @@ export default function WordDetailEditor({
         { length: Math.round(duration * sampleRate) },
         () => Math.random() * 0.8 + 0.2
       )
-      ws.load('', peaks, duration)
+      ws.load('', [peaks], duration)
     }
 
     wavesurferRef.current = ws

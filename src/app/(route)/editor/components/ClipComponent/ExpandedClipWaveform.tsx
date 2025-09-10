@@ -66,7 +66,7 @@ export default function ExpandedClipWaveform({
   const waveformRef = useRef<HTMLDivElement>(null)
   const wavesurferRef = useRef<WaveSurfer | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isDragging, setIsDragging] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState<boolean>(false)
   const [peaks, setPeaks] = useState<number[]>([])
 
   const {
@@ -135,8 +135,8 @@ export default function ExpandedClipWaveform({
       interact: false,
     })
 
-    // Load peaks data
-    ws.load('', peaks, clipDuration)
+    // Load peaks data - WaveSurfer expects array of arrays for stereo
+    ws.load('', [peaks], clipDuration)
 
     wavesurferRef.current = ws
 

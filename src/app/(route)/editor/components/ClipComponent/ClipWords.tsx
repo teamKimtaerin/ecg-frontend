@@ -195,11 +195,8 @@ export default function ClipWords({
                 <ClipWord
                   word={word}
                   clipId={clipId}
-                  index={index}
                   onWordClick={handleWordClick}
                   onWordEdit={onWordEdit}
-                  // Pass additional props for styling if needed
-                  isSelected={isSelected}
                 />
 
                 {/* Render asset icons after each word (from feat/editor-asset-sidebar-clean) */}
