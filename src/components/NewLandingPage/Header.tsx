@@ -58,6 +58,15 @@ const Header: React.FC<HeaderProps> = ({
           >
             커뮤니티
           </a>
+          <Link
+            href="/motiontext-demo"
+            className="relative text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
+          >
+            베타
+            <span className="absolute -top-2 left-full ml-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+              βeta
+            </span>
+          </Link>
         </nav>
 
         <div className="flex items-center space-x-4">

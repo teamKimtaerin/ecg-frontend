@@ -145,7 +145,7 @@ const AISubtitleSection: React.FC = () => {
                               : 'bg-gray-600'
                           }`}
                           style={{
-                            height: `${20 + Math.sin(i * 0.3) * 15 + Math.random() * 10}px`,
+                            height: `${20 + Math.sin(i * 0.3) * 15 + (i % 3) * 3}px`,
                             animationDelay: `${i * 50}ms`,
                           }}
                         ></div>

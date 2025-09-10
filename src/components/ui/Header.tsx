@@ -33,6 +33,12 @@ export default function Header({ isVisible = true }: HeaderProps) {
             >
               Dashboard
             </Link>
+            <Link
+              href="/motiontext-demo"
+              className="text-sm text-gray-medium font-bold hover:text-white transition-colors"
+            >
+              MotionText Demo
+            </Link>
             <a
               href="#features"
               className="text-sm text-gray-medium font-bold hover:text-white transition-colors"
