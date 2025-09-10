@@ -25,10 +25,13 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
-        <div className="flex items-center space-x-2">
+        <Link
+          href="/"
+          className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+        >
           <HoitLogo size="md" />
           <span className="text-xl font-bold text-black">Hoit</span>
-        </div>
+        </Link>
 
         <nav className="hidden md:flex items-center space-x-8">
           <a
