@@ -20,23 +20,23 @@ export const EDITOR_COLORS = {
   toolbar: {
     // 공통 툴바
     base: {
-      background: 'bg-gray-900/95',
-      backgroundRaw: 'rgba(17, 24, 39, 0.95)',
-      border: 'border-b border-gray-700',
-      divider: 'bg-gray-700',
-      text: 'text-gray-300',
-      textHover: 'text-white',
-      hover: 'hover:bg-gray-700',
-      iconColor: 'text-gray-400',
-      iconHover: 'text-gray-200',
+      background: 'bg-gray-100',
+      backgroundRaw: 'rgba(243, 244, 246, 1)',
+      border: 'border-b border-gray-300',
+      divider: 'bg-gray-300',
+      text: 'text-black',
+      textHover: 'text-gray-800',
+      hover: 'hover:bg-gray-200',
+      iconColor: 'text-black',
+      iconHover: 'text-gray-800',
     },
     // 편집 툴바
     edit: {
-      background: 'bg-gray-900/95',
-      backgroundRaw: 'rgba(17, 24, 39, 0.95)',
-      border: 'border-b border-gray-700',
-      text: 'text-gray-300',
-      hover: 'hover:bg-gray-700',
+      background: 'bg-gray-100',
+      backgroundRaw: 'rgba(243, 244, 246, 1)',
+      border: 'border-b border-gray-300',
+      text: 'text-black',
+      hover: 'hover:bg-gray-200',
     },
     // 기타 툴바 변형
     transparent: {

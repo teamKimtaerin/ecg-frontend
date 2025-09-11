@@ -104,14 +104,18 @@ const TabItem: React.FC<TabItemProps> = ({
     // Color and style variations based on quiet/emphasized
     if (isQuiet) {
       if (isSelected) {
-        classes.push('text-white')
+        classes.push('text-black')
         if (orientation === 'horizontal') {
-          classes.push('border-b-2', 'border-white')
+          classes.push('border-b-2', 'border-black')
         } else {
-          classes.push('border-l-2', 'border-white')
+          classes.push('border-l-2', 'border-black')
         }
       } else {
-        classes.push('text-gray-400', 'hover:text-white')
+        classes.push(
+          'text-gray-500',
+          'hover:text-gray-700',
+          'hover:bg-gray-200'
+        )
       }
     } else if (isEmphasized) {
       if (isSelected) {

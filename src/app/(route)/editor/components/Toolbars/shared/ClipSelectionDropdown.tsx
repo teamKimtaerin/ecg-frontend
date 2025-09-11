@@ -152,11 +152,11 @@ export default function ClipSelectionDropdown({
         className={`
           flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer relative
           ${EDITOR_COLORS.toolbar.base.hover}
-          text-slate-300
+          text-gray-700
           transition-colors
         `}
       >
-        <div className="w-5 h-5 text-slate-300">
+        <div className="w-5 h-5 text-gray-700">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
@@ -166,7 +166,7 @@ export default function ClipSelectionDropdown({
             />
           </svg>
         </div>
-        <span className="text-xs text-slate-300 flex items-center gap-0.5">
+        <span className="text-xs text-gray-700 flex items-center gap-0.5">
           클립선택
           <svg
             className="w-2.5 h-2.5"

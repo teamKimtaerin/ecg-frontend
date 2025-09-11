@@ -839,7 +839,6 @@ body {
 
 /* Replace expensive backdrop-blur with optimized version */
 .backdrop-blur-sm {
-  background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }

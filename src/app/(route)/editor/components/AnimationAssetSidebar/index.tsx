@@ -15,11 +15,13 @@ import { AssetItem } from './AssetCard'
 interface AnimationAssetSidebarProps {
   className?: string
   onAssetSelect?: (asset: AssetItem) => void
+  onClose?: () => void
 }
 
 const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   className,
   onAssetSelect,
+  onClose,
 }) => {
   const { isAssetSidebarOpen, assetSidebarWidth, selectedWordId, clips } =
     useEditorStore()
@@ -79,7 +81,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
       style={{ width: assetSidebarWidth }}
     >
       {/* Header */}
-      <SidebarHeader />
+      <SidebarHeader onClose={onClose} />
 
       {/* Word Selection Indicator */}
       {selectedWordInfo && (

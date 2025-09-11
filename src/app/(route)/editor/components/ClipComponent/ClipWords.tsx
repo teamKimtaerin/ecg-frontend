@@ -8,6 +8,7 @@ import {
   IoExpand,
   IoTrendingUp,
 } from 'react-icons/io5'
+import { useRef } from 'react'
 import React, { useCallback } from 'react'
 import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import {
@@ -46,6 +47,9 @@ export default function ClipWords({
   words,
   onWordEdit,
 }: ClipWordsProps) {
+  // Add ref for debouncing clicks
+  const lastClickTimeRef = useRef(0)
+
   const {
     // From dev branch
     setFocusedWord,
@@ -119,30 +123,43 @@ export default function ClipWords({
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
-      if (isCenter) {
-        // Focus the word and its parent clip (from dev)
-        setFocusedWord(clipId, wordId)
-        setActiveClipId(clipId)
+      // Prevent rapid clicks from causing conflicts
+      const now = Date.now()
+      if (now - lastClickTimeRef.current < 50) {
+        return
+      }
+      lastClickTimeRef.current = now
 
-        // Also handle asset selection (from feat/editor-asset-sidebar-clean)
-        setSelectedWordId(wordId)
+      if (isCenter) {
+        // Batch all state updates for center click
         const wordAssets =
           selectedWordAssets[wordId] || word.appliedAssets || []
+
+        // Update all states in a single batch
+        setFocusedWord(clipId, wordId)
+        setActiveClipId(clipId)
+        setSelectedWordId(wordId)
         setCurrentWordAssets(wordAssets)
       } else {
-        // Focus only the clip component (from dev)
-        clearWordFocus()
-        setActiveClipId(clipId)
+        // Batch all state updates for non-center click
+        const wordAssets =
+          selectedWordAssets[wordId] || word.appliedAssets || []
+        const shouldEdit =
+          selectedWordId === wordId && currentWordAssets.length === 0
 
-        // Handle asset-related click logic (from feat/editor-asset-sidebar-clean)
-        if (selectedWordId === wordId && currentWordAssets.length === 0) {
-          onWordEdit(clipId, wordId, word.text)
-        } else {
+        // Clear previous focus first, then set new states
+        clearWordFocus()
+
+        // Use setTimeout to ensure clearWordFocus completes before setting new states
+        setTimeout(() => {
+          setActiveClipId(clipId)
           setSelectedWordId(wordId)
-          const wordAssets =
-            selectedWordAssets[wordId] || word.appliedAssets || []
           setCurrentWordAssets(wordAssets)
-        }
+
+          if (shouldEdit) {
+            onWordEdit(clipId, wordId, word.text)
+          }
+        }, 0)
       }
     },
     [

@@ -48,7 +48,7 @@ export default function ToolbarWrapper({
 
         {/* 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
         <button
-          className="ml-4 px-3 py-1 bg-black text-white rounded hover:bg-gray-800 transition-all duration-200 flex items-center gap-1.5 text-xs font-medium"
+          className="ml-4 px-5 py-3 bg-gray-600 text-white rounded hover:bg-black transition-all duration-100 flex items-center gap-1.5 text-xs font-bold"
           onClick={handleExportClick}
         >
           <AiOutlineExport className="w-4 h-4" />

@@ -67,12 +67,12 @@ export default function ExportModal({
         onClick={handleBackdropClick}
       >
         <div
-          className="absolute top-16 right-4 bg-[#2A2A33] rounded-lg shadow-2xl w-[400px] max-h-[80vh] overflow-y-auto border border-[#4D4D59] ring-1 ring-black/10"
+          className="absolute top-16 right-4 bg-gray-800 rounded-lg shadow-2xl w-[400px] max-h-[80vh] overflow-y-auto border border-[#4D4D59] ring-1 ring-black/10"
           style={{ zIndex: 9999999 }}
         >
           {/* 헤더 */}
-          <div className="px-4 py-3 border-b border-[#4D4D59]">
-            <h2 className="text-lg font-medium text-[#F2F2F2]">내보내기</h2>
+          <div className="px-4 py-3 border-b border-gray-400">
+            <h2 className="text-lg font-medium text-white">내보내기</h2>
           </div>
 
           {/* 콘텐츠 */}
@@ -81,20 +81,20 @@ export default function ExportModal({
             <div
               className={`flex items-center p-3 rounded-lg cursor-pointer transition-all mb-4 ${
                 selectedFormat === 'mp4'
-                  ? 'bg-[#14B0DA] bg-opacity-20 border border-[#14B0DA]'
+                  ? 'bg-gray-400 bg-opacity-20 border border-gray-400'
                   : 'hover:bg-[#383842]'
               }`}
               onClick={() => handleExport('mp4')}
             >
               <div className="flex items-center flex-1">
-                <div className="w-6 h-6 mr-3 text-[#14B0DA] flex items-center justify-center bg-[#4D4D59] rounded p-1">
+                <div className="w-6 h-6 mr-3 text-white flex items-center justify-center bg-gray-700 rounded p-1">
                   <DefaultIcon className="w-full h-full" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-[#F2F2F2] text-sm">
+                  <span className="font-medium text-white text-sm">
                     {defaultOption.label}({defaultOption.description})
                   </span>
-                  <span className="text-xs bg-[#14B0DA] text-white px-2 py-1 rounded">
+                  <span className="text-xs bg-gray-700 text-white px-2 py-1 rounded">
                     최근 사용
                   </span>
                 </div>
@@ -117,20 +117,20 @@ export default function ExportModal({
                       key={option.id}
                       className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-[#14B0DA] bg-opacity-20 border border-[#14B0DA]'
-                          : 'hover:bg-[#383842]'
+                          ? 'bg-gray-200 bg-opacity-20 border border-gray-200'
+                          : 'hover:bg-gray-700'
                       }`}
                       onClick={() => handleExport(option.id)}
                     >
                       <div className="flex items-center flex-1">
-                        <div className="w-5 h-5 mr-3 text-[#B3B3B3] flex items-center justify-center bg-[#4D4D59] rounded p-1">
+                        <div className="w-5 h-5 mr-3 text-gray-200 flex items-center justify-center bg-gray-500 rounded p-1">
                           <IconComponent className="w-full h-full" />
                         </div>
                         <div>
-                          <span className="text-sm text-[#F2F2F2]">
+                          <span className="text-sm text-white">
                             {option.label}
                           </span>
-                          <span className="text-sm text-[#B3B3B3] ml-1">
+                          <span className="text-sm text-gray-400 ml-1">
                             ({option.description})
                           </span>
                         </div>

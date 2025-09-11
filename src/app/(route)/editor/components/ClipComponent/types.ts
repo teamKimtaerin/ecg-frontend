@@ -36,6 +36,7 @@ export interface ClipComponentProps {
   onOpenSpeakerManagement?: () => void
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
+  speakerColors?: Record<string, string> // 화자별 색상 매핑
   onMouseDown?: () => void
   onMouseEnter?: () => void
 }

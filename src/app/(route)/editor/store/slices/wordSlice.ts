@@ -33,7 +33,21 @@ export interface WordDragState {
   wordAnimationTracks: Map<string, AnimationTrack[]>
 }
 
+// State priority levels (higher number = higher priority)
+export enum WordStatePriority {
+  FOCUS = 1,
+  DRAG = 2,
+  EDITING = 3,
+}
+
 export interface WordSlice extends WordDragState {
+  // State priority and guards
+  getWordStatePriority: (wordId: string) => WordStatePriority | null
+  canChangeWordState: (
+    wordId: string,
+    newPriority: WordStatePriority
+  ) => boolean
+
   // Focus management
   setFocusedWord: (clipId: string, wordId: string | null) => void
   clearWordFocus: () => void
@@ -129,17 +143,40 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
   // Focus management
   setFocusedWord: (clipId, wordId) =>
-    set({
-      focusedClipId: clipId,
-      focusedWordId: wordId,
-      groupedWordIds: wordId ? new Set([wordId]) : new Set(),
+    set((state) => {
+      // Prevent unnecessary updates if already focused on the same word
+      if (state.focusedClipId === clipId && state.focusedWordId === wordId) {
+        return state
+      }
+
+      return {
+        focusedClipId: clipId,
+        focusedWordId: wordId,
+        groupedWordIds: wordId ? new Set([wordId]) : new Set(),
+        // Clear editing state when focusing on different word
+        editingWordId:
+          state.editingWordId === wordId ? state.editingWordId : null,
+        editingClipId:
+          state.editingClipId === clipId ? state.editingClipId : null,
+      }
     }),
 
   clearWordFocus: () =>
-    set({
-      focusedWordId: null,
-      focusedClipId: null,
-      groupedWordIds: new Set(),
+    set((state) => {
+      // Only clear if there's actually something to clear
+      if (
+        !state.focusedWordId &&
+        !state.focusedClipId &&
+        state.groupedWordIds.size === 0
+      ) {
+        return state
+      }
+
+      return {
+        focusedWordId: null,
+        focusedClipId: null,
+        groupedWordIds: new Set(),
+      }
     }),
 
   // Group selection

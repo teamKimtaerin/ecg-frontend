@@ -124,9 +124,9 @@ export default function ExpandedClipWaveform({
     // Create WaveSurfer instance
     const ws = WaveSurfer.create({
       container: waveformRef.current,
-      waveColor: '#4D4D59',
-      progressColor: '#00B4D8',
-      cursorColor: '#FF006E',
+      waveColor: '#9CA3AF',
+      progressColor: '#3B82F6',
+      cursorColor: '#EF4444',
       barWidth: 2,
       barRadius: 3,
       height: 120,
@@ -332,12 +332,12 @@ export default function ExpandedClipWaveform({
   }, [isVideoPlaying])
 
   return (
-    <div className="w-full bg-[#2A2A33] border-t border-[#383842] animate-in slide-in-from-top duration-200">
+    <div className="w-full bg-white border-t border-gray-300 animate-in slide-in-from-top duration-200">
       {/* Waveform Container */}
-      <div className="relative bg-[#1A1A22] mx-4 my-3 rounded-lg p-4 pt-8">
+      <div className="relative bg-gray-50 mx-4 my-3 rounded-lg p-4 pt-8 border border-gray-200">
         {/* Red center line */}
         <div
-          className="absolute left-0 right-0 top-1/2 h-px bg-red-500 opacity-40 pointer-events-none z-10"
+          className="absolute left-0 right-0 top-1/2 h-px bg-red-500 opacity-60 pointer-events-none z-10"
           style={{ transform: 'translateY(-50%)' }}
         />
 
@@ -396,7 +396,7 @@ export default function ExpandedClipWaveform({
               {/* Word label */}
               <div
                 className={`absolute -top-7 left-0 text-xs whitespace-nowrap ${
-                  isSelected ? 'text-blue-400 font-semibold' : 'text-gray-500'
+                  isSelected ? 'text-blue-600 font-semibold' : 'text-gray-600'
                 }`}
               >
                 {word.text}
@@ -422,11 +422,12 @@ export default function ExpandedClipWaveform({
               <React.Fragment key={focusedWord.id}>
                 {/* Timing Bars (White for focused word) - Top */}
                 <div
-                  className="absolute top-0 w-1 cursor-ew-resize transition-colors z-30 bg-white hover:bg-gray-300"
+                  className="absolute top-0 w-2 cursor-ew-resize transition-colors z-30 bg-blue-500 hover:bg-blue-400 border border-blue-600 rounded-sm"
                   style={{
                     left: `${getBarPosition(timing.start) * 100}%`,
                     transform: 'translateX(-50%)',
                     height: '40%',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                   }}
                   onMouseDown={(e) =>
                     handleDragStart(focusedWord.id, 'timing-start', e)
@@ -435,11 +436,12 @@ export default function ExpandedClipWaveform({
                 ></div>
 
                 <div
-                  className="absolute top-0 w-1 cursor-ew-resize transition-colors z-30 bg-white hover:bg-gray-300"
+                  className="absolute top-0 w-2 cursor-ew-resize transition-colors z-30 bg-blue-500 hover:bg-blue-400 border border-blue-600 rounded-sm"
                   style={{
                     left: `${getBarPosition(timing.end) * 100}%`,
                     transform: 'translateX(-50%)',
                     height: '40%',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                   }}
                   onMouseDown={(e) =>
                     handleDragStart(focusedWord.id, 'timing-end', e)
@@ -478,7 +480,7 @@ export default function ExpandedClipWaveform({
                       >
                         {/* Track timing start */}
                         <div
-                          className={`absolute w-1 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover}`}
+                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
                           style={{
                             left: `${getBarPosition(track.timing.start) * 100}%`,
                             transform: 'translateX(-50%)',
@@ -503,7 +505,7 @@ export default function ExpandedClipWaveform({
 
                         {/* Track timing end */}
                         <div
-                          className={`absolute w-1 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover}`}
+                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
                           style={{
                             left: `${getBarPosition(track.timing.end) * 100}%`,
                             transform: 'translateX(-50%)',
@@ -528,7 +530,7 @@ export default function ExpandedClipWaveform({
 
                         {/* Track intensity min */}
                         <div
-                          className={`absolute w-1 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover}`}
+                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
                           style={{
                             left: `${track.intensity.min * 100}%`,
                             transform: 'translateX(-50%)',
@@ -547,7 +549,7 @@ export default function ExpandedClipWaveform({
 
                         {/* Track intensity max */}
                         <div
-                          className={`absolute w-1 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover}`}
+                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
                           style={{
                             left: `${track.intensity.max * 100}%`,
                             transform: 'translateX(-50%)',
@@ -578,41 +580,41 @@ export default function ExpandedClipWaveform({
           {/* Playback Control */}
           <button
             onClick={togglePlayback}
-            className="p-2 bg-[#383842] hover:bg-[#4D4D59] rounded transition-colors"
+            className="p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded transition-colors"
             title={isPlaying ? '일시정지' : '재생'}
             disabled={!focusedWord}
           >
             {isPlaying ? (
-              <IoPause size={18} className="text-[#F2F2F2]" />
+              <IoPause size={18} className="text-gray-700" />
             ) : (
-              <IoPlay size={18} className="text-[#F2F2F2]" />
+              <IoPlay size={18} className="text-gray-700" />
             )}
           </button>
 
           {/* Undo Button */}
           <button
             onClick={handleUndo}
-            className="p-2 bg-[#383842] hover:bg-[#4D4D59] rounded transition-colors"
+            className="p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded transition-colors"
             title="되돌리기"
             disabled={!focusedWord}
           >
-            <IoArrowUndo size={18} className="text-[#F2F2F2]" />
+            <IoArrowUndo size={18} className="text-gray-700" />
           </button>
 
           {/* Redo Button */}
           <button
             onClick={handleRedo}
-            className="p-2 bg-[#383842] hover:bg-[#4D4D59] rounded transition-colors"
+            className="p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded transition-colors"
             title="다시 실행"
             disabled={!focusedWord}
           >
-            <IoArrowRedo size={18} className="text-[#F2F2F2]" />
+            <IoArrowRedo size={18} className="text-gray-700" />
           </button>
 
           {/* Legend */}
-          <div className="flex items-center gap-3 text-xs text-[#9999A6]">
+          <div className="flex items-center gap-3 text-xs text-gray-600">
             <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-white rounded-sm"></div>
+              <div className="w-3 h-3 bg-blue-500 rounded-sm border border-blue-600"></div>
               <span>타이밍</span>
             </div>
             {focusedWord &&
@@ -645,9 +647,9 @@ export default function ExpandedClipWaveform({
 
         {/* Selected Word Info */}
         {focusedWord && (
-          <div className="text-xs text-[#9999A6]">
+          <div className="text-xs text-gray-600">
             선택된 단어:{' '}
-            <span className="text-white font-medium">{focusedWord.text}</span>
+            <span className="text-black font-medium">{focusedWord.text}</span>
             {(() => {
               const tracks = wordAnimationTracks.get(focusedWord.id) || []
               if (tracks.length > 0) {

@@ -20,6 +20,7 @@ export default function ClipComponent({
   isMultiSelected = false,
   enableDragAndDrop = false,
   speakers = [],
+  speakerColors,
   onSelect,
   onCheck,
   onWordEdit,
@@ -99,6 +100,7 @@ export default function ClipComponent({
                     clipId={clip.id}
                     speaker={clip.speaker}
                     speakers={speakers}
+                    speakerColors={speakerColors}
                     onSpeakerChange={onSpeakerChange}
                     onBatchSpeakerChange={onBatchSpeakerChange}
                     onOpenSpeakerManagement={onOpenSpeakerManagement}

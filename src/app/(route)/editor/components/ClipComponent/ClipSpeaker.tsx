@@ -2,36 +2,13 @@ import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDownIcon } from '@/components/icons'
 import { showToast } from '@/utils/ui/toast'
-
-// 화자별 고유 색상 생성 함수
-const getSpeakerColor = (speakerName: string): string => {
-  if (!speakerName) return '#6B7280' // 기본 회색
-
-  const colors = [
-    '#EF4444', // red
-    '#F59E0B', // amber
-    '#10B981', // emerald
-    '#3B82F6', // blue
-    '#8B5CF6', // violet
-    '#F97316', // orange
-    '#06B6D4', // cyan
-    '#84CC16', // lime
-    '#EC4899', // pink
-    '#6366F1', // indigo
-  ]
-
-  // 화자 이름을 기반으로 색상 선택
-  let hash = 0
-  for (let i = 0; i < speakerName.length; i++) {
-    hash = speakerName.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return colors[Math.abs(hash) % colors.length]
-}
+import { getSpeakerColor } from '@/utils/editor/speakerColors'
 
 interface ClipSpeakerProps {
   clipId: string
   speaker: string
   speakers: string[]
+  speakerColors?: Record<string, string> // 화자별 색상 매핑
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
   onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
   onOpenSpeakerManagement?: () => void
@@ -43,6 +20,7 @@ export default function ClipSpeaker({
   clipId,
   speaker,
   speakers,
+  speakerColors = {},
   onSpeakerChange,
   onBatchSpeakerChange,
   onOpenSpeakerManagement,
@@ -298,7 +276,9 @@ export default function ClipSpeaker({
               {/* 화자 색상 원 */}
               <div
                 className="w-3 h-3 rounded-full flex-shrink-0"
-                style={{ backgroundColor: getSpeakerColor(speaker) }}
+                style={{
+                  backgroundColor: getSpeakerColor(speaker, speakerColors),
+                }}
               />
               <span
                 className={`truncate overflow-hidden whitespace-nowrap ${!speaker ? 'text-orange-500' : ''}`}
@@ -348,7 +328,9 @@ export default function ClipSpeaker({
                         {/* 화자 색상 원 */}
                         <div
                           className="w-3 h-3 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: getSpeakerColor(s) }}
+                          style={{
+                            backgroundColor: getSpeakerColor(s, speakerColors),
+                          }}
                         />
                         <span
                           className={`truncate overflow-hidden whitespace-nowrap ${speaker === s ? 'text-blue-600 font-medium' : ''}`}

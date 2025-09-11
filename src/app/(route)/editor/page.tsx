@@ -99,7 +99,11 @@ export default function EditorPage() {
   const [isRecovering, setIsRecovering] = useState(true) // 초기값을 true로 설정
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
-  const [isSpeakerManagementOpen, setIsSpeakerManagementOpen] = useState(false) // 화자 관리 사이드바 상태
+  const [speakerColors, setSpeakerColors] = useState<Record<string, string>>({}) // 화자별 색상 매핑
+  // 오른쪽 사이드바 상태 - 한 번에 하나만 열릴 수 있음
+  const [rightSidebarType, setRightSidebarType] = useState<
+    'speaker' | 'animation' | null
+  >(null)
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
@@ -429,13 +433,17 @@ export default function EditorPage() {
     editorHistory.executeCommand(command)
   }
 
-  // 화자 관리 사이드바 핸들러들
+  // 오른쪽 사이드바 핸들러들
   const handleOpenSpeakerManagement = () => {
-    setIsSpeakerManagementOpen(true)
+    setRightSidebarType('speaker')
   }
 
-  const handleCloseSpeakerManagement = () => {
-    setIsSpeakerManagementOpen(false)
+  const handleOpenAnimationSidebar = () => {
+    setRightSidebarType('animation')
+  }
+
+  const handleCloseSidebar = () => {
+    setRightSidebarType(null)
   }
 
   const handleAddSpeaker = (name: string) => {
@@ -467,6 +475,11 @@ export default function EditorPage() {
       setSpeakers
     )
     editorHistory.executeCommand(command)
+
+    // Remove speaker color mapping
+    const updatedSpeakerColors = { ...speakerColors }
+    delete updatedSpeakerColors[name]
+    setSpeakerColors(updatedSpeakerColors)
   }
 
   const handleRenameSpeaker = (oldName: string, newName: string) => {
@@ -480,8 +493,23 @@ export default function EditorPage() {
       speaker === oldName ? newName : speaker
     )
 
+    // Update speaker colors mapping
+    const updatedSpeakerColors = { ...speakerColors }
+    if (updatedSpeakerColors[oldName]) {
+      updatedSpeakerColors[newName] = updatedSpeakerColors[oldName]
+      delete updatedSpeakerColors[oldName]
+    }
+
     setClips(updatedClips)
     setSpeakers(updatedSpeakers)
+    setSpeakerColors(updatedSpeakerColors)
+  }
+
+  const handleSpeakerColorChange = (speakerName: string, color: string) => {
+    setSpeakerColors((prev) => ({
+      ...prev,
+      [speakerName]: color,
+    }))
   }
 
   const handleClipCheck = (clipId: string, checked: boolean) => {
@@ -1231,6 +1259,7 @@ export default function EditorPage() {
               selectedClipIds={selectedClipIds}
               activeClipId={activeClipId}
               speakers={speakers}
+              speakerColors={speakerColors}
               onClipSelect={handleClipSelect}
               onClipCheck={handleClipCheck}
               onWordEdit={handleWordEdit}
@@ -1251,43 +1280,50 @@ export default function EditorPage() {
             />
           </div>
 
-          {/* Asset Sidebar with Resizer */}
-          {isAssetSidebarOpen && (
+          {/* Right Sidebar - 한 번에 하나만 표시 */}
+          {rightSidebarType && (
             <>
               <ResizablePanelDivider
                 orientation="vertical"
                 onResize={handleAssetSidebarResize}
                 className="z-10"
               />
-              <AnimationAssetSidebar
-                onAssetSelect={(asset) => {
-                  console.log('Asset selected in editor:', asset)
-                  // TODO: Apply asset effect to focused clip
-                }}
-              />
-            </>
-          )}
 
-          {/* Right sidebar - Speaker Management */}
-          {isSpeakerManagementOpen && (
-            <div
-              className={`sticky top-0 transition-all duration-300 ease-in-out ${
-                isToolbarVisible
-                  ? 'h-[calc(100vh-176px)]'
-                  : 'h-[calc(100vh-120px)]'
-              }`}
-            >
-              <SpeakerManagementSidebar
-                isOpen={isSpeakerManagementOpen}
-                onClose={handleCloseSpeakerManagement}
-                speakers={speakers}
-                clips={clips}
-                onAddSpeaker={handleAddSpeaker}
-                onRemoveSpeaker={handleRemoveSpeaker}
-                onRenameSpeaker={handleRenameSpeaker}
-                onBatchSpeakerChange={handleBatchSpeakerChange}
-              />
-            </div>
+              {/* Animation Asset Sidebar */}
+              {rightSidebarType === 'animation' && (
+                <AnimationAssetSidebar
+                  onAssetSelect={(asset) => {
+                    console.log('Asset selected in editor:', asset)
+                    // TODO: Apply asset effect to focused clip
+                  }}
+                  onClose={handleCloseSidebar}
+                />
+              )}
+
+              {/* Speaker Management Sidebar */}
+              {rightSidebarType === 'speaker' && (
+                <div
+                  className={`sticky top-0 transition-all duration-300 ease-in-out ${
+                    isToolbarVisible
+                      ? 'h-[calc(100vh-176px)]'
+                      : 'h-[calc(100vh-120px)]'
+                  }`}
+                >
+                  <SpeakerManagementSidebar
+                    isOpen={rightSidebarType === 'speaker'}
+                    onClose={handleCloseSidebar}
+                    speakers={speakers}
+                    clips={clips}
+                    speakerColors={speakerColors}
+                    onAddSpeaker={handleAddSpeaker}
+                    onRemoveSpeaker={handleRemoveSpeaker}
+                    onRenameSpeaker={handleRenameSpeaker}
+                    onBatchSpeakerChange={handleBatchSpeakerChange}
+                    onSpeakerColorChange={handleSpeakerColorChange}
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
 

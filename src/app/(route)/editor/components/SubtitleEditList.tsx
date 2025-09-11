@@ -11,6 +11,7 @@ interface SubtitleEditListProps {
   selectedClipIds: Set<string>
   activeClipId?: string | null
   speakers?: string[]
+  speakerColors?: Record<string, string>
   onClipSelect: (clipId: string) => void
   onClipCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
@@ -27,6 +28,7 @@ export default function SubtitleEditList({
   selectedClipIds,
   activeClipId,
   speakers = [],
+  speakerColors,
   onClipSelect,
   onClipCheck,
   onWordEdit,
@@ -82,6 +84,7 @@ export default function SubtitleEditList({
                 isMultiSelected={selectedClipIds.has(clip.id)}
                 enableDragAndDrop={selectedClipIds.has(clip.id)} // 체크된 클립만 드래그 가능
                 speakers={speakers}
+                speakerColors={speakerColors}
                 onSelect={onClipSelect}
                 onCheck={onClipCheck}
                 onWordEdit={onWordEdit}

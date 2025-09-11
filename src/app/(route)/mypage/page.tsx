@@ -124,10 +124,10 @@ export default function MyPage() {
                 {isEditing ? (
                   <Input
                     value={editForm.username}
-                    onChange={(e) =>
+                    onChange={(value: string) =>
                       setEditForm((prev) => ({
                         ...prev,
-                        username: e.target.value,
+                        username: value,
                       }))
                     }
                     placeholder="사용자명을 입력하세요"
@@ -148,10 +148,10 @@ export default function MyPage() {
                   <Input
                     type="email"
                     value={editForm.email}
-                    onChange={(e) =>
+                    onChange={(value: string) =>
                       setEditForm((prev) => ({
                         ...prev,
-                        email: e.target.value,
+                        email: value,
                       }))
                     }
                     placeholder="이메일을 입력하세요"

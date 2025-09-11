@@ -2,7 +2,6 @@
 
 import React from 'react'
 import Tooltip from '@/components/ui/Tooltip'
-import { EDITOR_COLORS } from '../../../constants/colors'
 
 interface ToolbarButtonProps {
   icon: React.ReactNode
@@ -31,10 +30,10 @@ export default function ToolbarButton({
     flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors
     ${
       disabled
-        ? 'text-gray-400 cursor-not-allowed'
+        ? 'text-black cursor-not-allowed'
         : active
-          ? 'bg-black/10 text-black hover:bg-black/20'
-          : `${EDITOR_COLORS.toolbar.base.hover} text-gray-600`
+          ? 'bg-black/10 text-black hover:bg-gray-200'
+          : 'hover:bg-gray-200 text-black'
     }
     ${className}
   `

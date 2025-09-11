@@ -4,11 +4,19 @@ import React from 'react'
 import { IoClose } from 'react-icons/io5'
 import { useEditorStore } from '../../store'
 
-const SidebarHeader: React.FC = () => {
+interface SidebarHeaderProps {
+  onClose?: () => void
+}
+
+const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onClose }) => {
   const { setIsAssetSidebarOpen } = useEditorStore()
 
   const handleClose = () => {
-    setIsAssetSidebarOpen(false)
+    if (onClose) {
+      onClose()
+    } else {
+      setIsAssetSidebarOpen(false)
+    }
   }
 
   return (

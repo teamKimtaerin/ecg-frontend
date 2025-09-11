@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import Link from 'next/link'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { showToast } from '@/utils/ui/toast'
+import Link from 'next/link'
+import React, { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 const UserDropdown: React.FC = () => {
   const { user, logout } = useAuthStatus()
@@ -71,17 +71,17 @@ const UserDropdown: React.FC = () => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors"
       >
         {/* User Avatar */}
-        <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+        <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
           <span className="text-white text-sm font-semibold">
             {user.username?.charAt(0).toUpperCase() || 'U'}
           </span>
         </div>
 
         {/* Username */}
-        <span className="text-gray-200 text-sm font-medium">
+        <span className="text-gray-700 text-sm font-medium">
           {user.username}
         </span>
 
