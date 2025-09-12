@@ -184,6 +184,7 @@ export default function ExpandedClipWaveform({
   // Local state for dragging - track for each word
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
   const [dragType, setDragType] = useState<string | null>(null)
+  const [dragStartPosition, setDragStartPosition] = useState<number>(0)
 
   // Calculate clip duration
   const clipDuration =
@@ -268,6 +269,14 @@ export default function ExpandedClipWaveform({
       setDraggedWordId(wordId)
       setDragType(barType)
       setIsDragging(true)
+      
+      // Store initial drag position for move operations
+      if (waveformRef.current) {
+        const rect = waveformRef.current.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        const position = Math.max(0, Math.min(1, x / rect.width))
+        setDragStartPosition(position)
+      }
     },
     []
   )
@@ -338,22 +347,22 @@ export default function ExpandedClipWaveform({
               newEnd
             )
             setHasUnsavedChanges(true)
-          } else if (barType === 'min') {
-            const newMin = Math.min(position, track.intensity.max - 0.05)
-            updateAnimationTrackIntensity(
+          } else if (barType === 'move') {
+            // Move the entire track to follow mouse position
+            const duration = track.timing.end - track.timing.start
+            const clipStart = words[0].start
+            const newStart = clipStart + position * clipDuration - duration / 2
+            
+            // Constrain within clip bounds
+            const clipEnd = words[words.length - 1].end
+            const constrainedStart = Math.max(clipStart, Math.min(newStart, clipEnd - duration))
+            const constrainedEnd = constrainedStart + duration
+            
+            updateAnimationTrackTiming(
               draggedWordId,
               assetId,
-              newMin,
-              track.intensity.max
-            )
-            setHasUnsavedChanges(true)
-          } else if (barType === 'max') {
-            const newMax = Math.max(position, track.intensity.min + 0.05)
-            updateAnimationTrackIntensity(
-              draggedWordId,
-              assetId,
-              track.intensity.min,
-              newMax
+              constrainedStart,
+              constrainedEnd
             )
             setHasUnsavedChanges(true)
           }
@@ -531,7 +540,7 @@ export default function ExpandedClipWaveform({
                   title={`${focusedWord.text} 종료: ${timing.end.toFixed(2)}s`}
                 ></div>
 
-                {/* Animation Track Bars - Multiple tracks per word (max 3) */}
+                {/* Animation Track Rectangles - Multiple tracks per word (max 3) */}
                 {(() => {
                   const tracks = wordAnimationTracks.get(focusedWord.id) || []
                   const trackColors = {
@@ -539,114 +548,90 @@ export default function ExpandedClipWaveform({
                       base: 'bg-blue-500',
                       hover: 'bg-blue-400',
                       label: 'bg-blue-600',
+                      text: 'text-white',
                     },
                     green: {
                       base: 'bg-green-500',
                       hover: 'bg-green-400',
                       label: 'bg-green-600',
+                      text: 'text-white',
                     },
                     purple: {
                       base: 'bg-purple-500',
                       hover: 'bg-purple-400',
                       label: 'bg-purple-600',
+                      text: 'text-white',
                     },
                   }
 
                   return tracks.map((track, trackIndex) => {
                     const colors = trackColors[track.color]
-                    const bottomOffset = 40 + trackIndex * 15 // Stack tracks vertically
+                    const topOffset = 50 + trackIndex * 15 // Position below red line with more space
+                    const startPos = getBarPosition(track.timing.start)
+                    const endPos = getBarPosition(track.timing.end)
+                    const width = (endPos - startPos) * 100
 
                     return (
                       <React.Fragment
                         key={`${focusedWord.id}-${track.assetId}`}
                       >
-                        {/* Track timing start */}
+                        {/* Track timing rectangle with draggable borders and moveable center */}
                         <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
+                          className={`absolute transition-colors z-30 ${colors.base} hover:${colors.hover} border border-gray-300 rounded-md shadow-lg overflow-hidden group`}
                           style={{
-                            left: `${getBarPosition(track.timing.start) * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset}%`,
-                            height: '12%',
+                            left: `${startPos * 100}%`,
+                            width: `${width}%`,
+                            top: `${topOffset}%`,
+                            height: '25px',
                           }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-start`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 시작: ${track.timing.start.toFixed(2)}s`}
                         >
+                          {/* Left border handle (start) */}
                           <div
-                            className={`absolute -bottom-6 left-1/2 -translate-x-1/2 ${colors.label} text-white text-xs px-2 py-1 rounded whitespace-nowrap`}
+                            className="absolute left-0 top-0 w-1 h-full cursor-ew-resize bg-black/50 hover:bg-white transition-all z-50"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-start`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 시작: ${track.timing.start.toFixed(2)}s`}
+                          />
+
+                          {/* Right border handle (end) */}
+                          <div
+                            className="absolute right-0 top-0 w-1 h-full cursor-ew-resize bg-black/50 hover:bg-white transition-all z-50"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-end`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 종료: ${track.timing.end.toFixed(2)}s`}
+                          />
+
+                          {/* Center area for moving entire track */}
+                          <div
+                            className="absolute left-1 right-1 top-0 h-full cursor-move hover:bg-black/10 transition-all z-40"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-move`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 이동: ${track.timing.start.toFixed(2)}s - ${track.timing.end.toFixed(2)}s`}
+                          />
+
+                          {/* Animation name inside rectangle */}
+                          <div
+                            className={`absolute inset-1 flex items-center justify-center ${colors.text} text-xs font-medium pointer-events-none z-45 truncate`}
                           >
-                            {track.assetName.split(' ')[0]} 시작
+                            {track.assetName}
                           </div>
                         </div>
 
-                        {/* Track timing end */}
-                        <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
-                          style={{
-                            left: `${getBarPosition(track.timing.end) * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset}%`,
-                            height: '12%',
-                          }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-end`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 종료: ${track.timing.end.toFixed(2)}s`}
-                        >
-                          <div
-                            className={`absolute -bottom-6 left-1/2 -translate-x-1/2 ${colors.label} text-white text-xs px-2 py-1 rounded whitespace-nowrap`}
-                          >
-                            {track.assetName.split(' ')[0]} 종료
-                          </div>
-                        </div>
-
-                        {/* Track intensity min */}
-                        <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
-                          style={{
-                            left: `${track.intensity.min * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset - 15}%`,
-                            height: '12%',
-                          }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-min`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 최소: ${(track.intensity.min * 100).toFixed(0)}%`}
-                        />
-
-                        {/* Track intensity max */}
-                        <div
-                          className={`absolute w-2 cursor-ew-resize transition-colors z-30 ${colors.base} hover:${colors.hover} border border-white rounded-sm shadow-md`}
-                          style={{
-                            left: `${track.intensity.max * 100}%`,
-                            transform: 'translateX(-50%)',
-                            bottom: `${bottomOffset - 15}%`,
-                            height: '12%',
-                          }}
-                          onMouseDown={(e) =>
-                            handleDragStart(
-                              focusedWord.id,
-                              `track-${track.assetId}-max`,
-                              e
-                            )
-                          }
-                          title={`${track.assetName} 최대: ${(track.intensity.max * 100).toFixed(0)}%`}
-                        />
                       </React.Fragment>
                     )
                   })
