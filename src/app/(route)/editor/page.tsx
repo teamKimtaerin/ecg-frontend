@@ -1329,6 +1329,54 @@ export default function EditorPage() {
     showToast('원본으로 복원되었습니다.', 'success')
   }, [restoreOriginalClips, clearSelection, setActiveClipId])
 
+  // 프로젝트 저장 핸들러
+  const handleSave = useCallback(() => {
+    saveProject()
+      .then(() => {
+        editorHistory.markAsSaved()
+        markAsSaved()
+        showToast('프로젝트가 저장되었습니다.', 'success')
+      })
+      .catch((error) => {
+        console.error('Save failed:', error)
+        showToast('저장에 실패했습니다.', 'error')
+      })
+  }, [saveProject, editorHistory, markAsSaved])
+
+  // 다른 프로젝트로 저장 핸들러
+  const handleSaveAs = useCallback(() => {
+    // TODO: 새로운 프로젝트 ID 생성 및 저장 로직 구현
+    const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+    
+    // 현재 프로젝트 데이터를 새 ID로 저장
+    const autosaveManager = AutosaveManager.getInstance()
+    const oldProjectId = autosaveManager.getCurrentProjectId()
+    
+    // 새 프로젝트로 설정
+    autosaveManager.setProject(newProjectId, 'browser')
+    
+    saveProject()
+      .then(() => {
+        editorHistory.markAsSaved()
+        markAsSaved()
+        showToast(`새 프로젝트로 저장되었습니다. (${newProjectId})`, 'success')
+        
+        // 프로젝트 정보 업데이트
+        projectInfoManager.notifyFileOpen('browser', 'saveAs', {
+          id: newProjectId,
+          name: `Copy of Project ${new Date().toLocaleDateString()}`,
+        })
+      })
+      .catch((error) => {
+        // 실패 시 원래 프로젝트로 되돌리기
+        if (oldProjectId) {
+          autosaveManager.setProject(oldProjectId, 'browser')
+        }
+        console.error('Save as failed:', error)
+        showToast('다른 이름으로 저장에 실패했습니다.', 'error')
+      })
+  }, [saveProject, editorHistory, markAsSaved])
+
   // Auto-save every 3 seconds
   useEffect(() => {
     if (!clips.length) return
@@ -1633,6 +1681,8 @@ export default function EditorPage() {
               onRestore={handleRestore}
               onToggleAnimationSidebar={handleToggleAnimationSidebar}
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
+              onSave={handleSave}
+              onSaveAs={handleSaveAs}
             />
           ) : (
             <SimpleToolbar
@@ -1647,6 +1697,8 @@ export default function EditorPage() {
               onRedo={handleRedo}
               onSplitClip={handleSplitClip}
               onToggleTemplateSidebar={handleToggleTemplateSidebar}
+              onSave={handleSave}
+              onSaveAs={handleSaveAs}
             />
           )}
         </div>

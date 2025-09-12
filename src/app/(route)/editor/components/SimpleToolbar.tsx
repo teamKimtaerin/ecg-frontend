@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import ToolbarButton from './Toolbars/shared/ToolbarButton'
 import ToolbarDivider from './Toolbars/shared/ToolbarDivider'
 import ToolbarBase from './Toolbars/shared/ToolbarBase'
-import { AiOutlineExport } from 'react-icons/ai'
+import { AiOutlineExport, AiOutlineSave, AiOutlineFolderAdd } from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
 import { ExportFormat } from './Export/ExportTypes'
 
@@ -20,6 +20,8 @@ interface SimpleToolbarProps {
   onRedo: () => void
   onSplitClip: () => void
   onToggleTemplateSidebar: () => void
+  onSave?: () => void
+  onSaveAs?: () => void
 }
 
 const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
@@ -34,6 +36,8 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   onRedo,
   onSplitClip,
   onToggleTemplateSidebar,
+  onSave,
+  onSaveAs,
 }) => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
 
@@ -190,14 +194,32 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
           />
         </div>
 
-        {/* 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
-        <button
-          className="ml-4 px-5 py-3 bg-gray-600 text-white rounded hover:bg-black transition-all duration-100 flex items-center gap-1.5 text-xs font-bold"
-          onClick={handleExportClick}
-        >
-          <AiOutlineExport className="w-4 h-4" />
-          내보내기
-        </button>
+        {/* 프로젝트 저장 버튼들과 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
+        <div className="ml-4 flex items-center space-x-3">
+          {/* 프로젝트 저장 */}
+          <ToolbarButton
+            icon={<AiOutlineSave className="w-5 h-5" />}
+            label="프로젝트 저장"
+            onClick={onSave}
+            shortcut="Ctrl+S"
+          />
+
+          {/* 다른 프로젝트로 저장 */}
+          <ToolbarButton
+            icon={<AiOutlineFolderAdd className="w-5 h-5" />}
+            label="다른 프로젝트로 저장"
+            onClick={onSaveAs}
+          />
+
+          {/* 내보내기 - 원래 스타일 유지 */}
+          <button
+            className="px-5 py-3 bg-gray-600 text-white rounded hover:bg-black transition-all duration-100 flex items-center gap-1.5 text-xs font-bold"
+            onClick={handleExportClick}
+          >
+            <AiOutlineExport className="w-4 h-4" />
+            내보내기
+          </button>
+        </div>
       </div>
 
       {/* Export Modal */}

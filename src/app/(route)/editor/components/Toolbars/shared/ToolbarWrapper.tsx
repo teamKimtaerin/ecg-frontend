@@ -1,16 +1,19 @@
 'use client'
 
 import React, { useState } from 'react'
-import ToolbarBase from './ToolbarBase'
+import { AiOutlineExport, AiOutlineFolderAdd, AiOutlineSave } from 'react-icons/ai'
 import { type ToolbarVariant } from '../../../constants/colors'
-import { AiOutlineExport } from 'react-icons/ai'
 import ExportModal from '../../Export/ExportModal'
 import { ExportFormat } from '../../Export/ExportTypes'
+import ToolbarBase from './ToolbarBase'
+import ToolbarButton from './ToolbarButton'
 
 interface ToolbarWrapperProps {
   variant?: ToolbarVariant
   children: React.ReactNode
   onExport?: () => void
+  onSave?: () => void
+  onSaveAs?: () => void
   className?: string
 }
 
@@ -22,6 +25,8 @@ export default function ToolbarWrapper({
   variant = 'base',
   children,
   onExport,
+  onSave,
+  onSaveAs,
   className = '',
 }: ToolbarWrapperProps) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
@@ -40,20 +45,46 @@ export default function ToolbarWrapper({
     setIsExportModalOpen(false)
   }
 
+  const handleSave = () => {
+    onSave?.()
+  }
+
+  const handleSaveAs = () => {
+    onSaveAs?.()
+  }
+
   return (
     <ToolbarBase variant={variant} className={className}>
       <div className="flex items-center w-full">
         {/* 툴바별 컨텐츠 */}
         <div className="flex items-center space-x-3 flex-1">{children}</div>
 
-        {/* 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
-        <button
-          className="ml-4 px-5 py-3 bg-gray-600 text-white rounded hover:bg-black transition-all duration-100 flex items-center gap-1.5 text-xs font-bold"
-          onClick={handleExportClick}
-        >
-          <AiOutlineExport className="w-4 h-4" />
-          내보내기
-        </button>
+        {/* 프로젝트 저장 버튼들과 내보내기 버튼 - 항상 오른쪽 끝에 고정 */}
+        <div className="ml-4 flex items-center space-x-3">
+          {/* 프로젝트 저장 */}
+          <ToolbarButton
+            icon={<AiOutlineSave className="w-5 h-5" />}
+            label="프로젝트 저장"
+            onClick={handleSave}
+            shortcut="Ctrl+S"
+          />
+
+          {/* 다른 프로젝트로 저장 */}
+          <ToolbarButton
+            icon={<AiOutlineFolderAdd className="w-5 h-5" />}
+            label="다른 프로젝트로 저장"
+            onClick={handleSaveAs}
+          />
+
+          {/* 내보내기 - 원래 스타일 유지 */}
+          <button
+            className="px-5 py-3 bg-gray-600 text-white rounded hover:bg-black transition-all duration-100 flex items-center gap-1.5 text-xs font-bold"
+            onClick={handleExportClick}
+          >
+            <AiOutlineExport className="w-4 h-4" />
+            내보내기
+          </button>
+        </div>
       </div>
 
       {/* Export Modal */}
