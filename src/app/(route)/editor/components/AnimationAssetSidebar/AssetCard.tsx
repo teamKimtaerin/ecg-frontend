@@ -17,15 +17,18 @@ export interface AssetItem {
   isUsed?: boolean
   isFavorite?: boolean
   description?: string
+  disabled?: boolean
 }
 
 interface AssetCardProps {
   asset: AssetItem
   onClick?: (asset: AssetItem) => void
+  disabled?: boolean
 }
 
-const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
+const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
   const handleClick = () => {
+    if (disabled) return
     onClick?.(asset)
   }
 
@@ -77,7 +80,11 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
 
   return (
     <div
-      className="group relative bg-gray-800 hover:bg-gray-500 rounded-lg p-2 cursor-pointer transition-all duration-200 border-2 hover:border-gray-200 aspect-[4/5]"
+      className={`group relative bg-gray-800 rounded-lg p-2 transition-all duration-200 border-2 aspect-[4/5] ${
+        disabled 
+          ? 'opacity-50 cursor-not-allowed' 
+          : 'hover:bg-gray-500 cursor-pointer hover:border-gray-200'
+      }`}
       onClick={handleClick}
     >
       {/* Preview Area with Badge Overlay */}

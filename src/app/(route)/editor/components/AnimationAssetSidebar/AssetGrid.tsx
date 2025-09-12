@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import AssetCard, { AssetItem } from './AssetCard'
 import { useEditorStore } from '../../store'
+import { showToast } from '@/utils/ui/toast'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
@@ -132,7 +133,9 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
         // Add the animation track with word timing - this creates the bars immediately
         addAnimationTrack(focusedWordId, asset.id, asset.name, wordTiming)
       } else {
-        console.log('Maximum 3 animations per word')
+        // Show toast when trying to add more than 3 animations
+        showToast('최대 3개의 애니메이션만 선택할 수 있습니다.', 'warning')
+        return // Don't proceed with the click
       }
     }
 
