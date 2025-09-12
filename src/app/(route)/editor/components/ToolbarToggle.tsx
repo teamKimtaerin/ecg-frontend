@@ -14,7 +14,7 @@ const ToolbarToggle: React.FC<ToolbarToggleProps> = ({
   return (
     <button
       onClick={onToggle}
-      className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-all duration-200"
+      className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
       title={isToolbarVisible ? '툴바 숨기기' : '툴바 보이기'}
     >
       <svg

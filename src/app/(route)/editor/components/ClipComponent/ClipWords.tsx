@@ -195,7 +195,7 @@ export default function ClipWords({
       >
         <div
           ref={containerRef}
-          className="flex flex-wrap gap-1 relative"
+          className="flex flex-wrap gap-1 relative cursor-pointer"
           onMouseDown={handleMouseDown}
           onKeyDown={handleKeyDown}
           tabIndex={0}

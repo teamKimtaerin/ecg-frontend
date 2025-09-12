@@ -25,10 +25,10 @@ const EditingModeToggle: React.FC = () => {
         {/* Simple Mode Button */}
         <button
           onClick={() => setEditingMode('simple')}
-          className={`relative z-10 p-2 rounded-full transition-colors duration-200 ${
+          className={`relative z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${
             editingMode === 'simple'
               ? 'text-white'
-              : 'text-gray-600 hover:text-gray-800'
+              : 'text-gray-600 hover:text-gray-800 hover:scale-110 hover:shadow-md'
           }`}
           title="쉬운 편집"
         >
@@ -50,10 +50,10 @@ const EditingModeToggle: React.FC = () => {
         {/* Advanced Mode Button */}
         <button
           onClick={() => setEditingMode('advanced')}
-          className={`relative z-10 p-2 rounded-full transition-colors duration-200 ${
+          className={`relative z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${
             editingMode === 'advanced'
               ? 'text-white'
-              : 'text-gray-600 hover:text-gray-800'
+              : 'text-gray-600 hover:text-gray-800 hover:scale-110 hover:shadow-md'
           }`}
           title="고급 편집"
         >

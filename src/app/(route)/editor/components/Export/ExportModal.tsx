@@ -79,10 +79,10 @@ export default function ExportModal({
           <div className="p-4">
             {/* 기본 선택 옵션 - 영상 파일 (mp4) */}
             <div
-              className={`flex items-center p-3 rounded-lg cursor-pointer transition-all mb-4 ${
+              className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 ${
                 selectedFormat === 'mp4'
                   ? 'bg-gray-400 bg-opacity-20 border border-gray-400'
-                  : 'hover:bg-[#383842]'
+                  : 'hover:bg-[#383842] hover:scale-105 hover:shadow-md'
               }`}
               onClick={() => handleExport('mp4')}
             >
@@ -115,10 +115,10 @@ export default function ExportModal({
                   return (
                     <div
                       key={option.id}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
+                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                         isSelected
                           ? 'bg-gray-200 bg-opacity-20 border border-gray-200'
-                          : 'hover:bg-gray-700'
+                          : 'hover:bg-gray-700 hover:scale-105 hover:shadow-md'
                       }`}
                       onClick={() => handleExport(option.id)}
                     >

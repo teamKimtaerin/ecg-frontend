@@ -78,7 +78,8 @@ const TabItem: React.FC<TabItemProps> = ({
       'items-center',
       'justify-center',
       'font-medium',
-      'transition-colors',
+      'transition-all',
+      'duration-200',
       'cursor-pointer',
       'rounded-default',
       'relative',
@@ -114,7 +115,9 @@ const TabItem: React.FC<TabItemProps> = ({
         classes.push(
           'text-gray-500',
           'hover:text-gray-700',
-          'hover:bg-gray-200'
+          'hover:bg-gray-200',
+          'hover:scale-105',
+          'hover:shadow-sm'
         )
       }
     } else if (isEmphasized) {
@@ -125,6 +128,8 @@ const TabItem: React.FC<TabItemProps> = ({
           'bg-white',
           'text-black',
           'hover:bg-gray-50',
+          'hover:scale-105',
+          'hover:shadow-md',
           'border',
           'border-gray-200'
         )
@@ -134,7 +139,13 @@ const TabItem: React.FC<TabItemProps> = ({
       if (isSelected) {
         classes.push('bg-gray-800', 'text-white')
       } else {
-        classes.push('text-gray-400', 'hover:text-white', 'hover:bg-gray-800')
+        classes.push(
+          'text-gray-400', 
+          'hover:text-white', 
+          'hover:bg-gray-800',
+          'hover:scale-105',
+          'hover:shadow-md'
+        )
       }
     }
 

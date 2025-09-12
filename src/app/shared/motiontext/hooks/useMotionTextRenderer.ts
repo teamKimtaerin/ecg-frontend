@@ -124,8 +124,34 @@ export function useMotionTextRenderer(
             error: null,
           })
         }
-        if (loopTimeoutRef.current) clearTimeout(loopTimeoutRef.current)
-        await preloadPluginsForScenario(config)
+        // Clean up existing timeout
+        if (loopTimeoutRef.current) {
+          clearTimeout(loopTimeoutRef.current)
+          loopTimeoutRef.current = null
+        }
+        
+        // Validate config structure
+        if (!config || typeof config !== 'object') {
+          throw new Error('Invalid config: config must be an object')
+        }
+        
+        // Preload plugins with error handling
+        try {
+          await preloadPluginsForScenario(config)
+        } catch (pluginError) {
+          console.warn('Plugin preload failed:', pluginError)
+          // Continue execution - plugin errors shouldn't be fatal
+        }
+        
+        // Load config with renderer validation
+        if (!rendererRef.current) {
+          throw new Error('Renderer is not available')
+        }
+        
+        if (typeof rendererRef.current.loadConfig !== 'function') {
+          throw new Error('Renderer loadConfig method is not available')
+        }
+        
         await rendererRef.current.loadConfig(config)
         currentConfigRef.current = config
         if (autoPlayRef.current) {

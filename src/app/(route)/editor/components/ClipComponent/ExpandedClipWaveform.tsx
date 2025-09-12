@@ -138,6 +138,7 @@ async function loadClipAudioData(words: Word[]) {
 }
 
 export default function ExpandedClipWaveform({
+  clipId,
   words,
   focusedWordId,
 }: ExpandedClipWaveformProps) {
@@ -496,13 +497,16 @@ export default function ExpandedClipWaveform({
             //   max: 0.7,
             // }
 
+            const timingStartPos = getBarPosition(timing.start)
+            const timingEndPos = getBarPosition(timing.end)
+
             return (
               <React.Fragment key={focusedWord.id}>
-                {/* Timing Bars (White for focused word) - Top */}
+                {/* Timing Bars (Blue for focused word) - Top */}
                 <div
                   className="absolute top-0 w-2 cursor-ew-resize transition-colors z-30 bg-blue-500 hover:bg-blue-400 border border-blue-600 rounded-sm"
                   style={{
-                    left: `${getBarPosition(timing.start) * 100}%`,
+                    left: `${timingStartPos * 100}%`,
                     transform: 'translateX(-50%)',
                     height: '40%',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
@@ -516,7 +520,7 @@ export default function ExpandedClipWaveform({
                 <div
                   className="absolute top-0 w-2 cursor-ew-resize transition-colors z-30 bg-blue-500 hover:bg-blue-400 border border-blue-600 rounded-sm"
                   style={{
-                    left: `${getBarPosition(timing.end) * 100}%`,
+                    left: `${timingEndPos * 100}%`,
                     transform: 'translateX(-50%)',
                     height: '40%',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.3)',

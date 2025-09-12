@@ -296,7 +296,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
                         e.stopPropagation()
                         handleRemoveAsset(asset.id)
                       }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg flex-shrink-0 cursor-pointer"
                       style={{
                         width: '24px',
                         height: '24px',

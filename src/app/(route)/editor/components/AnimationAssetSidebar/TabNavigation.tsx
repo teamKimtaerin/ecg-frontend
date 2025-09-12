@@ -21,7 +21,7 @@ const TabNavigation: React.FC = () => {
             className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
               activeAssetTab === tab.id
                 ? 'bg-gray-700 text-white shadow-sm'
-                : 'text-gray-500 hover:text-white hover:bg-gray-400'
+                : 'text-gray-500 hover:text-white hover:bg-gray-600 hover:shadow-md transform hover:scale-105'
             }`}
           >
             {tab.label}

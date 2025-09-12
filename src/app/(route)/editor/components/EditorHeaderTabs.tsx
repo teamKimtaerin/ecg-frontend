@@ -206,7 +206,7 @@ export default function EditorHeaderTabs({
             <button
               ref={documentButtonRef}
               onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
-              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer"
               title="문서함"
             >
               <svg

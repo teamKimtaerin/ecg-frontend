@@ -71,7 +71,7 @@ const UsedTemplatesStrip: React.FC<UsedTemplatesStripProps> = ({
                     e.stopPropagation()
                     handleRemoveTemplate(template.id)
                   }}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg cursor-pointer"
                   aria-label={`${template.name} 제거`}
                 >
                   <IoClose size={14} className="text-white" />

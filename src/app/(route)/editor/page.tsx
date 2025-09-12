@@ -251,7 +251,7 @@ function TimelineClipCard({
                              bg-transparent text-black border border-gray-300 rounded
                              hover:bg-gray-50 hover:border-gray-400 transition-all
                              focus:outline-none focus:ring-2 focus:ring-blue-500
-                             w-[120px] flex-shrink-0"
+                             w-[120px] flex-shrink-0 cursor-pointer"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -330,7 +330,7 @@ function TimelineClipCard({
                             </div>
                             <button
                               className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-black
-                                    text-xs px-1 py-0.5 rounded transition-all flex-shrink-0"
+                                    text-xs px-1 py-0.5 rounded transition-all flex-shrink-0 cursor-pointer"
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
@@ -431,14 +431,14 @@ function TimelineClipCard({
                 <button
                   onClick={() => handleRenameChoice(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded
-                          hover:bg-gray-600 transition-colors"
+                          hover:bg-gray-600 transition-colors cursor-pointer"
                 >
                   아니오 (현재 클립만)
                 </button>
                 <button
                   onClick={() => handleRenameChoice(true)}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
-                          hover:bg-blue-700 transition-colors"
+                          hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   예 (모든 클립)
                 </button>

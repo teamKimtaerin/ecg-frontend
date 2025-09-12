@@ -17,10 +17,10 @@ const TabNavigation: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 cursor-pointer ${
               activeTab === tab.id
                 ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200 hover:shadow-md transform hover:scale-105'
             }`}
           >
             {tab.label}

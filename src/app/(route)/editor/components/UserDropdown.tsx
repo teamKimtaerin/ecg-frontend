@@ -71,7 +71,7 @@ const UserDropdown: React.FC = () => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-200 hover:scale-105 hover:shadow-md transition-all duration-200 cursor-pointer"
       >
         {/* User Avatar */}
         <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center">
@@ -136,7 +136,7 @@ const UserDropdown: React.FC = () => {
             <div className="py-1">
               <Link
                 href="/mypage"
-                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 hover:scale-105 hover:shadow-sm transition-all duration-200 cursor-pointer"
                 onClick={() => setIsOpen(false)}
               >
                 <svg
@@ -159,7 +159,7 @@ const UserDropdown: React.FC = () => {
 
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:scale-105 hover:shadow-sm transition-all duration-200 cursor-pointer"
               >
                 <svg
                   className="w-4 h-4 mr-3 text-red-500"

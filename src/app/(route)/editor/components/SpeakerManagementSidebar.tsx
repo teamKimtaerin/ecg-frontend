@@ -233,7 +233,7 @@ export default function SpeakerManagementSidebar({
         </div>
         <button
           onClick={onClose}
-          className="p-1 text-gray-600 hover:text-black transition-colors"
+          className="p-1 text-gray-600 hover:text-black transition-colors cursor-pointer"
         >
           <LuX className="w-5 h-5" />
         </button>
@@ -253,7 +253,7 @@ export default function SpeakerManagementSidebar({
               </div>
               <button
                 onClick={() => setShowUnassignedPanel(!showUnassignedPanel)}
-                className="text-gray-600 hover:text-black transition-colors"
+                className="text-gray-600 hover:text-black transition-colors cursor-pointer"
               >
                 <LuArrowRight
                   className={`w-4 h-4 transition-transform ${showUnassignedPanel ? 'rotate-90' : ''}`}
@@ -318,7 +318,7 @@ export default function SpeakerManagementSidebar({
                         <button
                           key={speaker}
                           onClick={() => handleAssignSpeakerToSelected(speaker)}
-                          className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors"
+                          className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded transition-colors cursor-pointer"
                         >
                           {speaker}
                         </button>
@@ -375,7 +375,7 @@ export default function SpeakerManagementSidebar({
               {editingSpeaker !== speaker && (
                 <button
                   onClick={() => onRemoveSpeaker(speaker)}
-                  className="p-1 text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
+                  className="p-1 text-gray-600 hover:text-red-400 transition-colors flex-shrink-0 cursor-pointer"
                   title="삭제"
                 >
                   <LuTrash2 className="w-4 h-4" />
@@ -426,7 +426,7 @@ export default function SpeakerManagementSidebar({
               </div>
               <button
                 onClick={() => setSelectedColorSpeaker(null)}
-                className="p-1 text-gray-600 hover:text-black transition-colors"
+                className="p-1 text-gray-600 hover:text-black transition-colors cursor-pointer"
               >
                 <LuX className="w-4 h-4" />
               </button>
