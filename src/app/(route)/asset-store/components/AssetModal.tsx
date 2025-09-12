@@ -115,7 +115,8 @@ export const AssetModal: React.FC<AssetModalProps> = ({
     'absolute',
     'inset-0',
     'bg-black/60',
-    'backdrop-blur-sm'
+    'backdrop-blur-sm',
+    'cursor-pointer'
   )
 
   // 모달 컨테이너 클래스
@@ -161,7 +162,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 onClick={onAddToCart}
                 className={clsx(
                   'px-4 py-2 bg-blue-600 hover:bg-blue-700',
-                  'text-white rounded-lg font-medium',
+                  'text-white rounded-lg font-medium cursor-pointer',
                   TRANSITIONS.colors
                 )}
               >
@@ -182,6 +183,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 'justify-center',
                 'rounded',
                 'hover:bg-gray-700',
+                'cursor-pointer',
                 TRANSITIONS.colors
               )}
               aria-label="닫기"
@@ -297,7 +299,8 @@ export const Modal: React.FC<ModalProps> = ({
     'absolute',
     'inset-0',
     'bg-black/60',
-    'backdrop-blur-sm'
+    'backdrop-blur-sm',
+    'cursor-pointer'
   )
 
   const modalClasses = clsx(
@@ -346,6 +349,7 @@ export const Modal: React.FC<ModalProps> = ({
               'justify-center',
               'rounded',
               'hover:bg-gray-800',
+              'cursor-pointer',
               TRANSITIONS.colors
             )}
             aria-label="닫기"

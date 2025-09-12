@@ -103,7 +103,7 @@ const Header: React.FC<HeaderProps> = ({
               href="/asset-store"
               className="text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
             >
-              이펙트 스토어
+              에셋 스토어
             </Link>
             <Link
               href="/tutorial"
