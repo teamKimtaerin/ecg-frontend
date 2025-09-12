@@ -163,68 +163,11 @@ export default function ExpandedClipWaveform({
   // Local state for dragging - track for each word
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
   const [dragType, setDragType] = useState<string | null>(null)
+  const [dragStartPosition, setDragStartPosition] = useState<number>(0)
 
-  // Calculate focused word range (3 words: previous + current + next)
-  const { displayWords, rangeStart, rangeEnd, rangeDuration } =
-    React.useMemo(() => {
-      if (!focusedWord) {
-        return {
-          displayWords: words,
-          rangeStart: words.length > 0 ? words[0].start : 0,
-          rangeEnd: words.length > 0 ? words[words.length - 1].end : 0,
-          rangeDuration:
-            words.length > 0 ? words[words.length - 1].end - words[0].start : 0,
-        }
-      }
-
-      const focusedIndex = words.findIndex((w) => w.id === focusedWord.id)
-      if (focusedIndex === -1) {
-        return {
-          displayWords: words,
-          rangeStart: words.length > 0 ? words[0].start : 0,
-          rangeEnd: words.length > 0 ? words[words.length - 1].end : 0,
-          rangeDuration:
-            words.length > 0 ? words[words.length - 1].end - words[0].start : 0,
-        }
-      }
-
-      // Get previous, current, and next words (3 words total)
-      const prevWord = focusedIndex > 0 ? words[focusedIndex - 1] : null
-      const currentWord = words[focusedIndex]
-      const nextWord =
-        focusedIndex < words.length - 1 ? words[focusedIndex + 1] : null
-
-      // Calculate display range with padding for missing words
-      let start = currentWord.start
-      let end = currentWord.end
-      const paddingTime = 1.0 // 1 second padding
-
-      if (prevWord) {
-        start = prevWord.start
-      } else {
-        // Add padding before current word if no previous word
-        start = Math.max(0, currentWord.start - paddingTime)
-      }
-
-      if (nextWord) {
-        end = nextWord.end
-      } else {
-        // Add padding after current word if no next word
-        end = currentWord.end + paddingTime
-      }
-
-      // Build display words array
-      const displayWords = [prevWord, currentWord, nextWord].filter(
-        Boolean
-      ) as Word[]
-
-      return {
-        displayWords,
-        rangeStart: start,
-        rangeEnd: end,
-        rangeDuration: end - start,
-      }
-    }, [focusedWord, words])
+  // Calculate clip duration
+  const clipDuration =
+    words.length > 0 ? words[words.length - 1].end - words[0].start : 0
 
   // Load audio data for the focused range
   useEffect(() => {
@@ -304,6 +247,14 @@ export default function ExpandedClipWaveform({
       setDraggedWordId(wordId)
       setDragType(barType)
       setIsDragging(true)
+      
+      // Store initial drag position for move operations
+      if (waveformRef.current) {
+        const rect = waveformRef.current.getBoundingClientRect()
+        const x = e.clientX - rect.left
+        const position = Math.max(0, Math.min(1, x / rect.width))
+        setDragStartPosition(position)
+      }
     },
     []
   )
@@ -376,16 +327,14 @@ export default function ExpandedClipWaveform({
           } else if (barType === 'move') {
             // Move the entire track to follow mouse position
             const duration = track.timing.end - track.timing.start
-            const newStart =
-              rangeStart + position * rangeDuration - duration / 2
-
-            // Constrain within range bounds
-            const constrainedStart = Math.max(
-              rangeStart,
-              Math.min(newStart, rangeEnd - duration)
-            )
+            const clipStart = words[0].start
+            const newStart = clipStart + position * clipDuration - duration / 2
+            
+            // Constrain within clip bounds
+            const clipEnd = words[words.length - 1].end
+            const constrainedStart = Math.max(clipStart, Math.min(newStart, clipEnd - duration))
             const constrainedEnd = constrainedStart + duration
-
+            
             updateAnimationTrackTiming(
               draggedWordId,
               assetId,
@@ -571,6 +520,7 @@ export default function ExpandedClipWaveform({
                 ></div>
 
                 {/* Animation Track Rectangles - Multiple tracks per word (max 3) */}
+                {/* Animation Track Rectangles - Multiple tracks per word (max 3) */}
                 {(() => {
                   const tracks = wordAnimationTracks.get(focusedWord.id) || []
                   const trackColors = {
@@ -579,17 +529,20 @@ export default function ExpandedClipWaveform({
                       hover: 'bg-blue-400',
                       label: 'bg-blue-600',
                       text: 'text-white',
+                      text: 'text-white',
                     },
                     green: {
                       base: 'bg-green-500',
                       hover: 'bg-green-400',
                       label: 'bg-green-600',
                       text: 'text-white',
+                      text: 'text-white',
                     },
                     purple: {
                       base: 'bg-purple-500',
                       hover: 'bg-purple-400',
                       label: 'bg-purple-600',
+                      text: 'text-white',
                       text: 'text-white',
                     },
                   }
@@ -600,15 +553,25 @@ export default function ExpandedClipWaveform({
                     const startPos = getBarPosition(track.timing.start)
                     const endPos = getBarPosition(track.timing.end)
                     const width = (endPos - startPos) * 100
+                    const topOffset = 50 + trackIndex * 15 // Position below red line with more space
+                    const startPos = getBarPosition(track.timing.start)
+                    const endPos = getBarPosition(track.timing.end)
+                    const width = (endPos - startPos) * 100
 
                     return (
                       <React.Fragment
                         key={`${focusedWord.id}-${track.assetId}`}
                       >
                         {/* Track timing rectangle with draggable borders and moveable center */}
+                        {/* Track timing rectangle with draggable borders and moveable center */}
                         <div
                           className={`absolute transition-colors z-30 ${colors.base} hover:${colors.hover} border border-gray-300 rounded-md shadow-lg overflow-hidden group`}
+                          className={`absolute transition-colors z-30 ${colors.base} hover:${colors.hover} border border-gray-300 rounded-md shadow-lg overflow-hidden group`}
                           style={{
+                            left: `${startPos * 100}%`,
+                            width: `${width}%`,
+                            top: `${topOffset}%`,
+                            height: '25px',
                             left: `${startPos * 100}%`,
                             width: `${width}%`,
                             top: `${topOffset}%`,
@@ -661,6 +624,54 @@ export default function ExpandedClipWaveform({
                             {track.assetName}
                           </div>
                         </div>
+                        >
+                          {/* Left border handle (start) */}
+                          <div
+                            className="absolute left-0 top-0 w-1 h-full cursor-ew-resize bg-black/50 hover:bg-white transition-all z-50"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-start`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 시작: ${track.timing.start.toFixed(2)}s`}
+                          />
+
+                          {/* Right border handle (end) */}
+                          <div
+                            className="absolute right-0 top-0 w-1 h-full cursor-ew-resize bg-black/50 hover:bg-white transition-all z-50"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-end`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 종료: ${track.timing.end.toFixed(2)}s`}
+                          />
+
+                          {/* Center area for moving entire track */}
+                          <div
+                            className="absolute left-1 right-1 top-0 h-full cursor-move hover:bg-black/10 transition-all z-40"
+                            onMouseDown={(e) =>
+                              handleDragStart(
+                                focusedWord.id,
+                                `track-${track.assetId}-move`,
+                                e
+                              )
+                            }
+                            title={`${track.assetName} 이동: ${track.timing.start.toFixed(2)}s - ${track.timing.end.toFixed(2)}s`}
+                          />
+
+                          {/* Animation name inside rectangle */}
+                          <div
+                            className={`absolute inset-1 flex items-center justify-center ${colors.text} text-xs font-medium pointer-events-none z-45 truncate`}
+                          >
+                            {track.assetName}
+                          </div>
+                        </div>
+
                       </React.Fragment>
                     )
                   })
