@@ -6,7 +6,6 @@ import { useEditorStore } from '../store'
 const EditingModeToggle: React.FC = () => {
   const { editingMode, setEditingMode } = useEditorStore()
 
-
   return (
     <div className="flex items-center">
       <div className="relative bg-gray-200 rounded-full p-1 flex items-center">

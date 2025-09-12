@@ -143,9 +143,7 @@ export default function Toolbars({
           onSave={onSave}
           onSaveAs={onSaveAs}
         >
-          <TemplateToolbar
-            onToggleTemplateSidebar={onToggleTemplateSidebar}
-          />
+          <TemplateToolbar onToggleTemplateSidebar={onToggleTemplateSidebar} />
         </ToolbarWrapper>
       )
 
