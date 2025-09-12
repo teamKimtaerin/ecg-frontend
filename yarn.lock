@@ -2100,9 +2100,9 @@ combined-stream@^1.0.8:
     delayed-stream "~1.0.0"
 
 commander@^14.0.0:
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-14.0.0.tgz#f244fc74a92343514e56229f16ef5c5e22ced5e9"
-  integrity sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==
+  version "14.0.1"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-14.0.1.tgz#2f9225c19e6ebd0dc4404dd45821b2caa17ea09b"
+  integrity sha512-2JkV3gUZUVrbNA+1sjBOYLsMZ5cEEl8GTFP2a4AVz5hvasAMCQ1D2l2le/cX+pV4N6ZU17zjUahLpIXRrnWL8A==
 
 concat-map@0.0.1:
   version "0.0.1"
@@ -2389,9 +2389,9 @@ ee-first@1.1.1:
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
 electron-to-chromium@^1.5.211:
-  version "1.5.217"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.217.tgz#71285850356ef48bc08275b26f0f355721e0f17d"
-  integrity sha512-Pludfu5iBxp9XzNl0qq2G87hdD17ZV7h5T4n6rQXDi3nCyloBV3jreE9+8GC6g4X/5yxqVgXEURpcLtM0WS4jA==
+  version "1.5.218"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.218.tgz#921042a011a98a4620853c9d391ab62bcc124400"
+  integrity sha512-uwwdN0TUHs8u6iRgN8vKeWZMRll4gBkz+QMqdS7DDe49uiK68/UX92lFb61oiFPrpYZNeZIqa4bA7O6Aiasnzg==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -6066,7 +6066,7 @@ walker@^1.0.8:
 
 wavesurfer.js@^7.10.1:
   version "7.10.1"
-  resolved "https://registry.npmjs.org/wavesurfer.js/-/wavesurfer.js-7.10.1.tgz"
+  resolved "https://registry.yarnpkg.com/wavesurfer.js/-/wavesurfer.js-7.10.1.tgz#c2f799a05d939cbb1e5df8aa7e0485ab44ad7594"
   integrity sha512-tF1ptFCAi8SAqKbM1e7705zouLC3z4ulXCg15kSP5dQ7VDV30Q3x/xFRcuVIYTT5+jB/PdkhiBRCfsMshZG1Ug==
 
 webidl-conversions@^7.0.0:

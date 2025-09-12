@@ -33,6 +33,7 @@ import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import AlertDialog from '@/components/ui/AlertDialog'
+import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import Toolbars from './components/Toolbars'
 import SimpleToolbar from './components/SimpleToolbar'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
@@ -1577,11 +1578,13 @@ export default function EditorPage() {
   // 복구 중일 때 로딩 화면 표시
   if (isRecovering) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
-          <p className="text-gray-600">세션 복구 중...</p>
-        </div>
+      <div className="min-h-screen bg-gray-50">
+        <LoadingSpinner
+          size="lg"
+          message="세션을 복구하고 있습니다..."
+          showLogo={true}
+          variant="fullscreen"
+        />
       </div>
     )
   }

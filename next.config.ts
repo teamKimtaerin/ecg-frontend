@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   output: 'export', // 정적 파일로 빌드
   trailingSlash: true, // S3용 URL 형식
 
+  // ES Module 패키지 transpile 설정
+  transpilePackages: ['motiontext-renderer'],
+
   // 이미지 최적화 비활성화 (정적 export용)
   images: {
     unoptimized: true, // S3에서는 이미지 최적화 불가
