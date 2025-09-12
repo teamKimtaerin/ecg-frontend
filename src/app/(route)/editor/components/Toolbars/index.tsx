@@ -83,14 +83,24 @@ export default function Toolbars({
   switch (activeTab) {
     case 'home':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport} onSave={onSave} onSaveAs={onSaveAs}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
       )
 
     case 'edit':
       return (
-        <ToolbarWrapper variant="edit" onExport={handleExport} onSave={onSave} onSaveAs={onSaveAs}>
+        <ToolbarWrapper
+          variant="edit"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <EditToolbar
             {...commonProps}
             clips={clips}
@@ -103,24 +113,37 @@ export default function Toolbars({
 
     case 'format':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport} onSave={onSave} onSaveAs={onSaveAs}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <FormatToolbar {...commonProps} />
         </ToolbarWrapper>
       )
 
     case 'insert':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport} onSave={onSave} onSaveAs={onSaveAs}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <InsertToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
       )
 
     case 'template':
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport} onSave={onSave} onSaveAs={onSaveAs}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <TemplateToolbar
-            {...commonProps}
-            onToggleAnimationSidebar={onToggleAnimationSidebar}
             onToggleTemplateSidebar={onToggleTemplateSidebar}
           />
         </ToolbarWrapper>
@@ -128,7 +151,12 @@ export default function Toolbars({
 
     default:
       return (
-        <ToolbarWrapper variant="base" onExport={handleExport} onSave={onSave} onSaveAs={onSaveAs}>
+        <ToolbarWrapper
+          variant="base"
+          onExport={handleExport}
+          onSave={onSave}
+          onSaveAs={onSaveAs}
+        >
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
       )

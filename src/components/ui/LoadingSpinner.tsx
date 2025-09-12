@@ -33,7 +33,8 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   const containerClasses = clsx(
     'flex flex-col items-center justify-center',
-    variant === 'fullscreen' && 'fixed inset-0 bg-white/80 backdrop-blur-sm z-50',
+    variant === 'fullscreen' &&
+      'fixed inset-0 bg-white/80 backdrop-blur-sm z-50',
     className
   )
 
@@ -45,7 +46,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
             <HoitLogo className={sizeClasses[size]} />
           </div>
         )}
-        
+
         {/* Spinning animation */}
         <div className="relative">
           <div
@@ -54,7 +55,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
               sizeClasses[size]
             )}
           ></div>
-          
+
           {/* Inner dot animation */}
           <div
             className={clsx(

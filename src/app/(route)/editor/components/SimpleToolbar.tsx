@@ -4,13 +4,15 @@ import React, { useState } from 'react'
 import ToolbarButton from './Toolbars/shared/ToolbarButton'
 import ToolbarDivider from './Toolbars/shared/ToolbarDivider'
 import ToolbarBase from './Toolbars/shared/ToolbarBase'
-import { AiOutlineExport, AiOutlineSave, AiOutlineFolderAdd } from 'react-icons/ai'
+import {
+  AiOutlineExport,
+  AiOutlineSave,
+  AiOutlineFolderAdd,
+} from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
 import { ExportFormat } from './Export/ExportTypes'
 
 interface SimpleToolbarProps {
-  clips: unknown[]
-  selectedClipIds: Set<string>
   activeClipId: string | null
   canUndo: boolean
   canRedo: boolean
@@ -25,8 +27,6 @@ interface SimpleToolbarProps {
 }
 
 const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
-  clips,
-  selectedClipIds,
   activeClipId,
   canUndo,
   canRedo,

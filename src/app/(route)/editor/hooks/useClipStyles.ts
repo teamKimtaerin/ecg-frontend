@@ -4,7 +4,7 @@ export function useClipStyles({
   isSelected,
   isChecked = false,
   isMultiSelected = false,
-  isHovered,
+  // isHovered, // TODO: Implement hover-specific styles
   isDragging = false,
 }: ClipStyleState) {
   const getContainerClassName = () => {

@@ -4,7 +4,7 @@ import React, { useRef, useState, useCallback } from 'react'
 import type { RendererConfig } from '@/app/shared/motiontext'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
-import ScenarioJsonEditor from './ScenarioJsonEditor'
+// import ScenarioJsonEditor from './ScenarioJsonEditor' // TODO: Re-enable when needed
 
 interface VideoSectionProps {
   width?: number
@@ -12,6 +12,7 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
     null
   )
@@ -22,6 +23,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     setCurrentScenario(scenario)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleScenarioApply = useCallback((newScenario: RendererConfig) => {
     console.log('[VideoSection] Applying new scenario:', newScenario)
     setScenarioOverride(newScenario)

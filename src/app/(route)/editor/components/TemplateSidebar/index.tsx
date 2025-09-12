@@ -5,7 +5,6 @@ import { useEditorStore } from '../../store'
 
 // Components
 import SidebarHeader from './SidebarHeader'
-import SearchBar from './SearchBar'
 import UsedTemplatesStrip from './UsedTemplatesStrip'
 import TabNavigation from './TabNavigation'
 import TemplateGrid from './TemplateGrid'

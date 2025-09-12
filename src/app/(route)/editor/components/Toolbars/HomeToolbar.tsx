@@ -7,7 +7,8 @@ import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
 import { EDITOR_COLORS } from '../../constants/colors'
 
-// 기본 서식 그룹 컴포넌트
+// 기본 서식 그룹 컴포넌트 (향후 사용 예정)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function TextFormattingGroup() {
   const [selectedFont, setSelectedFont] = useState('굴림고딕 볼드')
   const [fontSize, setFontSize] = useState('100')

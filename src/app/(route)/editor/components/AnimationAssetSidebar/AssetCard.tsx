@@ -81,8 +81,8 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
   return (
     <div
       className={`group relative bg-gray-800 rounded-lg p-2 transition-all duration-200 border-2 aspect-[4/5] ${
-        disabled 
-          ? 'opacity-50 cursor-not-allowed' 
+        disabled
+          ? 'opacity-50 cursor-not-allowed'
           : 'hover:bg-gray-500 cursor-pointer hover:border-gray-200'
       }`}
       onClick={handleClick}

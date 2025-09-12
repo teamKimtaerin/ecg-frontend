@@ -1,12 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
 import ClipSelectionDropdown from './shared/ClipSelectionDropdown'
-import Switch from '@/components/ui/Switch'
 import { ClipItem } from '../../types'
-import { showToast } from '@/utils/ui/toast'
 
 interface EditToolbarProps {
   clips: ClipItem[]

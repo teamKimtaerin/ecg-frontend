@@ -42,7 +42,7 @@ export interface ClipStyleState {
   isSelected: boolean
   isChecked: boolean
   isMultiSelected: boolean
-  isHovered: boolean
+  isHovered?: boolean // Optional for now, will be used for hover effects
   isDragging?: boolean
 }
 

@@ -333,7 +333,7 @@ export default function SpeakerManagementSidebar({
 
         {/* Speaker List */}
         <div className="space-y-3">
-          {speakers.map((speaker, index) => (
+          {speakers.map((speaker) => (
             <div
               key={speaker}
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg min-h-[52px] border border-gray-200"

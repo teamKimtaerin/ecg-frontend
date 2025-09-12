@@ -3,27 +3,10 @@
 import ToolbarButton from './shared/ToolbarButton'
 
 interface TemplateToolbarProps {
-  selectedClipIds: Set<string>
-  canUndo: boolean
-  canRedo: boolean
-  onUndo: () => void
-  onRedo: () => void
-  onCut?: () => void
-  onCopy?: () => void
-  onPaste?: () => void
-  onToggleAnimationSidebar?: () => void
   onToggleTemplateSidebar?: () => void
 }
 
 export default function TemplateToolbar({
-  canUndo,
-  canRedo,
-  onUndo,
-  onRedo,
-  onCut,
-  onCopy,
-  onPaste,
-  onToggleAnimationSidebar,
   onToggleTemplateSidebar,
 }: TemplateToolbarProps) {
   // 템플릿 핸들러들
