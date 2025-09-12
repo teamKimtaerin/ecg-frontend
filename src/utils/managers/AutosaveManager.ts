@@ -40,7 +40,7 @@ export class AutosaveManager {
   private statusChangeCallbacks: ((status: SaveStatus) => void)[] = []
 
   private constructor() {
-    log('AutosaveManager.ts', 'AutosaveManager initialized')
+    // log('AutosaveManager.ts', 'AutosaveManager initialized')
     this.setupBeforeUnloadHandler()
   }
 
@@ -66,17 +66,17 @@ export class AutosaveManager {
     }
 
     if (oldType !== type) {
-      log('AutosaveManager.ts', `Project type changed: ${oldType} -> ${type}`)
+      // log('AutosaveManager.ts', `Project type changed: ${oldType} -> ${type}`)
     }
 
     this.projectId = projectId
     this.projectType = type
 
     // 파일 경로 로깅
-    log(
-      'AutosaveManager.ts',
-      `File path changed: ${oldProjectId || ''} -> ${projectId}`
-    )
+    // log(
+    //   'AutosaveManager.ts',
+    //   `File path changed: ${oldProjectId || ''} -> ${projectId}`
+    // )
 
     // 자동 저장 타이머 재시작
     this.restartAutosaveTimer()
@@ -89,10 +89,10 @@ export class AutosaveManager {
     this.config.enabled = enabled
 
     if (enabled) {
-      log('AutosaveManager.ts', 'Autosave enabled')
+      // log('AutosaveManager.ts', 'Autosave enabled')
       this.restartAutosaveTimer()
     } else {
-      log('AutosaveManager.ts', 'Autosave disabled')
+      // log('AutosaveManager.ts', 'Autosave disabled')
       this.stopAutosaveTimer()
     }
   }
@@ -102,7 +102,7 @@ export class AutosaveManager {
    */
   setInterval(seconds: number): void {
     this.config.interval = seconds
-    log('AutosaveManager.ts', `Autosave interval changed to ${seconds} seconds`)
+    // log('AutosaveManager.ts', `Autosave interval changed to ${seconds} seconds`)
 
     if (this.config.enabled) {
       this.restartAutosaveTimer()
@@ -140,7 +140,7 @@ export class AutosaveManager {
    */
   incrementChangeCounter(count: number = 1): void {
     this.changeCounter += count
-    log('AutosaveManager.ts', `Change counter: ${this.changeCounter}`)
+    // log('AutosaveManager.ts', `Change counter: ${this.changeCounter}`)
   }
 
   /**
@@ -266,13 +266,13 @@ export class AutosaveManager {
 
     // 로컬 저장 타이머
     this.saveTimer = setInterval(() => {
-      log('AutosaveManager.ts', 'Local autosave timer triggered')
+      // log('AutosaveManager.ts', 'Local autosave timer triggered')
       this.incrementChangeCounter()
     }, this.config.interval * 1000)
 
     // 서버 저장 타이머 (나중에 활성화)
     this.serverSaveTimer = setInterval(() => {
-      log('AutosaveManager.ts', 'Server autosave timer triggered')
+      // log('AutosaveManager.ts', 'Server autosave timer triggered')
       // TODO: 서버 저장 트리거
     }, this.config.serverInterval * 1000)
   }
@@ -362,6 +362,6 @@ export class AutosaveManager {
     this.stopAutosaveTimer()
     this.saveQueue = []
     this.statusChangeCallbacks = []
-    log('AutosaveManager.ts', 'AutosaveManager disposed')
+    // log('AutosaveManager.ts', 'AutosaveManager disposed')
   }
 }

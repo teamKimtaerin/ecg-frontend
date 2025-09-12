@@ -31,7 +31,7 @@ class LocalProjectStorage implements ProjectStorage {
       // Save to localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(projects))
 
-      console.log(`Project "${project.name}" saved successfully`)
+      // console.log(`Project "${project.name}" saved successfully`)
     } catch (error) {
       console.error('Failed to save project:', error)
       throw new Error('프로젝트 저장에 실패했습니다.')

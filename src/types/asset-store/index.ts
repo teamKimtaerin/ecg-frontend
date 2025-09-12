@@ -39,7 +39,7 @@ export interface AssetItem {
   category: string
   description: string
   thumbnail: string
-  configFile?: string
+  manifestFile?: string
   authorId: string
   authorName: string
   isPro: boolean

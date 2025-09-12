@@ -1,16 +1,15 @@
 'use client'
 
 import { AssetCard } from '@/app/(route)/asset-store/components/AssetCard'
-import { Modal } from '@/app/(route)/asset-store/components/AssetModal'
+import { AssetModal } from '@/app/(route)/asset-store/components/AssetModal'
 import { AssetSidebar } from '@/app/(route)/asset-store/components/AssetSidebar'
-import { GSAPTextEditor } from '@/app/(route)/asset-store/components/GSAPTextEditor'
 import Header from '@/components/NewLandingPage/Header'
-import { clsx } from 'clsx'
 import { TRANSITIONS } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
-import { useState, useEffect } from 'react'
-import { LuSearch } from 'react-icons/lu'
+import { clsx } from 'clsx'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState, useMemo } from 'react'
+import { LuSearch } from 'react-icons/lu'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
@@ -22,15 +21,30 @@ export default function AssetPage() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [showFavorites, setShowFavorites] = useState(false)
 
-  // 카테고리 필터 버튼 목록
-  const categoryFilters = [
-    { id: 'All', label: 'All', count: 8 },
-    { id: 'Smooth', label: 'Smooth', count: 3 },
-    { id: 'Dynamic', label: 'Dynamic', count: 3 },
-    { id: 'Unique', label: 'Unique', count: 2 },
-  ]
-
   const [assets, setAssets] = useState<AssetItem[]>([])
+
+  // 카테고리 필터 버튼 목록 - 동적으로 계산
+  const categoryFilters = useMemo(
+    () => [
+      { id: 'All', label: 'All', count: assets.length },
+      {
+        id: 'Smooth',
+        label: 'Smooth',
+        count: assets.filter((asset) => asset.category === 'Smooth').length,
+      },
+      {
+        id: 'Dynamic',
+        label: 'Dynamic',
+        count: assets.filter((asset) => asset.category === 'Dynamic').length,
+      },
+      {
+        id: 'Unique',
+        label: 'Unique',
+        count: assets.filter((asset) => asset.category === 'Unique').length,
+      },
+    ],
+    [assets]
+  )
 
   useEffect(() => {
     const loadAssets = async () => {
@@ -49,19 +63,8 @@ export default function AssetPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const handleCardClick = (asset: AssetItem) => {
-    if (
-      asset.id === '1' ||
-      asset.id === '2' ||
-      asset.id === '3' ||
-      asset.id === '4' ||
-      asset.id === '5' ||
-      asset.id === '6' ||
-      asset.id === '7' ||
-      asset.id === '8'
-    ) {
-      setSelectedAsset(asset)
-      setIsModalOpen(true)
-    }
+    setSelectedAsset(asset)
+    setIsModalOpen(true)
   }
 
   const handleCategoryChange = (category: string) => {
@@ -253,17 +256,12 @@ export default function AssetPage() {
         </main>
       </div>
 
-      <Modal
+      <AssetModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={selectedAsset?.title || ''}
-        variant="large"
-      >
-        <GSAPTextEditor
-          onAddToCart={handleAddToCart}
-          configFile={selectedAsset?.configFile}
-        />
-      </Modal>
+        asset={selectedAsset}
+        onAddToCart={handleAddToCart}
+      />
     </div>
   )
 }

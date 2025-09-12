@@ -18,8 +18,6 @@ export function useWordDragAndDrop(clipId: string) {
     startWordDrag,
     endWordDrag,
     setDropTarget,
-    clearWordFocus,
-    setFocusedWord,
   } = useEditorStore()
 
   const draggedWordsRef = useRef<Set<string>>(new Set())

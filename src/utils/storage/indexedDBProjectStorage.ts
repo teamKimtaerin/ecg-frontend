@@ -96,9 +96,9 @@ class IndexedDBProjectStorage implements ProjectStorage {
       const request = store.put(updatedProject)
 
       request.onsuccess = () => {
-        console.log(
-          `[${getTimestamp()}] indexedDBProjectStorage.ts Project "${project.name}" saved successfully`
-        )
+        // console.log(
+        //   `[${getTimestamp()}] indexedDBProjectStorage.ts Project "${project.name}" saved successfully`
+        // )
         resolve()
       }
 

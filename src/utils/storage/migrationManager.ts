@@ -145,7 +145,7 @@ class MigrationManager {
    */
   cleanupBackup(): void {
     localStorage.removeItem(BACKUP_KEY)
-    console.log(`[${getTimestamp()}] migrationManager.ts Backup cleaned up`)
+    // console.log(`[${getTimestamp()}] migrationManager.ts Backup cleaned up`)
   }
 
   // Private methods
@@ -279,7 +279,7 @@ class MigrationManager {
    */
   forceMigration(): void {
     localStorage.removeItem(MIGRATION_KEY)
-    console.log(`[${getTimestamp()}] migrationManager.ts Migration flag reset`)
+    // console.log(`[${getTimestamp()}] migrationManager.ts Migration flag reset`)
   }
 
   /**

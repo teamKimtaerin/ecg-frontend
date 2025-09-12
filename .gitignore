@@ -79,3 +79,5 @@ next-env.d.ts
 .api-backup
 
 package-lock.json
+
+**/tmp

@@ -75,7 +75,7 @@ declare global {
 // GSAP 텍스트 에디터 Props 타입
 interface GSAPTextEditorProps extends BaseComponentProps {
   onAddToCart?: () => void
-  configFile?: string
+  manifestFile?: string
 }
 
 // 회전 방향 타입
@@ -92,7 +92,7 @@ type ResizeHandle = 'top-right' | 'bottom-left' | null
 // GSAP 텍스트 에디터 컴포넌트
 export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   onAddToCart,
-  configFile,
+  manifestFile,
   className,
 }) => {
   const [text, setText] = useState('안녕하세요!')
@@ -119,10 +119,10 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
   // config 파일 로드
   useEffect(() => {
     const loadConfig = async () => {
-      if (!configFile) return
+      if (!manifestFile) return
 
       try {
-        const response = await fetch(configFile)
+        const response = await fetch(manifestFile)
         const config: AssetMetadata = await response.json()
         setAssetConfig(config)
 
@@ -148,7 +148,7 @@ export const GSAPTextEditor: React.FC<GSAPTextEditorProps> = ({
     }
 
     loadConfig()
-  }, [configFile])
+  }, [manifestFile])
 
   // 검증 로직
   useEffect(() => {

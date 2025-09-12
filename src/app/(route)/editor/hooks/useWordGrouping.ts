@@ -86,12 +86,6 @@ export function useWordGrouping({
 
       // Create selection box visual feedback (optional)
       if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        const currentX = e.clientX - rect.left
-        const currentY = e.clientY - rect.top
-        const startX = dragStartPoint.x - rect.left
-        const startY = dragStartPoint.y - rect.top
-
         // You can dispatch an event or update state to show a selection box
         // This is optional visual feedback
       }

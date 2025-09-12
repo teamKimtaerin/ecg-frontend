@@ -274,8 +274,13 @@ class VideoSegmentManager {
    */
   private parseTimeToSeconds(timeStr: string): number {
     if (timeStr.includes(':')) {
-      const [minutes, seconds] = timeStr.split(':').map(Number)
-      return minutes * 60 + seconds
+      const parts = timeStr.split(':').map(Number)
+      if (parts.length === 3) {
+        const [hours, minutes, seconds] = parts
+        return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0)
+      }
+      const [minutes, seconds] = parts
+      return (minutes || 0) * 60 + (seconds || 0)
     }
     return parseFloat(timeStr)
   }

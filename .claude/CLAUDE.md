@@ -21,25 +21,29 @@ ECG (Easy Caption Generator) Frontend - A powerful subtitle editing tool built w
 
 ### Essential Commands
 
+패키지 매니저로는 yarn을 사용할 것
+
 ```bash
-npm run dev         # Start development server (http://localhost:3000)
-npm run build       # Build for production
-npm run start       # Start production server
-npm run lint        # Run ESLint checks
-npm run lint:fix    # Fix linting issues automatically
-npm run format      # Format code with Prettier
-npm run format:check # Check code formatting
-npm run type-check  # TypeScript type checking
+yarn dev         # Start development server (http://localhost:3000)
+yarn build       # Build for production
+yarn build:static # Build for static S3 hosting
+yarn start       # Start production server
+yarn lint        # Run ESLint checks
+yarn lint:fix    # Fix linting issues automatically
+yarn format      # Format code with Prettier
+yarn format:check # Check code formatting
+yarn type-check  # TypeScript type checking
+yarn gen:scenario # Generate scenario from real.json
 ```
 
 ### Testing Commands
 
 ```bash
-npm run test        # Run Jest unit tests
-npm run test:watch  # Run tests in watch mode
-npm run test:coverage # Generate test coverage report
-npm run test:e2e    # Run Playwright E2E tests
-npm run test:e2e:ui # Run Playwright with UI mode
+yarn test        # Run Jest unit tests
+yarn test:watch  # Run tests in watch mode
+yarn test:coverage # Generate test coverage report
+yarn test:e2e    # Run Playwright E2E tests
+yarn test:e2e:ui # Run Playwright with UI mode
 ```
 
 ## 🏗️ Architecture
@@ -117,20 +121,24 @@ The editor features a sophisticated plugin-based animation system for dynamic su
 
 ```
 public/plugin/
-├── elastic/           # Elastic bounce animations
-├── fadein/           # Fade-in effects
-├── glitch/           # Glitch/distortion effects
-├── magnetic/         # Magnetic attraction effects
-├── rotation/         # Rotation animations
-├── scalepop/         # Scale/pop effects
-├── slideup/          # Slide-up transitions
-└── typewriter/       # Typewriter effects
+├── elastic@1.0.0/           # Elastic bounce animations
+├── fadein@1.0.0/           # Fade-in effects
+├── glitch@1.0.0/           # Glitch/distortion effects
+├── magnetic@1.0.0/         # Magnetic attraction effects
+├── rotation@1.0.0/         # Rotation animations
+├── scalepop@1.0.0/         # Scale/pop effects
+├── slideup@1.0.0/          # Slide-up transitions
+├── typewriter@1.0.0/       # Typewriter effects
+├── flames@1.0.0/           # Fire/flame effects
+├── glow@1.0.0/             # Glow effects
+└── pulse@1.0.0/            # Pulse animations
 ```
 
 Each plugin contains:
 
-- `config.json` - Plugin metadata, parameters schema, and UI configuration
-- `*.mjs` - Plugin implementation with animation logic (ES modules)
+- `manifest.json` - Plugin metadata, parameters schema, and UI configuration
+- `index.mjs` - Plugin implementation with animation logic (ES modules)
+- `assets/` - Plugin assets like thumbnails and resources
 
 #### Plugin Structure
 
@@ -303,23 +311,36 @@ When working with the animation plugin system:
 4. **GSAP Integration**: Leverage existing GSAP dependency for animations
 5. **Performance**: Ensure proper cleanup and memory management
 
-#### Plugin Configuration Schema
+#### Plugin Configuration Schema (manifest.json)
 
 ```json
 {
-  "name": "Plugin Name",
+  "name": "elastic",
   "version": "1.0.0",
-  "description": "Plugin description",
-  "pluginFile": "/plugin/folder/file.mjs",
-  "className": "PluginClassName",
-  "dependencies": ["gsap"],
+  "pluginApi": "2.1",
+  "minRenderer": "1.3.0",
+  "entry": "index.mjs",
+  "targets": ["text"],
+  "capabilities": ["style-vars"],
+  "peer": { "gsap": "^3.12.0" },
+  "preload": [],
   "schema": {
-    "parameterName": {
-      "type": "number|string|boolean|select",
-      "label": "Display Name",
-      "default": "defaultValue",
-      "min": 0,
-      "max": 100,
+    "bounceStrength": {
+      "type": "number",
+      "label": "바운스 강도",
+      "description": "탄성 효과의 강도를 조절합니다",
+      "default": 0.7,
+      "min": 0.1,
+      "max": 2,
+      "step": 0.1
+    },
+    "animationDuration": {
+      "type": "number",
+      "label": "애니메이션 속도",
+      "description": "전체 애니메이션 지속 시간 (초)",
+      "default": 1.5,
+      "min": 0.5,
+      "max": 4,
       "step": 0.1
     }
   }
@@ -364,9 +385,16 @@ When working with the animation plugin system:
 
 ### TailwindCSS v4
 
-- PostCSS-based configuration
+- PostCSS-based configuration (postcss.config.mjs)
 - No traditional tailwind.config.js
 - Theme variables in globals.css
+- Uses @tailwindcss/postcss plugin
+
+### Next.js Configuration
+
+- **Static Export**: Configured for S3 hosting with `output: 'export'`
+- **Image Optimization**: Disabled for static hosting compatibility
+- **Remote Patterns**: CloudFront domains configured for images
 
 ## 📝 Git Workflow & PR Automation
 
@@ -464,9 +492,12 @@ docker build --target prod -t ecg-frontend:prod .
 5. The editor page (`/editor`) is the main feature - handle with care
 6. Scripts in `.claude/scripts/` are executable PR automation tools
 7. Always run type-check and lint commands after code changes
-8. **Plugin System**: Animation plugins use ES modules (.mjs) and must follow the established schema
+8. **Plugin System**: Animation plugins use ES modules (.mjs) with manifest.json schema
 9. **Audio Analysis**: `public/real.json` contains audio metadata for dynamic animation triggers
 10. **Performance**: Animation cleanup is critical - ensure proper disposal of GSAP timelines and DOM listeners
+11. **MotionText Integration**: Uses `motiontext-renderer` package for advanced subtitle animations
+12. **Video Segment Management**: Handles deleted clip segments and skipping during playback
+13. **Static Export**: Project configured for S3 static hosting deployment
 
 # important-instruction-reminders
 

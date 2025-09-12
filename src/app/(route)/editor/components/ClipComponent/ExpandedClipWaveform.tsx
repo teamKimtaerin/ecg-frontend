@@ -10,6 +10,39 @@ interface ExpandedClipWaveformProps {
   focusedWordId: string | null
 }
 
+// Gaussian smoothing filter for smooth waveform
+function gaussianSmooth(data: number[], radius: number = 3): number[] {
+  if (data.length === 0) return data
+
+  const smoothed = [...data]
+  const weights: number[] = []
+
+  // Generate Gaussian weights
+  for (let i = -radius; i <= radius; i++) {
+    weights.push(Math.exp(-(i * i) / (2 * radius * radius)))
+  }
+
+  // Normalize weights
+  const sum = weights.reduce((a, b) => a + b, 0)
+  weights.forEach((w, i) => (weights[i] = w / sum))
+
+  // Apply smoothing
+  for (let i = radius; i < data.length - radius; i++) {
+    let value = 0
+    for (let j = -radius; j <= radius; j++) {
+      value += data[i + j] * weights[j + radius]
+    }
+    smoothed[i] = value
+  }
+
+  return smoothed
+}
+
+// Cubic interpolation for smooth transitions
+function cubicInterpolate(t: number): number {
+  return t * t * (3 - 2 * t)
+}
+
 // Load and process audio data from real.json
 async function loadClipAudioData(words: Word[]) {
   try {
@@ -18,34 +51,73 @@ async function loadClipAudioData(words: Word[]) {
 
     // Extract volume data for all words in this clip
     const volumeData: number[] = []
-    const samplesPerWord = 20 // How many samples per word for smooth visualization
+    const sampleRate = 100 // Simulated sample rate (samples per second)
 
-    for (const word of words) {
-      // Find word data from segments
-      let wordVolume = -20 // Default volume
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i]
+      const duration = word.end - word.start
+      const samplesForWord = Math.max(10, Math.ceil(duration * sampleRate))
+
+      // Find current word volume data from segments
+      let currentVolume = -20 // Default volume
+      let currentPitch = 440 // Default pitch for variation
 
       for (const segment of data.segments) {
         const wordData = segment.words?.find(
           (w: { word: string; start: number }) =>
-            w.word === word.text && Math.abs(w.start - word.start) < 0.1 // Match by text and approximate timing
+            w.word === word.text && Math.abs(w.start - word.start) < 0.1
         )
         if (wordData && wordData.volume_db !== undefined) {
-          wordVolume = wordData.volume_db
+          currentVolume = wordData.volume_db
+          currentPitch = wordData.pitch_hz || 440
           break
         }
       }
 
-      // Generate samples for this word with some variation
-      for (let i = 0; i < samplesPerWord; i++) {
-        const variation = (Math.random() - 0.5) * 2 // Small random variation
-        volumeData.push(wordVolume + variation)
+      // Find next word volume for smooth transitions
+      let nextVolume = currentVolume
+      if (i < words.length - 1) {
+        const nextWord = words[i + 1]
+        for (const segment of data.segments) {
+          const nextWordData = segment.words?.find(
+            (w: { word: string; start: number }) =>
+              w.word === nextWord.text &&
+              Math.abs(w.start - nextWord.start) < 0.1
+          )
+          if (nextWordData && nextWordData.volume_db !== undefined) {
+            nextVolume = nextWordData.volume_db
+            break
+          }
+        }
+      }
+
+      // Generate samples with smooth interpolation and natural variation
+      for (let j = 0; j < samplesForWord; j++) {
+        const progress = j / samplesForWord
+
+        // Use cubic interpolation for smooth transition to next word
+        const smoothProgress = cubicInterpolate(progress)
+        const interpolatedVolume =
+          currentVolume + (nextVolume - currentVolume) * smoothProgress
+
+        // Add natural variation based on frequency and time
+        const timeOffset = (word.start + duration * progress) * 2 * Math.PI
+        const naturalVariation =
+          Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
+          Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
+          Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
+
+        volumeData.push(interpolatedVolume + naturalVariation)
       }
     }
 
+    // Apply Gaussian smoothing for even smoother transitions
+    const smoothedData = gaussianSmooth(volumeData, 4)
+
     // Normalize volume data to 0-1 range for waveform peaks
-    const minDb = -40
+    const minDb = -45
     const maxDb = 0
-    const peaks = volumeData.map((db) => {
+    const peaks = smoothedData.map((db) => {
       const normalized = (db - minDb) / (maxDb - minDb)
       return Math.max(0, Math.min(1, normalized))
     })
@@ -53,9 +125,15 @@ async function loadClipAudioData(words: Word[]) {
     return peaks
   } catch (error) {
     console.error('Failed to load audio data:', error)
-    // Generate fallback waveform data
-    const totalSamples = words.length * 20
-    return Array.from({ length: totalSamples }, () => Math.random() * 0.8 + 0.2)
+    // Generate fallback waveform data with smooth transitions
+    const totalSamples = words.length * 50
+    const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
+      const t = i / totalSamples
+      return (
+        0.3 + 0.4 * Math.sin(t * Math.PI * 8) + 0.2 * Math.sin(t * Math.PI * 20)
+      )
+    })
+    return gaussianSmooth(fallbackData)
   }
 }
 

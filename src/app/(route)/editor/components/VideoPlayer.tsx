@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useEditorStore } from '../store'
+import { videoSegmentManager } from '@/utils/video/segmentManager'
 
 interface VideoPlayerProps {
   className?: string
@@ -18,16 +19,16 @@ export default function VideoPlayer({
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [showControls, setShowControls] = useState(true)
   const [isToggling, setIsToggling] = useState(false)
 
   const {
     videoUrl,
-    videoName,
     isSegmentPlayback,
     segmentStart,
     segmentEnd,
     stopSegmentPlayback,
+    clips,
+    deletedClipIds,
   } = useEditorStore()
 
   // Handle time update
@@ -68,8 +69,13 @@ export default function VideoPlayer({
       useEditorStore.getState().setMediaInfo({
         videoDuration,
       })
+
+      // Initialize segment manager once we have duration and clips
+      if (clips.length > 0 && Number.isFinite(videoDuration)) {
+        videoSegmentManager.initialize(clips, videoDuration)
+      }
     }
-  }, [onLoadedMetadata])
+  }, [onLoadedMetadata, clips])
 
   // Play/Pause toggle with debounce to prevent rapid clicks
   const togglePlayPause = useCallback(async () => {
@@ -118,13 +124,6 @@ export default function VideoPlayer({
     },
     [duration]
   )
-
-  // Format time for display
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = Math.floor(seconds % 60)
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
-  }
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -192,6 +191,23 @@ export default function VideoPlayer({
     }
   }, [seekTo])
 
+  // Update segment manager when clips or duration change
+  useEffect(() => {
+    if (clips.length > 0 && duration > 0) {
+      videoSegmentManager.initialize(clips, duration)
+    }
+  }, [clips, duration])
+
+  // Handle deleted clips
+  useEffect(() => {
+    if (deletedClipIds) {
+      videoSegmentManager.clearDeletions()
+      deletedClipIds.forEach((clipId) => {
+        videoSegmentManager.deleteClip(clipId)
+      })
+    }
+  }, [deletedClipIds])
+
   if (!videoUrl) {
     return (
       <div
@@ -228,77 +244,7 @@ export default function VideoPlayer({
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onMouseEnter={() => setShowControls(true)}
-        onMouseLeave={() => setShowControls(false)}
       />
-
-      {/* Custom Controls Overlay */}
-      <div
-        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
-          showControls ? 'opacity-100' : 'opacity-0'
-        }`}
-        onMouseEnter={() => setShowControls(true)}
-      >
-        {/* Progress Bar */}
-        <div className="mb-3">
-          <div
-            className="relative h-1 bg-gray-600 rounded-full cursor-pointer"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              const percent = (e.clientX - rect.left) / rect.width
-              seekTo(percent * duration)
-            }}
-          >
-            <div
-              className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
-              style={{ width: `${(currentTime / duration) * 100}%` }}
-            />
-            <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-blue-500 rounded-full"
-              style={{ left: `${(currentTime / duration) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Play/Pause Button */}
-            <button
-              onClick={togglePlayPause}
-              className="text-white hover:text-blue-400 transition-colors"
-            >
-              {isPlaying ? (
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
-                </svg>
-              ) : (
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              )}
-            </button>
-
-            {/* Time Display */}
-            <span className="text-white text-sm">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </span>
-          </div>
-
-          {/* Video Title */}
-          <div className="text-white text-sm truncate max-w-[200px]">
-            {videoName || 'Video'}
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

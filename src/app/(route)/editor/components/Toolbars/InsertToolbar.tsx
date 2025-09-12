@@ -12,12 +12,7 @@ interface InsertToolbarProps {
   onPaste?: () => void
 }
 
-const InsertToolbar: React.FC<InsertToolbarProps> = ({
-  onNewClick,
-  onCut,
-  onCopy,
-  onPaste,
-}) => {
+const InsertToolbar: React.FC<InsertToolbarProps> = () => {
   const { isAssetSidebarOpen, setIsAssetSidebarOpen } = useEditorStore()
 
   const handleToggleAssetSidebar = () => {
