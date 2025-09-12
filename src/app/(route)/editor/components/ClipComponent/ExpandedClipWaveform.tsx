@@ -5,7 +5,6 @@ import { IoPlay, IoPause, IoArrowUndo, IoArrowRedo } from 'react-icons/io5'
 import { Word } from './types'
 
 interface ExpandedClipWaveformProps {
-  clipId: string
   words: Word[]
   focusedWordId: string | null
 }
@@ -38,77 +37,57 @@ function gaussianSmooth(data: number[], radius: number = 3): number[] {
   return smoothed
 }
 
-// Cubic interpolation for smooth transitions
-function cubicInterpolate(t: number): number {
-  return t * t * (3 - 2 * t)
-}
-
-// Load and process audio data from real.json
-async function loadClipAudioData(words: Word[]) {
+// Load and process audio data from real.json for a specific time range
+async function loadRangeAudioData(
+  startTime: number,
+  endTime: number,
+  displayWords: Word[]
+) {
   try {
     const response = await fetch('/real.json')
     const data = await response.json()
 
-    // Extract volume data for all words in this clip
+    // Extract volume data for the time range
     const volumeData: number[] = []
     const sampleRate = 100 // Simulated sample rate (samples per second)
+    const duration = endTime - startTime
+    const totalSamples = Math.max(100, Math.ceil(duration * sampleRate))
 
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i]
-      const duration = word.end - word.start
-      const samplesForWord = Math.max(10, Math.ceil(duration * sampleRate))
+    for (let i = 0; i < totalSamples; i++) {
+      const currentTime = startTime + (i / totalSamples) * duration
 
-      // Find current word volume data from segments
+      // Find the word that contains this time point
       let currentVolume = -20 // Default volume
       let currentPitch = 440 // Default pitch for variation
 
-      for (const segment of data.segments) {
-        const wordData = segment.words?.find(
-          (w: { word: string; start: number }) =>
-            w.word === word.text && Math.abs(w.start - word.start) < 0.1
-        )
-        if (wordData && wordData.volume_db !== undefined) {
-          currentVolume = wordData.volume_db
-          currentPitch = wordData.pitch_hz || 440
-          break
-        }
-      }
+      const containingWord = displayWords.find(
+        (word) => currentTime >= word.start && currentTime <= word.end
+      )
 
-      // Find next word volume for smooth transitions
-      let nextVolume = currentVolume
-      if (i < words.length - 1) {
-        const nextWord = words[i + 1]
+      if (containingWord) {
+        // Find volume data from segments
         for (const segment of data.segments) {
-          const nextWordData = segment.words?.find(
+          const wordData = segment.words?.find(
             (w: { word: string; start: number }) =>
-              w.word === nextWord.text &&
-              Math.abs(w.start - nextWord.start) < 0.1
+              w.word === containingWord.text &&
+              Math.abs(w.start - containingWord.start) < 0.1
           )
-          if (nextWordData && nextWordData.volume_db !== undefined) {
-            nextVolume = nextWordData.volume_db
+          if (wordData && wordData.volume_db !== undefined) {
+            currentVolume = wordData.volume_db
+            currentPitch = wordData.pitch_hz || 440
             break
           }
         }
       }
 
-      // Generate samples with smooth interpolation and natural variation
-      for (let j = 0; j < samplesForWord; j++) {
-        const progress = j / samplesForWord
+      // Add natural variation based on frequency and time
+      const timeOffset = currentTime * 2 * Math.PI
+      const naturalVariation =
+        Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
+        Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
+        Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
 
-        // Use cubic interpolation for smooth transition to next word
-        const smoothProgress = cubicInterpolate(progress)
-        const interpolatedVolume =
-          currentVolume + (nextVolume - currentVolume) * smoothProgress
-
-        // Add natural variation based on frequency and time
-        const timeOffset = (word.start + duration * progress) * 2 * Math.PI
-        const naturalVariation =
-          Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
-          Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
-          Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
-
-        volumeData.push(interpolatedVolume + naturalVariation)
-      }
+      volumeData.push(currentVolume + naturalVariation)
     }
 
     // Apply Gaussian smoothing for even smoother transitions
@@ -126,7 +105,7 @@ async function loadClipAudioData(words: Word[]) {
   } catch (error) {
     console.error('Failed to load audio data:', error)
     // Generate fallback waveform data with smooth transitions
-    const totalSamples = words.length * 50
+    const totalSamples = Math.max(100, Math.ceil((endTime - startTime) * 50))
     const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
       const t = i / totalSamples
       return (
@@ -138,7 +117,6 @@ async function loadClipAudioData(words: Word[]) {
 }
 
 export default function ExpandedClipWaveform({
-  clipId,
   words,
   focusedWordId,
 }: ExpandedClipWaveformProps) {
@@ -184,18 +162,75 @@ export default function ExpandedClipWaveform({
   // Local state for dragging - track for each word
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
   const [dragType, setDragType] = useState<string | null>(null)
-  const [dragStartPosition, setDragStartPosition] = useState<number>(0)
 
-  // Calculate clip duration
-  const clipDuration =
-    words.length > 0 ? words[words.length - 1].end - words[0].start : 0
+  // Calculate focused word range (3 words: previous + current + next)
+  const { displayWords, rangeStart, rangeEnd, rangeDuration } =
+    React.useMemo(() => {
+      if (!focusedWord) {
+        return {
+          displayWords: words,
+          rangeStart: words.length > 0 ? words[0].start : 0,
+          rangeEnd: words.length > 0 ? words[words.length - 1].end : 0,
+          rangeDuration:
+            words.length > 0 ? words[words.length - 1].end - words[0].start : 0,
+        }
+      }
 
-  // Load audio data
+      const focusedIndex = words.findIndex((w) => w.id === focusedWord.id)
+      if (focusedIndex === -1) {
+        return {
+          displayWords: words,
+          rangeStart: words.length > 0 ? words[0].start : 0,
+          rangeEnd: words.length > 0 ? words[words.length - 1].end : 0,
+          rangeDuration:
+            words.length > 0 ? words[words.length - 1].end - words[0].start : 0,
+        }
+      }
+
+      // Get previous, current, and next words (3 words total)
+      const prevWord = focusedIndex > 0 ? words[focusedIndex - 1] : null
+      const currentWord = words[focusedIndex]
+      const nextWord =
+        focusedIndex < words.length - 1 ? words[focusedIndex + 1] : null
+
+      // Calculate display range with padding for missing words
+      let start = currentWord.start
+      let end = currentWord.end
+      const paddingTime = 1.0 // 1 second padding
+
+      if (prevWord) {
+        start = prevWord.start
+      } else {
+        // Add padding before current word if no previous word
+        start = Math.max(0, currentWord.start - paddingTime)
+      }
+
+      if (nextWord) {
+        end = nextWord.end
+      } else {
+        // Add padding after current word if no next word
+        end = currentWord.end + paddingTime
+      }
+
+      // Build display words array
+      const displayWords = [prevWord, currentWord, nextWord].filter(
+        Boolean
+      ) as Word[]
+
+      return {
+        displayWords,
+        rangeStart: start,
+        rangeEnd: end,
+        rangeDuration: end - start,
+      }
+    }, [focusedWord, words])
+
+  // Load audio data for the focused range
   useEffect(() => {
-    loadClipAudioData(words).then((data) => {
+    loadRangeAudioData(rangeStart, rangeEnd, displayWords).then((data) => {
       setPeaks(data)
     })
-  }, [words])
+  }, [rangeStart, rangeEnd, displayWords])
 
   // Initialize WaveSurfer
   useEffect(() => {
@@ -216,7 +251,7 @@ export default function ExpandedClipWaveform({
     })
 
     // Load peaks data - WaveSurfer expects array of arrays for stereo
-    ws.load('', [peaks], clipDuration)
+    ws.load('', [peaks], rangeDuration)
 
     wavesurferRef.current = ws
 
@@ -224,7 +259,7 @@ export default function ExpandedClipWaveform({
     return () => {
       ws.destroy()
     }
-  }, [peaks, clipDuration])
+  }, [peaks, rangeDuration])
 
   // Handle play/pause with video player sync
   const togglePlayback = useCallback(() => {
@@ -250,15 +285,14 @@ export default function ExpandedClipWaveform({
     stopSegmentPlayback,
   ])
 
-  // Calculate bar positions (0-1 scale) relative to entire clip
+  // Calculate bar positions (0-1 scale) relative to focused range
   const getBarPosition = useCallback(
     (time: number) => {
-      if (words.length === 0) return 0
-      const clipStart = words[0].start
-      const position = (time - clipStart) / clipDuration
+      if (rangeDuration === 0) return 0
+      const position = (time - rangeStart) / rangeDuration
       return Math.max(0, Math.min(1, position))
     },
-    [words, clipDuration]
+    [rangeStart, rangeDuration]
   )
 
   // Handle drag start for word bars
@@ -269,14 +303,6 @@ export default function ExpandedClipWaveform({
       setDraggedWordId(wordId)
       setDragType(barType)
       setIsDragging(true)
-      
-      // Store initial drag position for move operations
-      if (waveformRef.current) {
-        const rect = waveformRef.current.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const position = Math.max(0, Math.min(1, x / rect.width))
-        setDragStartPosition(position)
-      }
     },
     []
   )
@@ -290,8 +316,7 @@ export default function ExpandedClipWaveform({
       const rect = waveformRef.current!.getBoundingClientRect()
       const x = e.clientX - rect.left
       const position = Math.max(0, Math.min(1, x / rect.width))
-      const clipStart = words[0].start
-      const time = clipStart + position * clipDuration
+      const time = rangeStart + position * rangeDuration
 
       const word = words.find((w) => w.id === draggedWordId)
       if (!word) return
@@ -350,14 +375,16 @@ export default function ExpandedClipWaveform({
           } else if (barType === 'move') {
             // Move the entire track to follow mouse position
             const duration = track.timing.end - track.timing.start
-            const clipStart = words[0].start
-            const newStart = clipStart + position * clipDuration - duration / 2
-            
-            // Constrain within clip bounds
-            const clipEnd = words[words.length - 1].end
-            const constrainedStart = Math.max(clipStart, Math.min(newStart, clipEnd - duration))
+            const newStart =
+              rangeStart + position * rangeDuration - duration / 2
+
+            // Constrain within range bounds
+            const constrainedStart = Math.max(
+              rangeStart,
+              Math.min(newStart, rangeEnd - duration)
+            )
             const constrainedEnd = constrainedStart + duration
-            
+
             updateAnimationTrackTiming(
               draggedWordId,
               assetId,
@@ -388,7 +415,9 @@ export default function ExpandedClipWaveform({
     draggedWordId,
     dragType,
     words,
-    clipDuration,
+    rangeStart,
+    rangeDuration,
+    rangeEnd,
     wordTimingAdjustments,
     wordAnimationIntensity,
     wordAnimationTracks,
@@ -459,8 +488,8 @@ export default function ExpandedClipWaveform({
             )
           })()}
 
-        {/* Word boundaries - vertical lines for each word */}
-        {words.map((word) => {
+        {/* Word boundaries - vertical lines for each word in focused range */}
+        {displayWords.map((word) => {
           const startPos = getBarPosition(word.start)
           const isSelected = word.id === focusedWord?.id
 
@@ -631,7 +660,6 @@ export default function ExpandedClipWaveform({
                             {track.assetName}
                           </div>
                         </div>
-
                       </React.Fragment>
                     )
                   })

@@ -128,7 +128,6 @@ export default function ClipComponent({
           {/* Expanded Waveform Editor - positioned beside sidebar */}
           {isExpanded && (
             <ExpandedClipWaveform
-              clipId={clip.id}
               words={clip.words}
               focusedWordId={focusedWordId}
             />
