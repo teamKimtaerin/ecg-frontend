@@ -17,9 +17,7 @@ export default function AssetPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedCategory, setSelectedCategory] = useState('Smooth')
   const [activeFilter, setActiveFilter] = useState('All')
-  const [showFavorites, setShowFavorites] = useState(false)
   const [sortOrder, setSortOrder] = useState('favorites') // 기본값: 즐겨찾기
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [contentType, setContentType] = useState<'effects' | 'templates'>(
@@ -264,9 +262,7 @@ export default function AssetPage() {
         }
       }
 
-      const matchesFavorites = !showFavorites || item.isFavorite
-
-      return matchesSearch && matchesCategory && matchesFavorites
+      return matchesSearch && matchesCategory
     })
 
     // 정렬
@@ -292,14 +288,7 @@ export default function AssetPage() {
     })
 
     return sorted
-  }, [
-    currentData,
-    searchTerm,
-    activeFilter,
-    showFavorites,
-    sortOrder,
-    contentType,
-  ])
+  }, [currentData, searchTerm, activeFilter, sortOrder, contentType])
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
