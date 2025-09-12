@@ -117,6 +117,7 @@ async function loadRangeAudioData(
 }
 
 export default function ExpandedClipWaveform({
+  clipId,
   words,
   focusedWordId,
 }: ExpandedClipWaveformProps) {
