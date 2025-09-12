@@ -140,8 +140,8 @@ const TabItem: React.FC<TabItemProps> = ({
         classes.push('bg-gray-800', 'text-white')
       } else {
         classes.push(
-          'text-gray-400', 
-          'hover:text-white', 
+          'text-gray-400',
+          'hover:text-white',
           'hover:bg-gray-800',
           'hover:scale-105',
           'hover:shadow-md'
