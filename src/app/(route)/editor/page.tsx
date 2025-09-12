@@ -1347,22 +1347,22 @@ export default function EditorPage() {
   const handleSaveAs = useCallback(() => {
     // TODO: 새로운 프로젝트 ID 생성 및 저장 로직 구현
     const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-
+    
     // 현재 프로젝트 데이터를 새 ID로 저장
     const autosaveManager = AutosaveManager.getInstance()
-    const oldProjectId = autosaveManager.getProjectId()
-
+    const oldProjectId = autosaveManager.getCurrentProjectId()
+    
     // 새 프로젝트로 설정
     autosaveManager.setProject(newProjectId, 'browser')
-
+    
     saveProject()
       .then(() => {
         editorHistory.markAsSaved()
         markAsSaved()
         showToast(`새 프로젝트로 저장되었습니다. (${newProjectId})`, 'success')
-
+        
         // 프로젝트 정보 업데이트
-        projectInfoManager.notifyFileOpen('browser', 'newProject', {
+        projectInfoManager.notifyFileOpen('browser', 'saveAs', {
           id: newProjectId,
           name: `Copy of Project ${new Date().toLocaleDateString()}`,
         })

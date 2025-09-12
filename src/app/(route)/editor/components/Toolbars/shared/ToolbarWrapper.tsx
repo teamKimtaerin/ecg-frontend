@@ -1,11 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import {
-  AiOutlineExport,
-  AiOutlineFolderAdd,
-  AiOutlineSave,
-} from 'react-icons/ai'
+import { AiOutlineExport, AiOutlineFolderAdd, AiOutlineSave } from 'react-icons/ai'
 import { type ToolbarVariant } from '../../../constants/colors'
 import ExportModal from '../../Export/ExportModal'
 import { ExportFormat } from '../../Export/ExportTypes'
@@ -82,7 +78,7 @@ export default function ToolbarWrapper({
 
           {/* 내보내기 - 원래 스타일 유지 */}
           <button
-            className="px-5 py-3 bg-gray-600 text-white rounded hover:bg-black hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+            className="px-5 py-3 bg-gray-600 text-white rounded hover:bg-black transition-all duration-100 flex items-center gap-1.5 text-xs font-bold"
             onClick={handleExportClick}
           >
             <AiOutlineExport className="w-4 h-4" />
