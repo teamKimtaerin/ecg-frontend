@@ -356,6 +356,13 @@ export class AutosaveManager {
   }
 
   /**
+   * 현재 프로젝트 ID 가져오기
+   */
+  getProjectId(): string | null {
+    return this.projectId
+  }
+
+  /**
    * 정리
    */
   dispose(): void {
