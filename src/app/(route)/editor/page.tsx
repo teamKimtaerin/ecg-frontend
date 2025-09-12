@@ -1350,7 +1350,7 @@ export default function EditorPage() {
     
     // 현재 프로젝트 데이터를 새 ID로 저장
     const autosaveManager = AutosaveManager.getInstance()
-    const oldProjectId = autosaveManager.getCurrentProjectId()
+    const oldProjectId = autosaveManager.getProjectId()
     
     // 새 프로젝트로 설정
     autosaveManager.setProject(newProjectId, 'browser')
@@ -1362,7 +1362,7 @@ export default function EditorPage() {
         showToast(`새 프로젝트로 저장되었습니다. (${newProjectId})`, 'success')
         
         // 프로젝트 정보 업데이트
-        projectInfoManager.notifyFileOpen('browser', 'saveAs', {
+        projectInfoManager.notifyFileOpen('browser', 'newProject', {
           id: newProjectId,
           name: `Copy of Project ${new Date().toLocaleDateString()}`,
         })
