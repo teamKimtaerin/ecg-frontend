@@ -68,7 +68,6 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
             type: 'image' as const,
             value: asset.thumbnail,
           },
-          description: asset.description,
         }))
 
         setAssets(transformedAssets)
@@ -177,7 +176,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     return (
       <div className="px-4 pb-4">
         <div className="text-center py-8">
-          <p className="text-slate-400 text-sm">에셋을 불러오는 중...</p>
+          <p className="text-gray-700 text-sm">에셋을 불러오는 중...</p>
         </div>
       </div>
     )
@@ -227,7 +226,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
 
       {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
-          <p className="text-slate-400 text-sm">
+          <p className="text-gray-700 text-sm">
             {assetSearchQuery
               ? '검색 결과가 없습니다.'
               : '사용 가능한 에셋이 없습니다.'}

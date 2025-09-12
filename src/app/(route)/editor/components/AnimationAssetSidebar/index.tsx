@@ -77,7 +77,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
   return (
     <div
-      className={`relative flex-shrink-0 bg-gray-900 border-l border-slate-600/40 flex flex-col h-full ${className || ''}`}
+      className={`relative flex-shrink-0 bg-white border-l border-gray-200 flex flex-col h-full ${className || ''}`}
       style={{ width: assetSidebarWidth }}
     >
       {/* Header */}
@@ -85,10 +85,10 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
       {/* Word Selection Indicator */}
       {selectedWordInfo && (
-        <div className="px-4 py-2 bg-blue-500/10 border-b border-blue-500/20">
-          <div className="text-xs text-blue-300">
+        <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
+          <div className="text-xs text-blue-600">
             선택된 단어:{' '}
-            <span className="font-medium text-blue-100">
+            <span className="font-medium text-blue-800">
               &ldquo;{selectedWordInfo.word.text}&rdquo;
             </span>
           </div>

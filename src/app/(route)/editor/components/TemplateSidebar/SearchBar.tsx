@@ -1,14 +1,23 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { IoSearch } from 'react-icons/io5'
-import { useEditorStore } from '../../store'
 
-const SearchBar: React.FC = () => {
-  const { assetSearchQuery, setAssetSearchQuery } = useEditorStore()
+interface SearchBarProps {
+  placeholder?: string
+  onSearchChange?: (query: string) => void
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({
+  placeholder = 'Search templates...',
+  onSearchChange,
+}) => {
+  const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAssetSearchQuery(e.target.value)
+    const value = e.target.value
+    setSearchQuery(value)
+    onSearchChange?.(value)
   }
 
   return (
@@ -19,9 +28,9 @@ const SearchBar: React.FC = () => {
         </div>
         <input
           type="text"
-          value={assetSearchQuery}
+          value={searchQuery}
           onChange={handleSearchChange}
-          placeholder="ex) Rotation, TypeWriter, Glitch"
+          placeholder={placeholder}
           className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:border-gray-400 focus:ring-1 focus:ring-blue-200 focus:outline-none transition-colors duration-200"
         />
       </div>

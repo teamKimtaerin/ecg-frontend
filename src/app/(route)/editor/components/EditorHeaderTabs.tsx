@@ -5,6 +5,7 @@ import TabItem from '@/components/ui/TabItem'
 import DocumentModal from '@/components/ui/DocumentModal'
 import UserDropdown from './UserDropdown'
 import ToolbarToggle from './ToolbarToggle'
+import EditingModeToggle from './EditingModeToggle'
 import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
 import { useEffect, useState, useRef } from 'react'
@@ -35,6 +36,7 @@ export default function EditorHeaderTabs({
 }: EditorHeaderTabsProps = {}) {
   // Use store values as defaults, but allow prop overrides
   const store = useEditorStore()
+  const { editingMode } = store
   const [saveStatus, setSaveStatus] = useState<
     'idle' | 'saving' | 'saved' | 'error'
   >('idle')
@@ -145,16 +147,21 @@ export default function EditorHeaderTabs({
 
         {/* Center - Tab Navigation */}
         <div className="flex-1 mx-6">
-          <Tab
-            selectedItem={activeTab}
-            onSelectionChange={handleTabChange}
-            size="small"
-            isQuiet={true}
-          >
-            {EDITOR_TABS.map((tab) => (
-              <TabItem key={tab} id={tab} label={TAB_LABELS[tab]} />
-            ))}
-          </Tab>
+          {editingMode === 'advanced' ? (
+            <Tab
+              selectedItem={activeTab}
+              onSelectionChange={handleTabChange}
+              size="small"
+              isQuiet={true}
+            >
+              {EDITOR_TABS.map((tab) => (
+                <TabItem key={tab} id={tab} label={TAB_LABELS[tab]} />
+              ))}
+            </Tab>
+          ) : (
+            // 쉬운 편집 모드에서는 탭 없음
+            <div />
+          )}
         </div>
 
         {/* Right Side - Actions */}
@@ -190,6 +197,9 @@ export default function EditorHeaderTabs({
               </span>
             )}
           </div>
+
+          {/* Editing Mode Toggle */}
+          <EditingModeToggle />
 
           {/* Document Modal */}
           <div className="relative">

@@ -14,7 +14,7 @@ export default function MotionTextDemo() {
   useEffect(() => {
     const checkServer = async () => {
       try {
-        const response = await fetch('http://localhost:3004')
+        const response = await fetch('http://localhost:3001')
 
         setIsServerRunning(response.ok)
       } catch (error) {
@@ -92,7 +92,7 @@ export default function MotionTextDemo() {
       {/* 데모 임베딩 */}
       <div className="flex-1 relative">
         <iframe
-          src="http://localhost:3004"
+          src="http://localhost:3001"
           className="w-full h-full border-0"
           title="MotionText Renderer Demo"
           onLoad={handleIframeLoad}

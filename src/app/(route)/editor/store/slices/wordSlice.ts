@@ -35,8 +35,9 @@ export interface WordDragState {
 
 // State priority levels (higher number = higher priority)
 export enum WordStatePriority {
-  FOCUS = 1,
-  DRAG = 2,
+  NORMAL = 0,
+  GROUPED = 1,
+  FOCUSED = 2,
   EDITING = 3,
 }
 
@@ -149,6 +150,10 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         return state
       }
 
+      // Check if clip focus is changing - if so, close waveform modal
+      const isClipFocusChanging =
+        state.focusedClipId && state.focusedClipId !== clipId
+
       return {
         focusedClipId: clipId,
         focusedWordId: wordId,
@@ -158,6 +163,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           state.editingWordId === wordId ? state.editingWordId : null,
         editingClipId:
           state.editingClipId === clipId ? state.editingClipId : null,
+        // Close waveform modal if clip focus is changing
+        expandedClipId: isClipFocusChanging ? null : state.expandedClipId,
+        expandedWordId: isClipFocusChanging ? null : state.expandedWordId,
       }
     }),
 
@@ -176,6 +184,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         focusedWordId: null,
         focusedClipId: null,
         groupedWordIds: new Set(),
+        // Close waveform modal when clearing focus
+        expandedClipId: null,
+        expandedWordId: null,
       }
     }),
 
@@ -502,5 +513,24 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   isEditingWord: (wordId) => {
     const state = get()
     return state.editingWordId === wordId
+  },
+
+  getWordStatePriority: (wordId) => {
+    const state = get()
+    if (state.editingWordId === wordId) return WordStatePriority.EDITING
+    if (state.focusedWordId === wordId) return WordStatePriority.FOCUSED
+    if (state.groupedWordIds.has(wordId)) return WordStatePriority.GROUPED
+    return WordStatePriority.NORMAL
+  },
+
+  canChangeWordState: (wordId, newPriority) => {
+    const state = get()
+    if (state.isDraggingWord || state.isGroupSelecting) return false
+
+    const currentPriority = get().getWordStatePriority(wordId)
+    if (currentPriority === null) return true
+
+    // Higher priority states can override lower ones
+    return newPriority >= currentPriority
   },
 })

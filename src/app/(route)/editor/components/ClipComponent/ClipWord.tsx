@@ -34,6 +34,11 @@ export default function ClipWord({
     editingClipId,
     startInlineEdit,
     endInlineEdit,
+    activeTab,
+    setActiveTab,
+    rightSidebarType,
+    setRightSidebarType,
+    isAssetSidebarOpen,
     setIsAssetSidebarOpen,
     expandClip,
   } = useEditorStore()
@@ -81,8 +86,19 @@ export default function ClipWord({
       const timeDiff = currentTime - lastClickTime
 
       if (timeDiff < 300 && isFocused) {
-        // Double-click detected on focused word - open animation sidebar and word detail editor
-        setIsAssetSidebarOpen(true)
+        // Double-click detected on focused word - switch to insert tab, open animation sidebar, and expand clip
+        if (activeTab !== 'insert') {
+          setActiveTab('insert')
+        }
+
+        // Open animation sidebar
+        if (rightSidebarType !== 'animation') {
+          setRightSidebarType('animation')
+        }
+        if (!isAssetSidebarOpen) {
+          setIsAssetSidebarOpen(true)
+        }
+
         expandClip(clipId, word.id)
       } else {
         // Single click - handle selection or start inline edit
@@ -113,6 +129,11 @@ export default function ClipWord({
       clipId,
       onWordClick,
       startInlineEdit,
+      activeTab,
+      setActiveTab,
+      rightSidebarType,
+      setRightSidebarType,
+      isAssetSidebarOpen,
       setIsAssetSidebarOpen,
       expandClip,
     ]

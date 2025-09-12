@@ -1,7 +1,8 @@
 'use client'
 
 import { DndContext, closestCenter } from '@dnd-kit/core'
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 // Store
 import { useEditorStore } from './store'
@@ -34,11 +35,15 @@ import TutorialModal from '@/components/TutorialModal'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
 import AlertDialog from '@/components/ui/AlertDialog'
 import Toolbars from './components/Toolbars'
+import SimpleToolbar from './components/SimpleToolbar'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
 import SubtitleEditList from './components/SubtitleEditList'
 import VideoSection from './components/VideoSection'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
+import TemplateSidebar from './components/TemplateSidebar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
+import { ChevronDownIcon } from '@/components/icons'
+import { getSpeakerColor } from '@/utils/editor/speakerColors'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -53,6 +58,397 @@ import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
 import { CopyClipsCommand } from '@/utils/editor/commands/CopyClipsCommand'
 import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
 import { showToast } from '@/utils/ui/toast'
+
+// TimelineClipCard 컴포넌트
+interface TimelineClipCardProps {
+  clip: ClipItem
+  isActive: boolean
+  startTime: number
+  endTime: number
+  speakers: string[]
+  speakerColors: Record<string, string>
+  onClipSelect: (clipId: string) => void
+  onSpeakerChange: (clipId: string, newSpeaker: string) => void
+  onAddSpeaker: (name: string) => void
+  onRenameSpeaker: (oldName: string, newName: string) => void
+  onOpenSpeakerManagement: () => void
+  formatTime: (seconds: number) => string
+}
+
+function TimelineClipCard({
+  clip,
+  isActive,
+  startTime,
+  endTime,
+  speakers,
+  speakerColors,
+  onClipSelect,
+  onSpeakerChange,
+  onAddSpeaker,
+  onRenameSpeaker,
+  onOpenSpeakerManagement,
+  formatTime,
+}: TimelineClipCardProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [editingSpeaker, setEditingSpeaker] = useState<string | null>(null)
+  const [editingName, setEditingName] = useState('')
+  const [showRenameModal, setShowRenameModal] = useState(false)
+  const [pendingRename, setPendingRename] = useState<{
+    oldName: string
+    newName: string
+  } | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node
+
+      if (dropdownRef.current && dropdownRef.current.contains(target)) {
+        return
+      }
+
+      const portalDropdown = document.querySelector('.fixed.rounded.bg-white')
+      if (portalDropdown && portalDropdown.contains(target)) {
+        return
+      }
+
+      setIsDropdownOpen(false)
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDropdownOpen])
+
+  const handleSpeakerSelect = (value: string) => {
+    if (value === 'add_new') {
+      const nextSpeakerNumber = speakers.length + 1
+      const newSpeakerName = `화자${nextSpeakerNumber}`
+      onAddSpeaker(newSpeakerName)
+      onSpeakerChange(clip.id, newSpeakerName)
+      setIsDropdownOpen(false)
+    } else if (value === 'manage_speakers') {
+      onOpenSpeakerManagement()
+      setIsDropdownOpen(false)
+    } else if (value.startsWith('edit_')) {
+      const speakerToEdit = value.replace('edit_', '')
+      setEditingSpeaker(speakerToEdit)
+      setEditingName(speakerToEdit)
+      setIsDropdownOpen(false)
+      setTimeout(() => inputRef.current?.focus(), 100)
+    } else {
+      onSpeakerChange(clip.id, value)
+      setIsDropdownOpen(false)
+    }
+  }
+
+  const handleSaveEdit = () => {
+    if (!editingName.trim() || !editingSpeaker) {
+      handleCancelEdit()
+      return
+    }
+
+    const trimmedName = editingName.trim()
+
+    if (trimmedName === editingSpeaker) {
+      setEditingSpeaker(null)
+      setEditingName('')
+      return
+    }
+
+    if (speakers.includes(trimmedName) && trimmedName !== editingSpeaker) {
+      showToast('이미 존재하는 화자명입니다', 'error')
+      setEditingName(editingSpeaker)
+      return
+    }
+
+    setPendingRename({ oldName: editingSpeaker, newName: trimmedName })
+    setShowRenameModal(true)
+    setEditingSpeaker(null)
+    setEditingName('')
+  }
+
+  const handleRenameChoice = (applyToAll: boolean) => {
+    if (!pendingRename) return
+
+    if (applyToAll) {
+      onRenameSpeaker(pendingRename.oldName, pendingRename.newName)
+    } else {
+      onAddSpeaker(pendingRename.newName)
+      onSpeakerChange(clip.id, pendingRename.newName)
+    }
+
+    setShowRenameModal(false)
+    setPendingRename(null)
+    setEditingSpeaker(null)
+    setEditingName('')
+  }
+
+  const handleCancelEdit = () => {
+    setEditingSpeaker(null)
+    setEditingName('')
+    if (inputRef.current) {
+      inputRef.current.blur()
+    }
+  }
+
+  return (
+    <>
+      <div
+        className={`p-3 rounded-lg cursor-pointer transition-all border ${
+          isActive
+            ? 'bg-blue-50 border-blue-200 shadow-md'
+            : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+        }`}
+        onClick={() => onClipSelect(clip.id)}
+      >
+        {/* 시간 정보 */}
+        <div className="mb-3">
+          <span className="text-xs text-gray-500">
+            {formatTime(startTime)} - {formatTime(endTime)}
+          </span>
+        </div>
+
+        {/* 메인 콘텐츠 - 고급 편집 페이지와 동일한 그리드 레이아웃 */}
+        <div className="grid grid-cols-[160px_1fr] gap-3 items-start">
+          {/* 화자 영역 */}
+          <div className="flex items-center h-8">
+            {editingSpeaker ? (
+              <div
+                className="relative flex-shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={editingName}
+                  onChange={(e) => setEditingName(e.target.value)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation()
+                    if (e.key === 'Enter') handleSaveEdit()
+                    if (e.key === 'Escape') handleCancelEdit()
+                  }}
+                  onBlur={() => setTimeout(() => handleSaveEdit(), 100)}
+                  placeholder="화자 이름 입력"
+                  className="h-8 px-3 text-sm bg-white text-black border border-gray-300 rounded
+                            focus:outline-none focus:ring-2 focus:border-transparent 
+                            w-[120px] flex-shrink-0 focus:ring-blue-500"
+                />
+              </div>
+            ) : (
+              <div
+                ref={dropdownRef}
+                className="relative flex-shrink-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-between h-8 px-3 text-sm font-medium
+                             bg-transparent text-black border border-gray-300 rounded
+                             hover:bg-gray-50 hover:border-gray-400 transition-all
+                             focus:outline-none focus:ring-2 focus:ring-blue-500
+                             w-[120px] flex-shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setIsDropdownOpen(!isDropdownOpen)
+                  }}
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{
+                        backgroundColor: getSpeakerColor(
+                          clip.speaker,
+                          speakerColors
+                        ),
+                      }}
+                    />
+                    <span
+                      className={`truncate overflow-hidden whitespace-nowrap ${!clip.speaker ? 'text-orange-500' : ''}`}
+                      style={{ maxWidth: '70px' }}
+                    >
+                      {clip.speaker || '미지정'}
+                    </span>
+                  </div>
+                  <ChevronDownIcon
+                    className={`w-4 h-4 transition-transform flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+
+                {/* 드롭다운 메뉴 */}
+                {isDropdownOpen &&
+                  typeof window !== 'undefined' &&
+                  createPortal(
+                    <div
+                      className="fixed rounded bg-white border border-gray-300 shadow-lg"
+                      style={{
+                        zIndex: 99999,
+                        left:
+                          dropdownRef.current?.getBoundingClientRect().left ||
+                          0,
+                        top:
+                          (dropdownRef.current?.getBoundingClientRect()
+                            .bottom || 0) + 4,
+                        width: '120px',
+                        minWidth: '120px',
+                        maxWidth: '120px',
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {speakers.map((s) => (
+                        <div key={s} className="group">
+                          <div
+                            className="px-3 py-2 text-sm text-black hover:bg-gray-50 cursor-pointer
+                                  transition-colors flex items-center justify-between"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleSpeakerSelect(s)
+                            }}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <div
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{
+                                  backgroundColor: getSpeakerColor(
+                                    s,
+                                    speakerColors
+                                  ),
+                                }}
+                              />
+                              <span
+                                className={`truncate overflow-hidden whitespace-nowrap ${clip.speaker === s ? 'text-blue-600 font-medium' : ''}`}
+                                style={{ maxWidth: '50px' }}
+                              >
+                                {s}
+                              </span>
+                            </div>
+                            <button
+                              className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-black
+                                    text-xs px-1 py-0.5 rounded transition-all flex-shrink-0"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleSpeakerSelect(`edit_${s}`)
+                              }}
+                            >
+                              편집
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      <div className="border-t border-gray-200 my-1" />
+
+                      <div
+                        className="px-3 py-2 text-sm text-blue-600 hover:bg-gray-50 cursor-pointer
+                              transition-colors font-medium"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleSpeakerSelect('add_new')
+                        }}
+                      >
+                        + 화자 추가하기
+                      </div>
+
+                      <div
+                        className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-800 cursor-pointer
+                              transition-colors font-medium flex items-center gap-2"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleSpeakerSelect('manage_speakers')
+                        }}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        화자 관리
+                      </div>
+                    </div>,
+                    document.body
+                  )}
+              </div>
+            )}
+          </div>
+
+          {/* 텍스트 영역 */}
+          <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
+            <div
+              className={`text-sm ${isActive ? 'font-medium text-gray-900' : 'text-gray-700'}`}
+            >
+              {clip.fullText}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 화자 이름 변경 적용 범위 확인 모달 */}
+      {showRenameModal &&
+        pendingRename &&
+        typeof window !== 'undefined' &&
+        createPortal(
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center"
+            style={{ zIndex: 99999 }}
+          >
+            <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-gray-700">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                화자 이름 변경 적용 범위
+              </h3>
+              <div className="text-gray-300 mb-6 space-y-2">
+                <p>
+                  &quot;{pendingRename.oldName}&quot;을 &quot;
+                  {pendingRename.newName}&quot;로 변경합니다.
+                </p>
+                <p className="text-sm text-gray-400">
+                  이 화자를 사용하는 다른 클립에도 변경사항을 적용하시겠습니까?
+                </p>
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => handleRenameChoice(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 rounded
+                          hover:bg-gray-600 transition-colors"
+                >
+                  아니오 (현재 클립만)
+                </button>
+                <button
+                  onClick={() => handleRenameChoice(true)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
+                          hover:bg-blue-700 transition-colors"
+                >
+                  예 (모든 클립)
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  )
+}
 
 export default function EditorPage() {
   // Store state for DnD and selection
@@ -75,9 +471,12 @@ export default function EditorPage() {
     hasUnsavedChanges,
     setHasUnsavedChanges,
     markAsSaved,
+    rightSidebarType,
+    setRightSidebarType,
     isAssetSidebarOpen,
     assetSidebarWidth,
     setAssetSidebarWidth,
+    editingMode,
   } = useEditorStore()
 
   // Local state
@@ -100,10 +499,7 @@ export default function EditorPage() {
   const [scrollProgress, setScrollProgress] = useState(0) // 스크롤 진행도
   const [speakers, setSpeakers] = useState<string[]>([]) // Speaker 리스트 전역 관리
   const [speakerColors, setSpeakerColors] = useState<Record<string, string>>({}) // 화자별 색상 매핑
-  // 오른쪽 사이드바 상태 - 한 번에 하나만 열릴 수 있음
-  const [rightSidebarType, setRightSidebarType] = useState<
-    'speaker' | 'animation' | null
-  >(null)
+  // Store에서 rightSidebarType 가져오기 (로컬 state 대신 store 사용)
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
@@ -435,11 +831,19 @@ export default function EditorPage() {
 
   // 오른쪽 사이드바 핸들러들
   const handleOpenSpeakerManagement = () => {
-    setRightSidebarType('speaker')
+    setRightSidebarType(rightSidebarType === 'speaker' ? null : 'speaker')
   }
 
   const handleOpenAnimationSidebar = () => {
     setRightSidebarType('animation')
+  }
+
+  const handleToggleAnimationSidebar = () => {
+    setRightSidebarType(rightSidebarType === 'animation' ? null : 'animation')
+  }
+
+  const handleToggleTemplateSidebar = () => {
+    setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
   }
 
   const handleCloseSidebar = () => {
@@ -1080,6 +1484,14 @@ export default function EditorPage() {
     setAssetSidebarWidth,
   ])
 
+  // 편집 모드 변경 시 사이드바 자동 설정
+  useEffect(() => {
+    if (editingMode === 'simple') {
+      // 쉬운 편집 모드에서는 항상 템플릿 사이드바 표시
+      setRightSidebarType('template')
+    }
+  }, [editingMode, setRightSidebarType])
+
   // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
   useEffect(() => {
     // TODO: localStorage 대신 DB에서 사용자의 튜토리얼 완료 상태를 확인하도록 변경
@@ -1198,24 +1610,42 @@ export default function EditorPage() {
             isToolbarVisible ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <Toolbars
-            activeTab={activeTab}
-            clips={clips}
-            selectedClipIds={selectedClipIds}
-            activeClipId={activeClipId}
-            canUndo={editorHistory.canUndo()}
-            canRedo={editorHistory.canRedo()}
-            onSelectionChange={setSelectedClipIds}
-            onNewClick={() => setIsUploadModalOpen(true)}
-            onMergeClips={handleMergeClips}
-            onUndo={handleUndo}
-            onRedo={handleRedo}
-            onCut={handleCutClips}
-            onCopy={handleCopyClips}
-            onPaste={handlePasteClips}
-            onSplitClip={handleSplitClip}
-            onRestore={handleRestore}
-          />
+          {editingMode === 'advanced' ? (
+            <Toolbars
+              activeTab={activeTab}
+              clips={clips}
+              selectedClipIds={selectedClipIds}
+              activeClipId={activeClipId}
+              canUndo={editorHistory.canUndo()}
+              canRedo={editorHistory.canRedo()}
+              onSelectionChange={setSelectedClipIds}
+              onNewClick={() => setIsUploadModalOpen(true)}
+              onMergeClips={handleMergeClips}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              onCut={handleCutClips}
+              onCopy={handleCopyClips}
+              onPaste={handlePasteClips}
+              onSplitClip={handleSplitClip}
+              onRestore={handleRestore}
+              onToggleAnimationSidebar={handleToggleAnimationSidebar}
+              onToggleTemplateSidebar={handleToggleTemplateSidebar}
+            />
+          ) : (
+            <SimpleToolbar
+              clips={clips}
+              selectedClipIds={selectedClipIds}
+              activeClipId={activeClipId}
+              canUndo={editorHistory.canUndo()}
+              canRedo={editorHistory.canRedo()}
+              onNewClick={() => setIsUploadModalOpen(true)}
+              onMergeClips={handleMergeClips}
+              onUndo={handleUndo}
+              onRedo={handleRedo}
+              onSplitClip={handleSplitClip}
+              onToggleTemplateSidebar={handleToggleTemplateSidebar}
+            />
+          )}
         </div>
 
         <div
@@ -1254,22 +1684,68 @@ export default function EditorPage() {
               } as React.CSSProperties
             }
           >
-            <SubtitleEditList
-              clips={clips}
-              selectedClipIds={selectedClipIds}
-              activeClipId={activeClipId}
-              speakers={speakers}
-              speakerColors={speakerColors}
-              onClipSelect={handleClipSelect}
-              onClipCheck={handleClipCheck}
-              onWordEdit={handleWordEdit}
-              onSpeakerChange={handleSpeakerChange}
-              onBatchSpeakerChange={handleBatchSpeakerChange}
-              onOpenSpeakerManagement={handleOpenSpeakerManagement}
-              onAddSpeaker={handleAddSpeaker}
-              onRenameSpeaker={handleRenameSpeaker}
-              onEmptySpaceClick={handleEmptySpaceClick}
-            />
+            {editingMode === 'advanced' ? (
+              <SubtitleEditList
+                clips={clips}
+                selectedClipIds={selectedClipIds}
+                activeClipId={activeClipId}
+                speakers={speakers}
+                speakerColors={speakerColors}
+                onClipSelect={handleClipSelect}
+                onClipCheck={handleClipCheck}
+                onWordEdit={handleWordEdit}
+                onSpeakerChange={handleSpeakerChange}
+                onBatchSpeakerChange={handleBatchSpeakerChange}
+                onOpenSpeakerManagement={handleOpenSpeakerManagement}
+                onAddSpeaker={handleAddSpeaker}
+                onRenameSpeaker={handleRenameSpeaker}
+                onEmptySpaceClick={handleEmptySpaceClick}
+              />
+            ) : (
+              <div className="flex-1 bg-white p-4 flex flex-col overflow-y-auto items-center">
+                <div className="w-full max-w-[600px]">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">
+                    자막 타임라인
+                  </h2>
+                  <div className="space-y-2">
+                    {clips.slice(0, 20).map((clip) => {
+                      const isActive = clip.id === activeClipId
+                      const formatTime = (seconds: number) => {
+                        const mins = Math.floor(seconds / 60)
+                        const secs = Math.floor(seconds % 60)
+                        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+                      }
+
+                      // Calculate start and end times from words
+                      const startTime =
+                        clip.words.length > 0 ? clip.words[0].start : 0
+                      const endTime =
+                        clip.words.length > 0
+                          ? clip.words[clip.words.length - 1].end
+                          : 0
+
+                      return (
+                        <TimelineClipCard
+                          key={clip.id}
+                          clip={clip}
+                          isActive={isActive}
+                          startTime={startTime}
+                          endTime={endTime}
+                          speakers={speakers}
+                          speakerColors={speakerColors}
+                          onClipSelect={handleClipSelect}
+                          onSpeakerChange={handleSpeakerChange}
+                          onAddSpeaker={handleAddSpeaker}
+                          onRenameSpeaker={handleRenameSpeaker}
+                          onOpenSpeakerManagement={handleOpenSpeakerManagement}
+                          formatTime={formatTime}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <SelectionBox
               startX={selectionBox.startX}
@@ -1280,51 +1756,95 @@ export default function EditorPage() {
             />
           </div>
 
-          {/* Right Sidebar - 한 번에 하나만 표시 */}
-          {rightSidebarType && (
-            <>
-              <ResizablePanelDivider
-                orientation="vertical"
-                onResize={handleAssetSidebarResize}
-                className="z-10"
-              />
-
-              {/* Animation Asset Sidebar */}
-              {rightSidebarType === 'animation' && (
-                <AnimationAssetSidebar
-                  onAssetSelect={(asset) => {
-                    console.log('Asset selected in editor:', asset)
-                    // TODO: Apply asset effect to focused clip
-                  }}
-                  onClose={handleCloseSidebar}
-                />
-              )}
-
-              {/* Speaker Management Sidebar */}
-              {rightSidebarType === 'speaker' && (
-                <div
-                  className={`sticky top-0 transition-all duration-300 ease-in-out ${
-                    isToolbarVisible
-                      ? 'h-[calc(100vh-176px)]'
-                      : 'h-[calc(100vh-120px)]'
-                  }`}
-                >
-                  <SpeakerManagementSidebar
-                    isOpen={rightSidebarType === 'speaker'}
-                    onClose={handleCloseSidebar}
-                    speakers={speakers}
-                    clips={clips}
-                    speakerColors={speakerColors}
-                    onAddSpeaker={handleAddSpeaker}
-                    onRemoveSpeaker={handleRemoveSpeaker}
-                    onRenameSpeaker={handleRenameSpeaker}
-                    onBatchSpeakerChange={handleBatchSpeakerChange}
-                    onSpeakerColorChange={handleSpeakerColorChange}
+          {/* Right Sidebar - 슬라이드 애니메이션과 함께 */}
+          <div
+            className={`transition-all duration-300 ease-out overflow-hidden ${
+              rightSidebarType
+                ? `w-[${assetSidebarWidth}px] opacity-100`
+                : 'w-0 opacity-0'
+            }`}
+            style={{
+              width: rightSidebarType ? `${assetSidebarWidth}px` : '0px',
+            }}
+          >
+            <div className="flex h-full">
+              {rightSidebarType && (
+                <>
+                  <ResizablePanelDivider
+                    orientation="vertical"
+                    onResize={handleAssetSidebarResize}
+                    className="z-10"
                   />
-                </div>
+
+                  {/* Animation Asset Sidebar */}
+                  {rightSidebarType === 'animation' && (
+                    <div
+                      className={`transform transition-all duration-300 ease-out w-full ${
+                        rightSidebarType === 'animation'
+                          ? 'translate-x-0 opacity-100'
+                          : 'translate-x-full opacity-0'
+                      }`}
+                    >
+                      <AnimationAssetSidebar
+                        onAssetSelect={(asset) => {
+                          console.log('Asset selected in editor:', asset)
+                          // TODO: Apply asset effect to focused clip
+                        }}
+                        onClose={handleCloseSidebar}
+                      />
+                    </div>
+                  )}
+
+                  {/* Template Sidebar */}
+                  {rightSidebarType === 'template' && (
+                    <div
+                      className={`transform transition-all duration-300 ease-out w-full ${
+                        rightSidebarType === 'template'
+                          ? 'translate-x-0 opacity-100'
+                          : 'translate-x-full opacity-0'
+                      }`}
+                    >
+                      <TemplateSidebar
+                        onTemplateSelect={(template) => {
+                          console.log('Template selected in editor:', template)
+                          // TODO: Apply template to focused clip
+                        }}
+                        onClose={handleCloseSidebar}
+                      />
+                    </div>
+                  )}
+
+                  {/* Speaker Management Sidebar */}
+                  {rightSidebarType === 'speaker' && (
+                    <div
+                      className={`sticky top-0 transition-all duration-300 ease-out transform w-full ${
+                        isToolbarVisible
+                          ? 'h-[calc(100vh-176px)]'
+                          : 'h-[calc(100vh-120px)]'
+                      } ${
+                        rightSidebarType === 'speaker'
+                          ? 'translate-x-0 opacity-100'
+                          : 'translate-x-full opacity-0'
+                      }`}
+                    >
+                      <SpeakerManagementSidebar
+                        isOpen={rightSidebarType === 'speaker'}
+                        onClose={handleCloseSidebar}
+                        speakers={speakers}
+                        clips={clips}
+                        speakerColors={speakerColors}
+                        onAddSpeaker={handleAddSpeaker}
+                        onRemoveSpeaker={handleRemoveSpeaker}
+                        onRenameSpeaker={handleRenameSpeaker}
+                        onBatchSpeakerChange={handleBatchSpeakerChange}
+                        onSpeakerColorChange={handleSpeakerColorChange}
+                      />
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
+            </div>
+          </div>
         </div>
 
         <NewUploadModal
