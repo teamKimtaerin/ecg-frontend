@@ -21,14 +21,21 @@ export default function AssetPage() {
   const [showFavorites, setShowFavorites] = useState(false)
   const [sortOrder, setSortOrder] = useState('favorites') // 기본값: 즐겨찾기
   const [showSortDropdown, setShowSortDropdown] = useState(false)
-  const [contentType, setContentType] = useState<'effects' | 'templates'>('effects') // 이펙트/템플릿 토글
+  const [contentType, setContentType] = useState<'effects' | 'templates'>(
+    'effects'
+  ) // 이펙트/템플릿 토글
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [templates, setTemplates] = useState<AssetItem[]>([])
 
   // 현재 데이터 소스 결정
   const currentData = contentType === 'effects' ? assets : templates
-  console.log('Current content type:', contentType, 'Data length:', currentData.length)
+  console.log(
+    'Current content type:',
+    contentType,
+    'Data length:',
+    currentData.length
+  )
 
   // 카테고리 필터 버튼 목록 - 이펙트/템플릿에 따라 동적으로 계산
   const categoryFilters = useMemo(() => {
@@ -63,7 +70,10 @@ export default function AssetPage() {
         {
           id: 'Animation',
           label: '애니메이션',
-          count: assets.filter((asset) => asset.tags?.includes('gsap') || asset.tags?.includes('animation')).length,
+          count: assets.filter(
+            (asset) =>
+              asset.tags?.includes('gsap') || asset.tags?.includes('animation')
+          ).length,
         },
         {
           id: 'Popular',
@@ -78,32 +88,38 @@ export default function AssetPage() {
         {
           id: 'Cards',
           label: '카드',
-          count: templates.filter((template) => template.category === 'Cards').length,
+          count: templates.filter((template) => template.category === 'Cards')
+            .length,
         },
         {
           id: 'Effects',
           label: '이펙트',
-          count: templates.filter((template) => template.category === 'Effects').length,
+          count: templates.filter((template) => template.category === 'Effects')
+            .length,
         },
         {
           id: 'Basic',
           label: '기본',
-          count: templates.filter((template) => template.category === 'Basic').length,
+          count: templates.filter((template) => template.category === 'Basic')
+            .length,
         },
         {
           id: 'Themes',
           label: '테마',
-          count: templates.filter((template) => template.category === 'Themes').length,
+          count: templates.filter((template) => template.category === 'Themes')
+            .length,
         },
         {
           id: 'Modern',
           label: '모던',
-          count: templates.filter((template) => template.category === 'Modern').length,
+          count: templates.filter((template) => template.category === 'Modern')
+            .length,
         },
         {
           id: 'Retro',
           label: '레트로',
-          count: templates.filter((template) => template.category === 'Retro').length,
+          count: templates.filter((template) => template.category === 'Retro')
+            .length,
         },
       ]
     }
@@ -118,7 +134,9 @@ export default function AssetPage() {
         setAssets(assetsData.assets)
 
         // 템플릿 데이터 로드
-        const templatesResponse = await fetch('/asset-store/templates-database.json')
+        const templatesResponse = await fetch(
+          '/asset-store/templates-database.json'
+        )
         const templatesData = await templatesResponse.json()
         console.log('Loaded templates:', templatesData.templates)
         setTemplates(templatesData.templates)
@@ -137,7 +155,6 @@ export default function AssetPage() {
     setSelectedAsset(asset)
     setIsModalOpen(true)
   }
-
 
   const handleUploadClick = () => {
     console.log('에셋 업로드 클릭됨')
@@ -184,7 +201,6 @@ export default function AssetPage() {
     { value: 'latest', label: '최신순' },
   ]
 
-
   // 정렬 핸들러
   const handleSortChange = (newSortOrder: string) => {
     setSortOrder(newSortOrder)
@@ -197,7 +213,7 @@ export default function AssetPage() {
       const matchesSearch = item.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
-      
+
       // 카테고리 필터링 로직 확장
       let matchesCategory = true
       if (contentType === 'effects') {
@@ -217,7 +233,10 @@ export default function AssetPage() {
             matchesCategory = item.tags?.includes('cwi') || false
             break
           case 'Animation':
-            matchesCategory = item.tags?.includes('gsap') || item.tags?.includes('animation') || false
+            matchesCategory =
+              item.tags?.includes('gsap') ||
+              item.tags?.includes('animation') ||
+              false
             break
           case 'Popular':
             matchesCategory = (item.downloads || 0) > 1000
@@ -243,7 +262,7 @@ export default function AssetPage() {
             matchesCategory = item.category === activeFilter
         }
       }
-      
+
       const matchesFavorites = !showFavorites || item.isFavorite
 
       return matchesSearch && matchesCategory && matchesFavorites
@@ -272,7 +291,14 @@ export default function AssetPage() {
     })
 
     return sorted
-  }, [currentData, searchTerm, activeFilter, showFavorites, sortOrder, contentType])
+  }, [
+    currentData,
+    searchTerm,
+    activeFilter,
+    showFavorites,
+    sortOrder,
+    contentType,
+  ])
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
@@ -310,7 +336,6 @@ export default function AssetPage() {
     'text-gray-400',
     'pointer-events-none'
   )
-
 
   return (
     <div className={mainContainerClasses}>
@@ -384,12 +409,17 @@ export default function AssetPage() {
                   onClick={() => setShowSortDropdown(!showSortDropdown)}
                   className="flex items-center space-x-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 transition-colors cursor-pointer"
                 >
-                  <span>{sortOptions.find(option => option.value === sortOrder)?.label}</span>
-                  <LuChevronDown 
-                    className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} 
+                  <span>
+                    {
+                      sortOptions.find((option) => option.value === sortOrder)
+                        ?.label
+                    }
+                  </span>
+                  <LuChevronDown
+                    className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`}
                   />
                 </button>
-                
+
                 {showSortDropdown && (
                   <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
                     {sortOptions.map((option) => (
@@ -397,7 +427,9 @@ export default function AssetPage() {
                         key={option.value}
                         onClick={() => handleSortChange(option.value)}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg cursor-pointer ${
-                          sortOrder === option.value ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                          sortOrder === option.value
+                            ? 'text-blue-600 bg-blue-50'
+                            : 'text-gray-700'
                         }`}
                       >
                         {option.label}
@@ -418,7 +450,6 @@ export default function AssetPage() {
             </div>
           </div>
 
-
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="text-gray-500">Loading assets...</div>
@@ -433,7 +464,7 @@ export default function AssetPage() {
                     style={{
                       animationDelay: `${index * 50}ms`,
                       opacity: 0,
-                      animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`
+                      animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
                     }}
                   >
                     <AssetCard
@@ -445,7 +476,7 @@ export default function AssetPage() {
                   </div>
                 ))}
               </div>
-              
+
               <style jsx>{`
                 @keyframes fadeIn {
                   from {
