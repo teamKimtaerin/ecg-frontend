@@ -86,13 +86,11 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
             <button
               key={category.id}
               onClick={() => onCategoryChange?.(category.id)}
-              className={getCategoryButtonClasses(
-                selectedCategory === category.id
-              )}
+              className={getCategoryButtonClasses(selectedCategory === category.id)}
               style={{
                 animationDelay: `${index * 100}ms`,
                 opacity: 0,
-                animation: `slideInLeft 0.4s ease-out ${index * 100}ms forwards`,
+                animation: `slideInLeft 0.4s ease-out ${index * 100}ms forwards`
               }}
             >
               <span>{category.label}</span>
@@ -102,7 +100,7 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
             </button>
           ))}
         </div>
-
+        
         <style jsx>{`
           @keyframes slideInLeft {
             from {
