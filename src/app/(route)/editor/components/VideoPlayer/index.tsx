@@ -10,9 +10,13 @@ import API_CONFIG from '@/config/api.config'
 
 interface VideoPlayerProps {
   className?: string
+  onTimeUpdate?: (currentTime: number, duration: number) => void
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
+  className = '', 
+  onTimeUpdate
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -266,6 +270,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         setDuration(newDuration)
       }
 
+      // Notify parent component of time update
+      onTimeUpdate?.(newTime, newDuration || 0)
+
       // Update subtitles based on current time
       if (clips.length > 0) {
         const subtitle = videoSegmentManager.getActiveSubtitles(newTime, clips)
@@ -298,6 +305,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ className = '' }) => {
         if (clips.length > 0) {
           videoSegmentManager.initialize(clips, videoDuration)
         }
+
       }
     }
   }
