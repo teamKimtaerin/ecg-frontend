@@ -59,7 +59,7 @@ export default function EditorHeaderTabs({
   // Deploy modal hook
   const { openDeployModal, deployModalProps } = useDeployModal()
 
-  const handleDeployClick = (task: any) => {
+  const handleDeployClick = (task: { id: number; filename: string }) => {
     openDeployModal({
       id: task.id,
       filename: task.filename,
