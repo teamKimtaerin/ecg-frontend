@@ -17,7 +17,7 @@ export default function MotionTextDemo() {
         const response = await fetch('http://localhost:3001')
 
         setIsServerRunning(response.ok)
-      } catch (error) {
+      } catch {
         setIsServerRunning(false)
       } finally {
         setIsLoading(false)

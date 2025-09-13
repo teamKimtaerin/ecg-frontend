@@ -32,7 +32,7 @@ export default function MyPage() {
 
       setIsEditing(false)
       showToast('프로필이 업데이트되었습니다.', 'success')
-    } catch (error) {
+    } catch {
       showToast('프로필 업데이트에 실패했습니다.', 'error')
     }
   }

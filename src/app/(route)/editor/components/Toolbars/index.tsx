@@ -54,7 +54,7 @@ export default function Toolbars({
   onPaste,
   onSplitClip,
   onRestore,
-  onToggleAnimationSidebar,
+  // onToggleAnimationSidebar,
   onToggleTemplateSidebar,
   onSave,
   onSaveAs,

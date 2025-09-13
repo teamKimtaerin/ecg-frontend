@@ -134,7 +134,6 @@ export default function ExpandedClipWaveform({
     updateWordTiming,
     updateAnimationIntensity,
     updateAnimationTrackTiming,
-    updateAnimationTrackIntensity,
     undoWordTiming,
     redoWordTiming,
     setHasUnsavedChanges,

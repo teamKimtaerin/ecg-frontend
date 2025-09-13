@@ -9,7 +9,6 @@ import {
   LuCheck,
   LuExternalLink,
   LuPlay,
-  LuDownload,
 } from 'react-icons/lu'
 
 export interface DeployTask {
@@ -63,7 +62,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, currentStep])
+  }, [isOpen, currentStep, handleClose])
 
   // 모달이 처음 열릴 때만 초기화
   const [hasInitialized, setHasInitialized] = useState(false)
@@ -225,7 +224,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 />
                 {/* 디버깅용 - 현재 값 표시 */}
                 <div className="text-xs text-gray-500 mt-1">
-                  현재 값: "{deployConfig.title}" (길이:{' '}
+                  현재 값: &quot;{deployConfig.title}&quot; (길이:{' '}
                   {deployConfig.title.length})
                 </div>
               </div>
@@ -251,7 +250,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 />
                 {/* 디버깅용 - 현재 값 표시 */}
                 <div className="text-xs text-gray-500 mt-1">
-                  현재 값: "{deployConfig.description}" (길이:{' '}
+                  현재 값: &quot;{deployConfig.description}&quot; (길이:{' '}
                   {deployConfig.description.length})
                 </div>
               </div>

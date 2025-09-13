@@ -17,7 +17,7 @@ export interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({
-  onTryClick,
+  // onTryClick,
   onLoginClick,
   isLoggedIn = false,
   user = null,
