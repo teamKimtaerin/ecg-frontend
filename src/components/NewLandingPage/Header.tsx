@@ -10,7 +10,6 @@ import DeployModal from '@/components/ui/DeployModal'
 import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
 
-
 export interface HeaderProps {
   onTryClick?: () => void
   onLoginClick?: () => void
