@@ -288,7 +288,15 @@ export const MotionTextPreview = React.forwardRef<
           updateTimerRef.current = null
         }
       }
-    }, [manifest, parameters, position, size, rotationDeg, isDragging, updateScenario]) // Include updateScenario dependency
+    }, [
+      manifest,
+      parameters,
+      position,
+      size,
+      rotationDeg,
+      isDragging,
+      updateScenario,
+    ]) // Include updateScenario dependency
 
     /**
      * 텍스트 변경은 별도로 더 긴 디바운스 적용 (드래그 중이 아닐 때만)

@@ -40,14 +40,7 @@ const MovableAnimatedText = forwardRef<
   MovableAnimatedTextProps
 >(
   (
-    {
-      text,
-      isSelected,
-      isVisible,
-      videoContainerRef,
-      onUpdate,
-      onSelect,
-    },
+    { text, isSelected, isVisible, videoContainerRef, onUpdate, onSelect },
     ref
   ) => {
     const textRef = useRef<HTMLDivElement>(null)
@@ -431,7 +424,6 @@ const MovableAnimatedText = forwardRef<
     if (!isVisible) {
       return null
     }
-
 
     return (
       <>
