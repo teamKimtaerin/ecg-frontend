@@ -43,29 +43,16 @@ async function loadRangeAudioData(
   endTime: number,
   displayWords: Word[]
 ) {
-// Load and process audio data from real.json for a specific time range
-async function loadRangeAudioData(
-  startTime: number,
-  endTime: number,
-  displayWords: Word[]
-) {
   try {
     const response = await fetch('/real.json')
     const data = await response.json()
 
     // Extract volume data for the time range
-    // Extract volume data for the time range
     const volumeData: number[] = []
     const sampleRate = 100 // Simulated sample rate (samples per second)
     const duration = endTime - startTime
     const totalSamples = Math.max(100, Math.ceil(duration * sampleRate))
-    const duration = endTime - startTime
-    const totalSamples = Math.max(100, Math.ceil(duration * sampleRate))
 
-    for (let i = 0; i < totalSamples; i++) {
-      const currentTime = startTime + (i / totalSamples) * duration
-
-      // Find the word that contains this time point
     for (let i = 0; i < totalSamples; i++) {
       const currentTime = startTime + (i / totalSamples) * duration
 
@@ -73,21 +60,6 @@ async function loadRangeAudioData(
       let currentVolume = -20 // Default volume
       let currentPitch = 440 // Default pitch for variation
 
-      const containingWord = displayWords.find(
-        (word) => currentTime >= word.start && currentTime <= word.end
-      )
-
-      if (containingWord) {
-        // Find volume data from segments
-        for (const segment of data.segments) {
-          const wordData = segment.words?.find(
-            (w: { word: string; start: number }) =>
-              w.word === containingWord.text &&
-              Math.abs(w.start - containingWord.start) < 0.1
-          )
-          if (wordData && wordData.volume_db !== undefined) {
-            currentVolume = wordData.volume_db
-            currentPitch = wordData.pitch_hz || 440
       const containingWord = displayWords.find(
         (word) => currentTime >= word.start && currentTime <= word.end
       )
@@ -114,14 +86,7 @@ async function loadRangeAudioData(
         Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
         Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
         Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
-      // Add natural variation based on frequency and time
-      const timeOffset = currentTime * 2 * Math.PI
-      const naturalVariation =
-        Math.sin((timeOffset * currentPitch) / 1000) * 0.3 + // Primary frequency component
-        Math.sin((timeOffset * currentPitch) / 500) * 0.2 + // Harmonic
-        Math.sin(timeOffset * 0.5) * 0.1 // Low frequency modulation
 
-      volumeData.push(currentVolume + naturalVariation)
       volumeData.push(currentVolume + naturalVariation)
     }
 
@@ -140,7 +105,6 @@ async function loadRangeAudioData(
   } catch (error) {
     console.error('Failed to load audio data:', error)
     // Generate fallback waveform data with smooth transitions
-    const totalSamples = Math.max(100, Math.ceil((endTime - startTime) * 50))
     const totalSamples = Math.max(100, Math.ceil((endTime - startTime) * 50))
     const fallbackData = Array.from({ length: totalSamples }, (_, i) => {
       const t = i / totalSamples
@@ -183,17 +147,6 @@ export default function ExpandedClipWaveform({
   const focusedWord = words.find(
     (w) => w.id === (focusedWordId || expandedWordId)
   )
-
-  // Get current adjustments or default values (unused for now but kept for future use)
-  // const timingAdjustment = focusedWord && wordTimingAdjustments.get(focusedWord.id) || {
-  //   start: focusedWord?.start || 0,
-  //   end: focusedWord?.end || 0,
-  // }
-
-  // const animationIntensity = focusedWord && wordAnimationIntensity.get(focusedWord.id) || {
-  //   min: 0.3,
-  //   max: 0.7,
-  // }
 
   // Local state for dragging - track for each word
   const [draggedWordId, setDraggedWordId] = useState<string | null>(null)
@@ -264,10 +217,8 @@ export default function ExpandedClipWaveform({
   // Load audio data for the focused range
   useEffect(() => {
     loadRangeAudioData(rangeStart, rangeEnd, displayWords).then((data) => {
-    loadRangeAudioData(rangeStart, rangeEnd, displayWords).then((data) => {
       setPeaks(data)
     })
-  }, [rangeStart, rangeEnd, displayWords])
   }, [rangeStart, rangeEnd, displayWords])
 
   // Initialize WaveSurfer
@@ -290,7 +241,6 @@ export default function ExpandedClipWaveform({
 
     // Load peaks data - WaveSurfer expects array of arrays for stereo
     ws.load('', [peaks], rangeDuration)
-    ws.load('', [peaks], rangeDuration)
 
     wavesurferRef.current = ws
 
@@ -298,7 +248,6 @@ export default function ExpandedClipWaveform({
     return () => {
       ws.destroy()
     }
-  }, [peaks, rangeDuration])
   }, [peaks, rangeDuration])
 
   // Handle play/pause with video player sync
@@ -326,16 +275,12 @@ export default function ExpandedClipWaveform({
   ])
 
   // Calculate bar positions (0-1 scale) relative to focused range
-  // Calculate bar positions (0-1 scale) relative to focused range
   const getBarPosition = useCallback(
     (time: number) => {
       if (rangeDuration === 0) return 0
       const position = (time - rangeStart) / rangeDuration
-      if (rangeDuration === 0) return 0
-      const position = (time - rangeStart) / rangeDuration
       return Math.max(0, Math.min(1, position))
     },
-    [rangeStart, rangeDuration]
     [rangeStart, rangeDuration]
   )
 
@@ -360,7 +305,6 @@ export default function ExpandedClipWaveform({
       const rect = waveformRef.current!.getBoundingClientRect()
       const x = e.clientX - rect.left
       const position = Math.max(0, Math.min(1, x / rect.width))
-      const time = rangeStart + position * rangeDuration
       const time = rangeStart + position * rangeDuration
 
       const word = words.find((w) => w.id === draggedWordId)
@@ -463,16 +407,12 @@ export default function ExpandedClipWaveform({
     rangeStart,
     rangeDuration,
     rangeEnd,
-    rangeStart,
-    rangeDuration,
-    rangeEnd,
     wordTimingAdjustments,
     wordAnimationIntensity,
     wordAnimationTracks,
     updateWordTiming,
     updateAnimationIntensity,
     updateAnimationTrackTiming,
-    updateAnimationTrackIntensity,
     setHasUnsavedChanges,
   ])
 
@@ -538,8 +478,6 @@ export default function ExpandedClipWaveform({
 
         {/* Word boundaries - vertical lines for each word in focused range */}
         {displayWords.map((word) => {
-        {/* Word boundaries - vertical lines for each word in focused range */}
-        {displayWords.map((word) => {
           const startPos = getBarPosition(word.start)
           const isSelected = word.id === focusedWord?.id
 
@@ -579,11 +517,6 @@ export default function ExpandedClipWaveform({
               start: focusedWord.start,
               end: focusedWord.end,
             }
-            // Intensity is not used in current implementation
-            // const intensity = wordAnimationIntensity.get(focusedWord.id) || {
-            //   min: 0.3,
-            //   max: 0.7,
-            // }
 
             const timingStartPos = getBarPosition(timing.start)
             const timingEndPos = getBarPosition(timing.end)
@@ -620,7 +553,6 @@ export default function ExpandedClipWaveform({
                 ></div>
 
                 {/* Animation Track Rectangles - Multiple tracks per word (max 3) */}
-                {/* Animation Track Rectangles - Multiple tracks per word (max 3) */}
                 {(() => {
                   const tracks = wordAnimationTracks.get(focusedWord.id) || []
                   const trackColors = {
@@ -629,20 +561,17 @@ export default function ExpandedClipWaveform({
                       hover: 'bg-blue-400',
                       label: 'bg-blue-600',
                       text: 'text-white',
-                      text: 'text-white',
                     },
                     green: {
                       base: 'bg-green-500',
                       hover: 'bg-green-400',
                       label: 'bg-green-600',
                       text: 'text-white',
-                      text: 'text-white',
                     },
                     purple: {
                       base: 'bg-purple-500',
                       hover: 'bg-purple-400',
                       label: 'bg-purple-600',
-                      text: 'text-white',
                       text: 'text-white',
                     },
                   }
@@ -653,25 +582,15 @@ export default function ExpandedClipWaveform({
                     const startPos = getBarPosition(track.timing.start)
                     const endPos = getBarPosition(track.timing.end)
                     const width = (endPos - startPos) * 100
-                    const topOffset = 50 + trackIndex * 15 // Position below red line with more space
-                    const startPos = getBarPosition(track.timing.start)
-                    const endPos = getBarPosition(track.timing.end)
-                    const width = (endPos - startPos) * 100
 
                     return (
                       <React.Fragment
                         key={`${focusedWord.id}-${track.assetId}`}
                       >
                         {/* Track timing rectangle with draggable borders and moveable center */}
-                        {/* Track timing rectangle with draggable borders and moveable center */}
                         <div
                           className={`absolute transition-colors z-30 ${colors.base} hover:${colors.hover} border border-gray-300 rounded-md shadow-lg overflow-hidden group`}
-                          className={`absolute transition-colors z-30 ${colors.base} hover:${colors.hover} border border-gray-300 rounded-md shadow-lg overflow-hidden group`}
                           style={{
-                            left: `${startPos * 100}%`,
-                            width: `${width}%`,
-                            top: `${topOffset}%`,
-                            height: '25px',
                             left: `${startPos * 100}%`,
                             width: `${width}%`,
                             top: `${topOffset}%`,
