@@ -23,12 +23,18 @@ const FONT_FAMILIES = [
   'Comic Sans MS, cursive',
 ]
 
-const ANIMATION_TYPES = [
-  { value: 'none', label: '없음' },
-  { value: 'fadeIn', label: '페이드 인' },
-  { value: 'slideUp', label: '슬라이드 업' },
-  { value: 'typewriter', label: '타이프라이터' },
-  { value: 'bounce', label: '바운스' },
+const ANIMATION_PLUGINS = [
+  { plugin: 'fadein@1.0.0', label: '페이드 인' },
+  { plugin: 'elastic@1.0.0', label: '탄성 바운스' },
+  { plugin: 'slideup@1.0.0', label: '슬라이드 업' },
+  { plugin: 'typewriter@1.0.0', label: '타이프라이터' },
+  { plugin: 'glitch@1.0.0', label: '글리치' },
+  { plugin: 'glow@1.0.0', label: '글로우' },
+  { plugin: 'rotation@1.0.0', label: '회전' },
+  { plugin: 'scalepop@1.0.0', label: '스케일 팝' },
+  { plugin: 'pulse@1.0.0', label: '펄스' },
+  { plugin: 'flames@1.0.0', label: '화염' },
+  { plugin: 'magnetic@1.0.0', label: '자석' },
 ]
 
 export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelProps) {
@@ -40,10 +46,11 @@ export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelP
   // Local state for editing
   const [localStyle, setLocalStyle] = useState<TextStyle>(defaultStyle)
   const [localAnimation, setLocalAnimation] = useState<TextAnimation>({
-    type: 'fadeIn',
-    duration: 0.5,
-    delay: 0,
-    easing: 'ease-out',
+    plugin: 'fadein@1.0.0',
+    parameters: {
+      duration: 1000,
+      easing: 'power2.out',
+    },
   })
   const [localContent, setLocalContent] = useState('')
   const [localStartTime, setLocalStartTime] = useState(0)
@@ -54,10 +61,11 @@ export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelP
     if (selectedText) {
       setLocalStyle(selectedText.style)
       setLocalAnimation(selectedText.animation || {
-        type: 'fadeIn',
-        duration: 0.5,
-        delay: 0,
-        easing: 'ease-out',
+        plugin: 'fadein@1.0.0',
+        parameters: {
+          duration: 1000,
+          easing: 'power2.out',
+        },
       })
       setLocalContent(selectedText.content)
       setLocalStartTime(selectedText.startTime)
@@ -65,10 +73,11 @@ export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelP
     } else {
       setLocalStyle(defaultStyle)
       setLocalAnimation({
-        type: 'fadeIn',
-        duration: 0.5,
-        delay: 0,
-        easing: 'ease-out',
+        plugin: 'fadein@1.0.0',
+        parameters: {
+          duration: 1000,
+          easing: 'power2.out',
+        },
       })
       setLocalContent('')
       setLocalStartTime(0)
@@ -76,18 +85,18 @@ export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelP
     }
   }, [selectedText, defaultStyle])
 
-  // Apply changes to selected text
-  const applyChanges = () => {
-    if (selectedText) {
-      updateText(selectedText.id, {
-        content: localContent,
-        startTime: localStartTime,
-        endTime: localEndTime,
-        style: localStyle,
-        animation: localAnimation,
-      })
-    }
-  }
+  // Apply changes to selected text (unused but kept for future use)
+  // const applyChanges = () => {
+  //   if (selectedText) {
+  //     updateText(selectedText.id, {
+  //       content: localContent,
+  //       startTime: localStartTime,
+  //       endTime: localEndTime,
+  //       style: localStyle,
+  //       animation: localAnimation,
+  //     })
+  //   }
+  // }
 
   // Handle style changes
   const handleStyleChange = (key: keyof TextStyle, value: string | number) => {
@@ -100,14 +109,74 @@ export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelP
     }
   }
 
-  // Handle animation changes
-  const handleAnimationChange = (key: keyof TextAnimation, value: string | number) => {
-    const newAnimation = { ...localAnimation, [key]: value }
+  // Handle animation plugin change
+  const handleAnimationPluginChange = (plugin: string) => {
+    const newAnimation: TextAnimation = {
+      plugin,
+      parameters: getDefaultParametersForPlugin(plugin),
+    }
     setLocalAnimation(newAnimation)
     
     // Auto-apply changes
     if (selectedText) {
       updateText(selectedText.id, { animation: newAnimation })
+    }
+  }
+
+  // Handle animation parameter changes
+  const handleAnimationParameterChange = (key: string, value: unknown) => {
+    const newAnimation = {
+      ...localAnimation,
+      parameters: {
+        ...localAnimation.parameters,
+        [key]: value,
+      },
+    }
+    setLocalAnimation(newAnimation)
+    
+    // Auto-apply changes
+    if (selectedText) {
+      updateText(selectedText.id, { animation: newAnimation })
+    }
+  }
+
+  // Get default parameters for a plugin
+  const getDefaultParametersForPlugin = (plugin: string): Record<string, unknown> => {
+    switch (plugin) {
+      case 'fadein@1.0.0':
+        return {
+          staggerDelay: 0.1,
+          animationDuration: 0.8,
+          startOpacity: 0,
+          scaleStart: 0.9,
+          ease: 'power2.out',
+        }
+      case 'elastic@1.0.0':
+        return {
+          bounceStrength: 0.7,
+          animationDuration: 1.5,
+          staggerDelay: 0.1,
+          startScale: 0,
+          overshoot: 1.3,
+        }
+      case 'slideup@1.0.0':
+        return {
+          distance: 50,
+          duration: 1.0,
+          staggerDelay: 0.05,
+          ease: 'power2.out',
+        }
+      case 'typewriter@1.0.0':
+        return {
+          charDelay: 0.05,
+          cursorBlink: true,
+          cursorDuration: 0.5,
+        }
+      default:
+        return {
+          duration: 1000,
+          easing: 'power2.out',
+        }
     }
   }
 
@@ -331,40 +400,114 @@ export default function TextEditingPanel({ isOpen, onToggle }: TextEditingPanelP
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-900">애니메이션</h4>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  타입
-                </label>
-                <select
-                  value={localAnimation.type}
-                  onChange={(e) => handleAnimationChange('type', e.target.value)}
-                  className="w-full p-2 text-sm border border-gray-300 rounded text-black focus:outline-none focus:ring-1 focus:ring-blue-500"
-                >
-                  {ANIMATION_TYPES.map((anim) => (
-                    <option key={anim.value} value={anim.value}>
-                      {anim.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              {localAnimation.type !== 'none' && (
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                플러그인
+              </label>
+              <select
+                value={localAnimation.plugin}
+                onChange={(e) => handleAnimationPluginChange(e.target.value)}
+                className="w-full p-2 text-sm border border-gray-300 rounded text-black focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                {ANIMATION_PLUGINS.map((anim) => (
+                  <option key={anim.plugin} value={anim.plugin}>
+                    {anim.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Animation Parameters */}
+            {localAnimation.plugin === 'fadein@1.0.0' && (
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    길이: {localAnimation.duration}초
+                    순차 간격: {(localAnimation.parameters.staggerDelay as number)?.toFixed(2)}초
                   </label>
                   <Slider
-                    value={localAnimation.duration}
-                    onChange={(value) => handleAnimationChange('duration', value)}
-                    minValue={0.1}
-                    maxValue={3}
+                    value={localAnimation.parameters.staggerDelay as number}
+                    onChange={(value) => handleAnimationParameterChange('staggerDelay', value)}
+                    minValue={0.02}
+                    maxValue={0.5}
+                    step={0.01}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    페이드 속도: {(localAnimation.parameters.animationDuration as number)?.toFixed(1)}초
+                  </label>
+                  <Slider
+                    value={localAnimation.parameters.animationDuration as number}
+                    onChange={(value) => handleAnimationParameterChange('animationDuration', value)}
+                    minValue={0.2}
+                    maxValue={2}
                     step={0.1}
                     className="w-full"
                   />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {localAnimation.plugin === 'elastic@1.0.0' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    바운스 강도: {(localAnimation.parameters.bounceStrength as number)?.toFixed(1)}
+                  </label>
+                  <Slider
+                    value={localAnimation.parameters.bounceStrength as number}
+                    onChange={(value) => handleAnimationParameterChange('bounceStrength', value)}
+                    minValue={0.1}
+                    maxValue={2}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    애니메이션 속도: {(localAnimation.parameters.animationDuration as number)?.toFixed(1)}초
+                  </label>
+                  <Slider
+                    value={localAnimation.parameters.animationDuration as number}
+                    onChange={(value) => handleAnimationParameterChange('animationDuration', value)}
+                    minValue={0.5}
+                    maxValue={4}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            )}
+
+            {localAnimation.plugin === 'typewriter@1.0.0' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    글자 간격: {(localAnimation.parameters.charDelay as number)?.toFixed(3)}초
+                  </label>
+                  <Slider
+                    value={localAnimation.parameters.charDelay as number}
+                    onChange={(value) => handleAnimationParameterChange('charDelay', value)}
+                    minValue={0.01}
+                    maxValue={0.2}
+                    step={0.005}
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={localAnimation.parameters.cursorBlink as boolean}
+                    onChange={(e) => handleAnimationParameterChange('cursorBlink', e.target.checked)}
+                    className="mr-2"
+                  />
+                  <label className="text-xs font-medium text-gray-700">
+                    커서 깜빡임
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (

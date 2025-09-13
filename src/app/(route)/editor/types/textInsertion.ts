@@ -22,10 +22,8 @@ export interface TextStyle {
 }
 
 export interface TextAnimation {
-  type: 'none' | 'fadeIn' | 'slideUp' | 'typewriter' | 'bounce'
-  duration: number // In seconds
-  delay?: number // In seconds
-  easing?: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear'
+  plugin: string // Plugin name (e.g., 'fadein@1.0.0', 'elastic@1.0.0')
+  parameters: Record<string, unknown> // Plugin-specific parameters
 }
 
 export interface InsertedText {
@@ -109,10 +107,12 @@ export const DEFAULT_TEXT_STYLE: TextStyle = {
 }
 
 export const DEFAULT_TEXT_ANIMATION: TextAnimation = {
-  type: 'fadeIn',
-  duration: 0.5,
-  delay: 0,
-  easing: 'ease-out',
+  plugin: 'fadein@1.0.0',
+  parameters: {
+    duration: 1000,
+    easing: 'easeOutQuad',
+    fadeDirection: 'in',
+  },
 }
 
 // Helper functions
