@@ -275,7 +275,7 @@ export default function ClipSpeaker({
             <div className="flex items-center gap-2 flex-1 min-w-0">
               {/* 화자 색상 원 */}
               <div
-                className="w-3 h-3 rounded-full flex-shrink-0"
+                className="w-3 h-3 rounded-full flex-shrink-0 border border-black"
                 style={{
                   backgroundColor: getSpeakerColor(speaker, speakerColors),
                 }}
@@ -327,7 +327,7 @@ export default function ClipSpeaker({
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         {/* 화자 색상 원 */}
                         <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          className="w-3 h-3 rounded-full flex-shrink-0 border border-black"
                           style={{
                             backgroundColor: getSpeakerColor(s, speakerColors),
                           }}

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { LuEye, LuEyeOff } from 'react-icons/lu'
 import { SignupFormData, SignupFormErrors } from '../types'
 
 interface SignupFormFieldsProps {
@@ -67,9 +68,13 @@ const SignupFormFields: React.FC<SignupFormFieldsProps> = ({
           <button
             type="button"
             onClick={onTogglePassword}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
           >
-            <span className="text-base">⌄</span>
+            {showPassword ? (
+              <LuEye className="w-5 h-5" />
+            ) : (
+              <LuEyeOff className="w-5 h-5" />
+            )}
           </button>
         </div>
         {errors.password && (
@@ -94,9 +99,13 @@ const SignupFormFields: React.FC<SignupFormFieldsProps> = ({
           <button
             type="button"
             onClick={onToggleConfirmPassword}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 rounded-xl flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
           >
-            <span className="text-base">⌄</span>
+            {showConfirmPassword ? (
+              <LuEye className="w-5 h-5" />
+            ) : (
+              <LuEyeOff className="w-5 h-5" />
+            )}
           </button>
         </div>
         {errors.confirmPassword && (

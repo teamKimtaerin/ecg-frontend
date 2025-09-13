@@ -43,12 +43,12 @@ export default function Home() {
 
   const handleQuickStartClick = () => {
     console.log('Quick start button clicked')
-    if (hasAgreedTerms) {
-      // 이미 동의한 사용자는 바로 에디터로 이동
+    if (isLoggedIn) {
+      // 로그인된 사용자는 바로 에디터로 이동
       router.push('/editor')
     } else {
-      // 처음 사용자는 약관 동의 모달 표시
-      setShowWelcomeModal(true)
+      // 로그인되지 않은 사용자는 로그인 페이지로 이동
+      router.push('/auth')
     }
   }
 

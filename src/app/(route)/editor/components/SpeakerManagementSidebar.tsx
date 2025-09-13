@@ -160,6 +160,18 @@ export default function SpeakerManagementSidebar({
     }
   }
 
+  // 기본 색상들 (흰색, 검정색, 회색 등)
+  const generateBasicColors = () => {
+    return [
+      { color: '#FFFFFF', name: 'White', isBasic: true },
+      { color: '#000000', name: 'Black', isBasic: true },
+      { color: '#808080', name: 'Gray', isBasic: true },
+      { color: '#C0C0C0', name: 'Silver', isBasic: true },
+      { color: '#A0A0A0', name: 'Dark Gray', isBasic: true },
+      { color: '#404040', name: 'Charcoal', isBasic: true },
+    ]
+  }
+
   // 색상환을 위한 HSV 색상 생성
   const generateColorWheel = () => {
     const colors = []
@@ -175,12 +187,14 @@ export default function SpeakerManagementSidebar({
         name: `Hue ${hue}°`,
         hue,
         angle: i * 30 - 90, // -90도로 조정하여 빨간색이 위에 오도록
+        isBasic: false,
       })
     }
 
     return colors
   }
 
+  const basicColors = generateBasicColors()
   const colorWheelColors = generateColorWheel()
 
   // 색상환 중앙의 원 위치 계산
@@ -202,17 +216,28 @@ export default function SpeakerManagementSidebar({
     }
 
     // 다른 화자가 이미 이 색상을 사용 중인지 확인
-    const isColorInUse = Object.entries(speakerColors).some(
+    const otherSpeakerWithColor = Object.entries(speakerColors).find(
       ([speaker, color]) =>
         speaker !== selectedColorSpeaker && color === colorHex
     )
 
-    if (isColorInUse) {
-      alert('이미 다른 화자가 사용 중인 색상입니다.')
-      return
+    if (otherSpeakerWithColor) {
+      const [otherSpeaker] = otherSpeakerWithColor
+      const currentSpeakerColor = speakerColors[selectedColorSpeaker]
+      
+      // 색상 교환 확인 다이얼로그
+      const confirmMessage = `${otherSpeaker}가 이미 이 색상을 사용 중입니다.\n${selectedColorSpeaker}와 ${otherSpeaker}의 색상을 교환하시겠습니까?`
+      
+      if (confirm(confirmMessage)) {
+        // 두 화자의 색상을 교환
+        onSpeakerColorChange(selectedColorSpeaker, colorHex)
+        onSpeakerColorChange(otherSpeaker, currentSpeakerColor)
+      }
+    } else {
+      // 사용 중이지 않은 색상은 바로 적용
+      onSpeakerColorChange(selectedColorSpeaker, colorHex)
     }
 
-    onSpeakerColorChange(selectedColorSpeaker, colorHex)
     setSelectedColorSpeaker(null)
   }
 
@@ -340,7 +365,7 @@ export default function SpeakerManagementSidebar({
             >
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <div
-                  className="w-4 h-4 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300"
+                  className="w-4 h-4 rounded-full flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 border border-black"
                   style={{
                     backgroundColor: getSpeakerColor(speaker, speakerColors),
                   }}
@@ -432,32 +457,92 @@ export default function SpeakerManagementSidebar({
               </button>
             </div>
 
-            {/* 색상환 */}
+            {/* 색상 선택 섹션 */}
             <div className="flex flex-col items-center">
-              <div className="relative w-32 h-32 mb-3">
-                {/* 색상환 배경 그라디언트 */}
-                <div
-                  className="absolute inset-2 rounded-full"
-                  style={{
-                    background: `conic-gradient(
-                      hsl(0, 80%, 90%),
-                      hsl(30, 80%, 90%), 
-                      hsl(60, 80%, 90%),
-                      hsl(90, 80%, 90%),
-                      hsl(120, 80%, 90%),
-                      hsl(150, 80%, 90%),
-                      hsl(180, 80%, 90%),
-                      hsl(210, 80%, 90%),
-                      hsl(240, 80%, 90%),
-                      hsl(270, 80%, 90%),
-                      hsl(300, 80%, 90%),
-                      hsl(330, 80%, 90%),
-                      hsl(360, 80%, 90%)
-                    )`,
-                  }}
-                />
+              {/* 기본 색상들 */}
+              <div className="mb-4">
+                <p className="text-xs text-gray-600 text-center mb-2">기본 색상</p>
+                <div className="flex justify-center gap-2">
+                  {basicColors.map((colorData, index) => {
+                    const isCurrentSpeakerColor =
+                      speakerColors[selectedColorSpeaker] === colorData.color
+                    const isUsedByOtherSpeaker = Object.entries(
+                      speakerColors
+                    ).some(
+                      ([speaker, color]) =>
+                        speaker !== selectedColorSpeaker &&
+                        color === colorData.color
+                    )
 
-                {/* 색상 점들 */}
+                    return (
+                      <div
+                        key={`basic-${colorData.color}-${index}`}
+                        className={`relative w-6 h-6 rounded-full border-2 transition-all shadow-md cursor-pointer hover:shadow-lg hover:scale-110 ${
+                          isCurrentSpeakerColor
+                            ? 'border-blue-500 ring-2 ring-blue-300 scale-110'
+                            : isUsedByOtherSpeaker
+                              ? 'border-black border-2 opacity-80 hover:opacity-100'
+                              : colorData.color === '#FFFFFF'
+                                ? 'border-gray-300 hover:border-gray-400'
+                                : 'border-gray-500 hover:border-gray-600'
+                        }`}
+                        style={{
+                          backgroundColor: colorData.color,
+                        }}
+                        onClick={() => handleColorSelect(colorData.color)}
+                        title={`${colorData.name}\nHex: ${colorData.color}${
+                          isCurrentSpeakerColor
+                            ? '\n✓ 현재 선택된 색상'
+                            : isUsedByOtherSpeaker
+                              ? '\n🔄 다른 화자가 사용 중 (클릭하여 색상 교환)'
+                              : '\n클릭하여 선택'
+                        }`}
+                      >
+                        {/* 사용 중인 기본 색상에 교환 아이콘 표시 */}
+                        {isUsedByOtherSpeaker && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <svg
+                              className={`w-3 h-3 drop-shadow-lg ${colorData.color === '#FFFFFF' ? 'text-black' : 'text-white'}`}
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                        {/* 현재 선택된 기본 색상에 체크 표시 */}
+                        {isCurrentSpeakerColor && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <svg
+                              className="w-4 h-4 text-white drop-shadow-lg filter brightness-150"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* 색상환 */}
+              <div className="relative w-32 h-32 mb-3" style={{ marginTop: '3px' }}>
+                <p className="text-xs text-gray-600 text-center mb-2" style={{ marginTop: '-7px' }}>색상환</p>
+                {/* 색상환 배경 그라디언트 */}
+                
+
+                {/* 색상환의 색상 점들 */}
                 {colorWheelColors.map((colorData, index) => {
                   const radius = 50 // 색상환 반지름 (작은 사이즈)
                   const position = getColorPosition(colorData.angle, radius)
@@ -472,45 +557,43 @@ export default function SpeakerManagementSidebar({
                       speaker !== selectedColorSpeaker &&
                       color === colorData.color
                   )
+          
 
                   return (
                     <div
                       key={`${colorData.color}-${index}`}
-                      className={`absolute w-4 h-4 rounded-full cursor-pointer border transition-all shadow-md hover:shadow-lg hover:scale-110 ${
+                      className={`absolute w-4 h-4 rounded-full border transition-all shadow-md cursor-pointer hover:shadow-lg hover:scale-110 ${
                         isCurrentSpeakerColor
                           ? 'border-white ring-2 ring-blue-500 scale-125'
                           : isUsedByOtherSpeaker
-                            ? 'border-white opacity-50 cursor-not-allowed'
+                            ? 'border-black border-2 opacity-80 hover:opacity-100'
                             : 'border-white hover:border-gray-200'
                       }`}
                       style={{
                         backgroundColor: colorData.color,
                         left: `calc(50% + ${position.x}px - 8px)`,
-                        top: `calc(50% + ${position.y}px - 8px)`,
+                        top: `calc(50% + ${position.y}px - 6px)`,
                       }}
-                      onClick={() =>
-                        !isUsedByOtherSpeaker &&
-                        handleColorSelect(colorData.color)
-                      }
+                      onClick={() => handleColorSelect(colorData.color)}
                       title={`${colorData.name}\nHex: ${colorData.color}${
                         isCurrentSpeakerColor
-                          ? '\n(현재 선택됨)'
+                          ? '\n✓ 현재 선택된 색상'
                           : isUsedByOtherSpeaker
-                            ? '\n(사용 중)'
-                            : ''
+                            ? '\n🔄 다른 화자가 사용 중 (클릭하여 색상 교환)'
+                            : '\n클릭하여 선택'
                       }`}
                     >
-                      {/* 사용 중인 색상에 X 표시 */}
+                      {/* 사용 중인 색상에 교환 아이콘 표시 */}
                       {isUsedByOtherSpeaker && (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <svg
-                            className="w-2 h-2 text-white drop-shadow-lg"
+                            className={`w-2 h-2 drop-shadow-lg ${colorData.color === '#FFFFFF' ? 'text-black' : 'text-white'}`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
                             <path
                               fillRule="evenodd"
-                              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                              d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
                               clipRule="evenodd"
                             />
                           </svg>
@@ -537,7 +620,7 @@ export default function SpeakerManagementSidebar({
                 })}
 
                 {/* 중앙 원 */}
-                <div className="absolute inset-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300 flex items-center justify-center">
+                <div className="absolute inset-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300 flex items-center justify-center" style={{ top: '40px', left: '40px', right: '40px', bottom: '40px' }}>
                   <div className="text-xs text-gray-600 text-center font-medium">
                     색상
                   </div>

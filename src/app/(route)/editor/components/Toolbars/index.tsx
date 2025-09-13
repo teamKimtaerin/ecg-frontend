@@ -96,7 +96,7 @@ export default function Toolbars({
     case 'edit':
       return (
         <ToolbarWrapper
-          variant="edit"
+          variant="dark"
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}

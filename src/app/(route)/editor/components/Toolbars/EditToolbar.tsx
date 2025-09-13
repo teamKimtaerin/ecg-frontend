@@ -5,6 +5,7 @@ import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
 import ClipSelectionDropdown from './shared/ClipSelectionDropdown'
 import { ClipItem } from '../../types'
+import { type ToolbarVariant } from '../../constants/colors'
 
 interface EditToolbarProps {
   clips: ClipItem[]
@@ -21,6 +22,7 @@ interface EditToolbarProps {
   onMergeClips: () => void
   onSplitClip?: () => void
   onRestore?: () => void
+  variant?: ToolbarVariant
 }
 
 /**
@@ -42,6 +44,7 @@ export default function EditToolbar({
   onMergeClips,
   onSplitClip,
   onRestore,
+  variant = 'base',
 }: EditToolbarProps) {
   return (
     <>
@@ -71,6 +74,7 @@ export default function EditToolbar({
         onClick={onUndo}
         disabled={!canUndo}
         shortcut="Ctrl+Z"
+        variant={variant}
       />
 
       {/* 다시실행 */}
@@ -89,6 +93,7 @@ export default function EditToolbar({
         onClick={onRedo}
         disabled={!canRedo}
         shortcut="Ctrl+Y"
+        variant={variant}
       />
 
       <ToolbarDivider />
@@ -109,6 +114,7 @@ export default function EditToolbar({
         onClick={onCut}
         shortcut="Ctrl+X"
         disabled={selectedClipIds.size === 0}
+        variant={variant}
       />
 
       {/* 복사하기 */}
@@ -127,6 +133,7 @@ export default function EditToolbar({
         onClick={onCopy}
         shortcut="Ctrl+C"
         disabled={selectedClipIds.size === 0}
+        variant={variant}
       />
 
       {/* 붙여넣기 */}
@@ -144,6 +151,7 @@ export default function EditToolbar({
         label="붙여넣기"
         onClick={onPaste}
         shortcut="Ctrl+V"
+        variant={variant}
       />
 
       <ToolbarDivider />
@@ -164,6 +172,7 @@ export default function EditToolbar({
         onClick={onMergeClips}
         shortcut="Ctrl+E"
         disabled={selectedClipIds.size < 2}
+        variant={variant}
       />
 
       {/* 클립 나누기 */}
@@ -186,6 +195,7 @@ export default function EditToolbar({
         onClick={onSplitClip}
         shortcut="Enter"
         disabled={!activeClipId}
+        variant={variant}
       />
 
       <ToolbarDivider />
@@ -204,6 +214,7 @@ export default function EditToolbar({
         }
         label="원본 복원"
         onClick={onRestore}
+        variant={variant}
       />
     </>
   )
