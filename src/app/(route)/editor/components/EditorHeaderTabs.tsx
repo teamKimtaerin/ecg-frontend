@@ -3,7 +3,7 @@
 import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
 import DocumentModal from '@/components/ui/DocumentModal'
-import UserDropdown from './UserDropdown'
+import UserDropdown from '@/components/ui/UserDropdown'
 import ToolbarToggle from './ToolbarToggle'
 import EditingModeToggle from './EditingModeToggle'
 import { useEditorStore } from '../store'

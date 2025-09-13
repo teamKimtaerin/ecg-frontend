@@ -6,6 +6,7 @@ import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { type User } from '@/lib/api/auth'
 import HoitLogo from '@/components/ui/HoitLogo'
 import DocumentModal from '@/components/ui/DocumentModal'
+import UserDropdown from '@/components/ui/UserDropdown'
 
 export interface HeaderProps {
   onTryClick?: () => void
@@ -22,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({
   user = null,
   isLoading = false,
 }) => {
-  const { logout } = useAuthStatus()
+  const { } = useAuthStatus()
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -166,17 +167,7 @@ const Header: React.FC<HeaderProps> = ({
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-black"></div>
             </div>
           ) : isLoggedIn && user ? (
-            <div className="flex items-center space-x-3">
-              <span className="text-sm font-bold text-black">
-                {user.username}
-              </span>
-              <button
-                onClick={logout}
-                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 hover:text-black transition-colors cursor-pointer"
-              >
-                로그아웃
-              </button>
-            </div>
+            <UserDropdown />
           ) : (
             <button
               onClick={onLoginClick}
