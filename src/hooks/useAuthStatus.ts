@@ -11,11 +11,6 @@ export const useAuthStatus = () => {
     isAuthenticated,
   } = useAuth()
 
-  console.log('Auth status check:', {
-    token: !!token,
-    user: !!user,
-    isAuthenticated,
-  })
 
   const logout = () => {
     authLogout()
