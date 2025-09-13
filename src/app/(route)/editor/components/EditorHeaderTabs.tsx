@@ -3,6 +3,7 @@
 import Tab from '@/components/ui/Tab'
 import TabItem from '@/components/ui/TabItem'
 import DocumentModal from '@/components/ui/DocumentModal'
+import DeployModal from '@/components/ui/DeployModal'
 import UserDropdown from '@/components/ui/UserDropdown'
 import ToolbarToggle from './ToolbarToggle'
 import EditingModeToggle from './EditingModeToggle'
@@ -48,6 +49,10 @@ export default function EditorHeaderTabs({
   // Document modal state
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const documentButtonRef = useRef<HTMLButtonElement>(null)
+  
+  // Deploy modal state
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
+  const [selectedDeployProject, setSelectedDeployProject] = useState<any>(null)
 
   // Mock data for document modal
   const exportTasks = [
@@ -165,7 +170,7 @@ export default function EditorHeaderTabs({
         </div>
 
         {/* Right Side - Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mr-4">
           {/* Save Status Indicator */}
           <div className="flex items-center gap-2 text-xs text-gray-700">
             {saveStatus === 'saving' && (
@@ -198,9 +203,6 @@ export default function EditorHeaderTabs({
             )}
           </div>
 
-          {/* Editing Mode Toggle */}
-          <EditingModeToggle />
-
           {/* Document Modal */}
           <div className="relative">
             <button
@@ -230,8 +232,15 @@ export default function EditorHeaderTabs({
               buttonRef={documentButtonRef}
               exportTasks={exportTasks}
               uploadTasks={uploadTasks}
+              onDeployClick={(task) => {
+                setSelectedDeployProject(task)
+                setIsDeployModalOpen(true)
+              }}
             />
           </div>
+
+          {/* Editing Mode Toggle */}
+          <EditingModeToggle />
 
           {/* Toolbar Toggle */}
           {onToolbarToggle && (
@@ -242,6 +251,20 @@ export default function EditorHeaderTabs({
           )}
         </div>
       </div>
+
+      {/* Deploy Modal - Separate from DocumentModal */}
+      <DeployModal
+        isOpen={isDeployModalOpen}
+        onClose={() => {
+          setIsDeployModalOpen(false)
+          setSelectedDeployProject(null)
+        }}
+        project={selectedDeployProject ? {
+          id: selectedDeployProject.id,
+          filename: selectedDeployProject.filename,
+          title: selectedDeployProject.filename.replace(/\.[^/.]+$/, '')
+        } : null}
+      />
     </div>
   )
 }
