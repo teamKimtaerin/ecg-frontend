@@ -20,35 +20,34 @@ export const createTextInsertionSlice: StateCreator<
   // Initial state
   insertedTexts: [],
   selectedTextId: null,
-  isInsertionMode: false,
-  isEditingText: false,
-  editingTextId: null,
-  isEditingPanelOpen: false,
   defaultStyle: DEFAULT_TEXT_STYLE,
   clipboard: [],
 
-  // Mode management
-  setInsertionMode: (enabled: boolean) => {
+  // Text creation at center
+  addTextAtCenter: (currentTime: number) => {
+    const newText: InsertedText = {
+      id: `text_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      content: '텍스트를 입력하세요',
+      position: { x: 50, y: 50 }, // Center position (50%, 50%)
+      startTime: currentTime,
+      endTime: currentTime + 3, // Default 3 seconds duration
+      style: get().defaultStyle,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      isSelected: true, // Auto-select the new text
+      isEditing: false,
+    }
+
     set((state) => ({
       ...state,
-      isInsertionMode: enabled,
-      selectedTextId: enabled ? state.selectedTextId : null,
+      insertedTexts: [
+        ...state.insertedTexts.map(text => ({ ...text, isSelected: false })), // Deselect others
+        newText // Add new selected text
+      ],
+      selectedTextId: newText.id,
     }))
   },
 
-  setEditingPanelOpen: (open: boolean) => {
-    set((state) => ({
-      ...state,
-      isEditingPanelOpen: open,
-    }))
-  },
-
-  toggleEditingPanel: () => {
-    set((state) => ({
-      ...state,
-      isEditingPanelOpen: !state.isEditingPanelOpen,
-    }))
-  },
 
   // Text CRUD operations
   addText: (textData) => {
@@ -82,7 +81,6 @@ export const createTextInsertionSlice: StateCreator<
       ...state,
       insertedTexts: state.insertedTexts.filter((text) => text.id !== id),
       selectedTextId: state.selectedTextId === id ? null : state.selectedTextId,
-      editingTextId: state.editingTextId === id ? null : state.editingTextId,
     }))
   },
 
@@ -119,7 +117,7 @@ export const createTextInsertionSlice: StateCreator<
     set((state) => ({
       ...state,
       selectedTextId: id,
-      isEditingPanelOpen: id ? true : state.isEditingPanelOpen, // Auto-open panel when text is selected
+      // Don't auto-open panel when text is selected
       insertedTexts: state.insertedTexts.map((text) => ({
         ...text,
         isSelected: text.id === id,
@@ -138,32 +136,6 @@ export const createTextInsertionSlice: StateCreator<
     }))
   },
 
-  // Editing management
-  startEditing: (id: string) => {
-    set((state) => ({
-      ...state,
-      isEditingText: true,
-      editingTextId: id,
-      selectedTextId: id,
-      insertedTexts: state.insertedTexts.map((text) => ({
-        ...text,
-        isEditing: text.id === id,
-        isSelected: text.id === id,
-      })),
-    }))
-  },
-
-  stopEditing: () => {
-    set((state) => ({
-      ...state,
-      isEditingText: false,
-      editingTextId: null,
-      insertedTexts: state.insertedTexts.map((text) => ({
-        ...text,
-        isEditing: false,
-      })),
-    }))
-  },
 
   // Style management
   updateDefaultStyle: (style: Partial<TextStyle>) => {

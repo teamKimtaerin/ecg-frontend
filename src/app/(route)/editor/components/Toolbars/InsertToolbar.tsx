@@ -16,16 +16,16 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
   const { 
     isAssetSidebarOpen, 
     setIsAssetSidebarOpen,
-    isInsertionMode,
-    setInsertionMode
+    addTextAtCenter,
+    currentTime
   } = useEditorStore()
 
   const handleToggleAssetSidebar = () => {
     setIsAssetSidebarOpen(!isAssetSidebarOpen)
   }
 
-  const handleToggleTextInsertion = () => {
-    setInsertionMode(!isInsertionMode)
+  const handleAddTextAtCenter = () => {
+    addTextAtCenter(currentTime)
   }
 
   const handleShapesClick = () => {
@@ -44,8 +44,8 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
         icon={<IoText />}
         label="텍스트 삽입"
         shortcut="Alt+T"
-        active={isInsertionMode}
-        onClick={handleToggleTextInsertion}
+        active={false}
+        onClick={handleAddTextAtCenter}
       />
 
       <ToolbarButton

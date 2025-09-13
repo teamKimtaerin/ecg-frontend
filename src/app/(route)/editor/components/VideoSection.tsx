@@ -5,9 +5,7 @@ import type { RendererConfig } from '@/app/shared/motiontext'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
-import TextInputModal from './TextInsertion/TextInputModal'
-import TextEditingPanel from './TextInsertion/TextEditingPanel'
-import { useEditorStore } from '../store'
+import TextEditInput from './TextInsertion/TextEditInput'
 // import ScenarioJsonEditor from './ScenarioJsonEditor' // TODO: Re-enable when needed
 
 interface VideoSectionProps {
@@ -16,12 +14,6 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
-  
-  // Text insertion store
-  const { 
-    isEditingPanelOpen, 
-    toggleEditingPanel 
-  } = useEditorStore()
   
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
@@ -32,8 +24,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
   // Text insertion state
   const [currentTime, setCurrentTime] = useState(0)
-  const [isTextModalOpen, setIsTextModalOpen] = useState(false)
-  const [editingTextId, setEditingTextId] = useState<string | null>(null)
 
   const handleScenarioUpdate = useCallback((scenario: RendererConfig) => {
     setCurrentScenario(scenario)
@@ -52,27 +42,15 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
 
   // Handle text click for selection
-  const handleTextClick = useCallback((_textId: string) => {
+  const handleTextClick = useCallback((textId: string) => {
+    console.log('📱 VideoSection handleTextClick:', textId)
     // Text selection is handled by the TextInsertionOverlay component
   }, [])
 
-  // Handle text double-click for editing
+  // Handle text double-click (disabled)
   const handleTextDoubleClick = useCallback((textId: string) => {
-    setEditingTextId(textId)
-    setIsTextModalOpen(true)
-  }, [])
-
-  // Handle modal close
-  const handleModalClose = useCallback(() => {
-    setIsTextModalOpen(false)
-    setEditingTextId(null)
-  }, [])
-
-  // Handle modal save
-  const handleModalSave = useCallback(() => {
-    // Save is handled within the modal component
-    setIsTextModalOpen(false)
-    setEditingTextId(null)
+    console.log('📱 VideoSection handleTextDoubleClick:', textId)
+    // Double click functionality disabled
   }, [])
 
   return (
@@ -107,21 +85,10 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
             onTextDoubleClick={handleTextDoubleClick}
           />
         </div>
+
+        {/* Text Edit Input Panel */}
+        <TextEditInput />
       </div>
-
-      {/* Text Editing Panel */}
-      <TextEditingPanel 
-        isOpen={isEditingPanelOpen}
-        onToggle={toggleEditingPanel}
-      />
-
-      {/* Text Input Modal */}
-      <TextInputModal
-        isOpen={isTextModalOpen}
-        textId={editingTextId}
-        onClose={handleModalClose}
-        onSave={handleModalSave}
-      />
     </div>
   )
 }

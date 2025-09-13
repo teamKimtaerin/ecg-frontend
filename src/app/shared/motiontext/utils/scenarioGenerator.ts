@@ -203,6 +203,7 @@ export function generateLoopedScenario(
   settings: PreviewSettings,
   duration: number = 3
 ): RendererConfig {
+  // Convert top-left position to center position for group layout
   const centerX = settings.position.x + settings.size.width / 2
   const centerY = settings.position.y + settings.size.height / 2
   const normalizedX = Math.max(0, Math.min(1, centerX / 640))

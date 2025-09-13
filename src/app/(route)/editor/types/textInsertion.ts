@@ -43,22 +43,14 @@ export interface InsertedText {
 export interface TextInsertionState {
   insertedTexts: InsertedText[]
   selectedTextId: string | null
-  isInsertionMode: boolean
-  isEditingText: boolean
-  editingTextId: string | null
-  isEditingPanelOpen: boolean
   defaultStyle: TextStyle
   clipboard: InsertedText[]
 }
 
 export interface TextInsertionActions {
-  // Mode management
-  setInsertionMode: (enabled: boolean) => void
-  setEditingPanelOpen: (open: boolean) => void
-  toggleEditingPanel: () => void
-  
   // Text CRUD operations
   addText: (text: Omit<InsertedText, 'id' | 'createdAt' | 'updatedAt'>) => void
+  addTextAtCenter: (currentTime: number) => void
   updateText: (id: string, updates: Partial<InsertedText>) => void
   deleteText: (id: string) => void
   duplicateText: (id: string) => void
@@ -66,10 +58,6 @@ export interface TextInsertionActions {
   // Selection management
   selectText: (id: string | null) => void
   clearSelection: () => void
-  
-  // Editing management
-  startEditing: (id: string) => void
-  stopEditing: () => void
   
   // Style management
   updateDefaultStyle: (style: Partial<TextStyle>) => void

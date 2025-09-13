@@ -60,6 +60,7 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
     loop: true,
   })
 
+
   /**
    * Load plugin manifest
    */
@@ -100,9 +101,10 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
         validateAndNormalizeParams(text.animation.parameters, manifest) :
         getDefaultParameters(manifest)
 
+      // Use top-left position directly (same as Moveable target positioning)
       const settings: PreviewSettings = {
         text: text.content,
-        position,
+        position: { x: position.x, y: position.y },
         size,
         pluginParams: validatedParams,
         rotationDeg,
@@ -252,7 +254,7 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
     setIsDragging(false)
     setShowSimpleText(false)
 
-    // Convert position back to percentage for store update
+    // Convert top-left position back to percentage for store update (using center point for consistency)
     if (videoContainerRef.current) {
       const container = videoContainerRef.current
       const rect = container.getBoundingClientRect()
@@ -284,8 +286,13 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
     const rect = container.getBoundingClientRect()
     
     // Convert percentage position to pixel position
-    const pixelX = (text.position.x / 100) * rect.width
-    const pixelY = (text.position.y / 100) * rect.height
+    // Note: text.position represents the center point, so we need to subtract half the size
+    const centerPixelX = (text.position.x / 100) * rect.width
+    const centerPixelY = (text.position.y / 100) * rect.height
+    
+    // Calculate top-left position by subtracting half of the text box size
+    const pixelX = centerPixelX - size.width / 2
+    const pixelY = centerPixelY - size.height / 2
     
     setPosition({ x: pixelX, y: pixelY })
     stageSizeRef.current = { width: rect.width, height: rect.height }
@@ -294,7 +301,16 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
     if (!hasScaledFromInitialRef.current) {
       const scaleX = rect.width / 640
       const scaleY = rect.height / 360
-      setSize((s) => ({ width: s.width * scaleX, height: s.height * scaleY }))
+      const newSize = { width: size.width * scaleX, height: size.height * scaleY }
+      setSize(newSize)
+      
+      // Recalculate position with new size to ensure proper centering
+      const centerPixelX = (text.position.x / 100) * rect.width
+      const centerPixelY = (text.position.y / 100) * rect.height
+      const adjustedPixelX = centerPixelX - newSize.width / 2
+      const adjustedPixelY = centerPixelY - newSize.height / 2
+      setPosition({ x: adjustedPixelX, y: adjustedPixelY })
+      
       hasScaledFromInitialRef.current = true
     }
 
@@ -329,41 +345,68 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
   }, [text.position, videoContainerRef])
 
   const handleClick = useCallback((e: React.MouseEvent) => {
+    console.log('🎯 TEXT BOX CLICKED:', {
+      textId: text.id,
+      textContent: text.content,
+      isSelected,
+      isDragging,
+      target: e.target,
+      currentTarget: e.currentTarget
+    })
+    
+    e.preventDefault()
     e.stopPropagation()
+    
+    console.log('✅ Selecting text:', text.content)
     onSelect()
-  }, [onSelect])
+  }, [isSelected, isDragging, onSelect, text.id, text.content])
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
     e.stopPropagation()
-    onDoubleClick()
-  }, [onDoubleClick])
+    // Disable double click functionality
+  }, [])
+
 
   if (!isVisible) {
     return null
   }
+
+
+  // Force Moveable to update when selection changes
+  useEffect(() => {
+    if (isSelected && textRef.current) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        // Force rerender by triggering a state update
+        setSize(prev => ({ ...prev }))
+      }, 10)
+      return () => clearTimeout(timer)
+    }
+  }, [isSelected])
 
   return (
     <>
       {/* Motion Text Renderer container - hidden during drag */}
       <div
         ref={motionContainerRef}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute pointer-events-none"
         style={{
-          visibility: isDragging ? 'hidden' : 'visible',
-          transform: `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotationDeg}deg)`,
-          transformOrigin: 'center center',
-          width: `${size.width}px`,
-          height: `${size.height}px`,
+          visibility: isDragging || !manifest ? 'hidden' : 'visible',
+          left: 0,
+          top: 0,
+          width: '100%',
+          height: '100%',
         }}
       />
 
-      {/* Simple text during drag for performance */}
-      {showSimpleText && (
+      {/* Simple text - always visible for clicking, hidden only when MotionText is active */}
+      {(showSimpleText || isDragging || !manifest) && (
         <div
-          className="absolute flex items-center justify-center text-white font-sans"
+          className="absolute flex items-center justify-center text-white font-sans cursor-pointer"
           style={{
-            left: 0,
-            top: 0,
+            left: `${position.x}px`,
+            top: `${position.y}px`,
             width: `${size.width}px`,
             height: `${size.height}px`,
             fontSize: `${(() => {
@@ -374,9 +417,9 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
               )
               return fontSizeRel * stageSizeRef.current.height
             })()}px`,
-            transform: `translate3d(${position.x}px, ${position.y}px, 0) rotate(${rotationDeg}deg)`,
+            transform: `rotate(${rotationDeg}deg)`,
             transformOrigin: 'center center',
-            pointerEvents: 'none',
+            pointerEvents: 'auto', // Always allow clicks
             zIndex: 10,
             willChange: 'transform',
             textAlign: 'center',
@@ -389,37 +432,36 @@ const MovableAnimatedText = forwardRef<MovableAnimatedTextRef, MovableAnimatedTe
         </div>
       )}
 
-      {/* Draggable text box (editing controls - shown when selected) */}
-      {isSelected && (
-        <div
-          ref={textRef}
-          className={`absolute border-2 border-dashed cursor-move bg-blue-500/10 backdrop-blur-sm ${
-            !isInteracting && 'animate-pulse'
-          }`}
-          style={{
-            left: `${position.x}px`,
-            top: `${position.y}px`,
-            width: `${size.width}px`,
-            height: `${size.height}px`,
-            transform: `rotate(${rotationDeg}deg)`,
-            transformOrigin: 'center center',
-            borderColor: '#3b82f6',
-          }}
-          onClick={handleClick}
-          onDoubleClick={handleDoubleClick}
-        >
-          {/* Position indicator during interaction */}
-          {isInteracting && (
-            <div className="absolute -top-6 left-0 text-xs text-blue-400 bg-gray-900/90 px-2 py-1 rounded">
-              {Math.round(position.x)}, {Math.round(position.y)} •{' '}
-              {Math.round(size.width)}×{Math.round(size.height)} •{' '}
-              {Math.round(rotationDeg)}°
-            </div>
-          )}
-        </div>
-      )}
+      {/* Invisible moveable target - positioned exactly like MotionText */}
+      <div
+        ref={textRef}
+        className="absolute pointer-events-auto"
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          width: `${size.width}px`,
+          height: `${size.height}px`,
+          transform: `rotate(${rotationDeg}deg)`,
+          transformOrigin: 'center center',
+          backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+          border: isSelected ? (isDragging ? '2px dashed rgba(59, 130, 246, 0.8)' : '1px solid rgba(59, 130, 246, 0.5)') : 'none',
+          zIndex: 30,
+          // Always visible for clicking, but only show visual feedback when selected
+        }}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+      >
+        {/* Position indicator during interaction */}
+        {isInteracting && (
+          <div className="absolute -top-6 left-0 text-xs text-blue-400 bg-gray-900/90 px-2 py-1 rounded whitespace-nowrap">
+            {Math.round(position.x)}, {Math.round(position.y)} •{' '}
+            {Math.round(size.width)}×{Math.round(size.height)} •{' '}
+            {Math.round(rotationDeg)}°
+          </div>
+        )}
+      </div>
 
-      {/* React Moveable component */}
+      {/* React Moveable component - perfectly aligned with MotionText */}
       {isSelected && textRef.current && (
         <Moveable
           target={textRef.current}

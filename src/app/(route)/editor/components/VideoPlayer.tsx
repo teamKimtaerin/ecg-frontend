@@ -78,7 +78,15 @@ export default function VideoPlayer({
   }, [onLoadedMetadata, clips])
 
   // Play/Pause toggle with debounce to prevent rapid clicks
-  const togglePlayPause = useCallback(async () => {
+  const togglePlayPause = useCallback(async (e?: React.MouseEvent) => {
+    console.log('🎥 VIDEO PLAYER CLICKED:', {
+      isPlaying,
+      isToggling,
+      event: e ? 'mouse_click' : 'keyboard_shortcut',
+      target: e?.target,
+      currentTarget: e?.currentTarget
+    })
+    
     if (!videoRef.current || isToggling) return
 
     setIsToggling(true)
@@ -239,7 +247,7 @@ export default function VideoPlayer({
         ref={videoRef}
         src={videoUrl}
         className="w-full h-full object-contain cursor-pointer"
-        onClick={togglePlayPause}
+        onClick={(e) => togglePlayPause(e)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}

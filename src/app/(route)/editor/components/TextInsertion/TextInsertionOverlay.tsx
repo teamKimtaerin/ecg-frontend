@@ -23,55 +23,33 @@ export default function TextInsertionOverlay({
 
   // Get text insertion state from store
   const {
-    isInsertionMode,
     selectedTextId,
-    addText,
     selectText,
     updateText,
     getActiveTexts,
-    defaultStyle,
   } = useEditorStore()
 
   // Get currently active texts
   const activeTexts = getActiveTexts(currentTime)
 
-  // Handle video container click for new text insertion
-  const handleContainerClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      // Only handle clicks in insertion mode
-      if (!isInsertionMode) return
-
-      // Don't create text if clicking on existing text
-      if ((e.target as HTMLElement).closest('[data-text-id]')) {
-        return
-      }
-
-      const container = videoContainerRef.current
-      if (!container) return
-
-      const rect = container.getBoundingClientRect()
-      const x = ((e.clientX - rect.left) / rect.width) * 100
-      const y = ((e.clientY - rect.top) / rect.height) * 100
-
-      // Create new text at click position
-      const newTextData = {
-        content: '텍스트를 입력하세요',
-        position: { x, y },
-        startTime: currentTime,
-        endTime: currentTime + 3, // Default 3 seconds duration
-        style: defaultStyle,
-      }
-
-      addText(newTextData)
-    },
-    [
-      isInsertionMode,
-      videoContainerRef,
-      currentTime,
-      addText,
-      defaultStyle,
-    ]
-  )
+  // Handle video container click (no longer used for text insertion)
+  const handleContainerClick = useCallback((e: React.MouseEvent) => {
+    console.log('🎬 VIDEO CONTAINER CLICKED:', {
+      target: e.target,
+      currentTarget: e.currentTarget,
+      isDirectClick: e.target === e.currentTarget,
+      targetTagName: (e.target as HTMLElement).tagName,
+      targetClassName: (e.target as HTMLElement).className
+    })
+    
+    // Only handle clicks on the container itself, not on child elements
+    if (e.target === e.currentTarget) {
+      console.log('🔄 Clearing text selection (clicked on empty area)')
+      selectText(null)
+    } else {
+      console.log('👆 Click on child element, ignoring')
+    }
+  }, [selectText])
 
   // Handle text selection
   const handleTextSelect = useCallback(
@@ -106,9 +84,7 @@ export default function TextInsertionOverlay({
   return createPortal(
     <div
       ref={overlayRef}
-      className={`absolute inset-0 pointer-events-auto ${
-        isInsertionMode ? 'cursor-crosshair' : 'cursor-default'
-      }`}
+      className="absolute inset-0 pointer-events-auto cursor-default"
       onClick={handleContainerClick}
       style={{ zIndex: 20 }}
     >
@@ -125,13 +101,6 @@ export default function TextInsertionOverlay({
           onDoubleClick={() => handleTextDoubleClick(text.id)}
         />
       ))}
-      
-      {/* Insertion mode indicator */}
-      {isInsertionMode && (
-        <div className="absolute top-2 left-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium pointer-events-none">
-          텍스트 삽입 모드
-        </div>
-      )}
     </div>,
     videoContainerRef.current
   )
