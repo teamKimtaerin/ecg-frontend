@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useEditorStore } from '../../store'
-import type { InsertedText } from '../../types/textInsertion'
 
 interface TextEditInputProps {
   className?: string

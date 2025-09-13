@@ -106,7 +106,9 @@ export async function loadLocalPlugin(
         manifest: manifest,
       })
       registeredPlugins.add(key)
-    } catch (error) {}
+    } catch {
+      // Ignore plugin registration errors
+    }
   }
 
   return mod
@@ -116,8 +118,8 @@ export async function preloadAllPlugins() {
   for (const pluginName of LOCAL_PLUGINS) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch (error) {
-      // Silent error handling
+    } catch {
+      // Ignore plugin loading errors
     }
   }
 }
@@ -146,8 +148,8 @@ export async function preloadPluginsForScenario(scenario: RendererConfig) {
   for (const pluginName of requiredPlugins) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch (error) {
-      // Silent error handling
+    } catch {
+      // Ignore plugin loading errors
     }
   }
 }

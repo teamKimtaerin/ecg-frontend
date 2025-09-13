@@ -4,7 +4,7 @@ import React, { useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useEditorStore } from '../../store'
 import MovableAnimatedText from './MovableAnimatedText'
-import type { InsertedText, TextPosition } from '../../types/textInsertion'
+import type { InsertedText } from '../../types/textInsertion'
 
 interface TextInsertionOverlayProps {
   videoContainerRef: React.RefObject<HTMLDivElement | null>

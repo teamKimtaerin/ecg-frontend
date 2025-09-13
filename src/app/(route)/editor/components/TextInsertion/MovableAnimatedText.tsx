@@ -47,7 +47,6 @@ const MovableAnimatedText = forwardRef<
       videoContainerRef,
       onUpdate,
       onSelect,
-      onDoubleClick,
     },
     ref
   ) => {
@@ -389,7 +388,7 @@ const MovableAnimatedText = forwardRef<
       return () => {
         ro.disconnect()
       }
-    }, [text.position, videoContainerRef])
+    }, [text.position, videoContainerRef, size.height, size.width])
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
@@ -417,10 +416,6 @@ const MovableAnimatedText = forwardRef<
       // Disable double click functionality
     }, [])
 
-    if (!isVisible) {
-      return null
-    }
-
     // Force Moveable to update when selection changes
     useEffect(() => {
       if (isSelected && textRef.current) {
@@ -432,6 +427,11 @@ const MovableAnimatedText = forwardRef<
         return () => clearTimeout(timer)
       }
     }, [isSelected])
+
+    if (!isVisible) {
+      return null
+    }
+
 
     return (
       <>

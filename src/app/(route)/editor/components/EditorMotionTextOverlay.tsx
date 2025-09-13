@@ -142,7 +142,9 @@ export default function EditorMotionTextOverlay({
           key: pluginName,
         } as PluginManifest & { key: string }
         defaultParamsRef.current = getDefaultParameters(manifest)
-      } catch (e) {}
+      } catch {
+        // Ignore manifest loading errors
+      }
     }
     void ensureManifest()
     return () => {
@@ -176,7 +178,7 @@ export default function EditorMotionTextOverlay({
       return (m || 0) * 60 + (sec || 0)
     }
     const cues = [] as RendererConfig['cues']
-    let validClipsCount = 0
+    // Track valid clips for debugging if needed
     for (const clip of clips) {
       if (deletedClipIds.has(clip.id)) continue
       const [startStr, endStr] = (clip.timeline || '').split(' → ')
@@ -187,7 +189,7 @@ export default function EditorMotionTextOverlay({
       if (adjStart == null || adjEnd == null) continue
       const text = clip.subtitle || clip.fullText || ''
 
-      validClipsCount++
+      // Process valid clip
       cues.push({
         id: `cue-${clip.id}`,
         track: 'editor',
@@ -268,7 +270,9 @@ export default function EditorMotionTextOverlay({
           onScenarioUpdate(json)
         }
         // Controller will handle synchronization automatically
-      } catch (e) {}
+      } catch {
+        // Ignore scenario loading errors
+      }
     }
     void load()
     return () => {
@@ -323,7 +327,8 @@ export default function EditorMotionTextOverlay({
 
         // Controller will handle synchronization automatically
         setUsingExternalScenario(true)
-      } catch (e) {
+      } catch {
+        // Ignore real.json loading errors
       } finally {
         setIsLoadingScenario(false)
       }
@@ -360,7 +365,9 @@ export default function EditorMotionTextOverlay({
         .then(() => {
           // Controller will handle synchronization automatically
         })
-        .catch((e) => {})
+        .catch(() => {
+          // Ignore scenario loading errors
+        })
     }, 120)
     return () => clearTimeout(t)
   }, [
@@ -399,7 +406,9 @@ export default function EditorMotionTextOverlay({
         )
         controller.mount()
         controllerRef.current = controller
-      } catch (e) {}
+      } catch {
+        // Ignore controller initialization errors
+      }
     }
 
     void initController()
@@ -410,10 +419,12 @@ export default function EditorMotionTextOverlay({
         try {
           controllerRef.current.destroy()
           controllerRef.current = null
-        } catch (e) {}
+        } catch {
+          // Ignore controller cleanup errors
+        }
       }
     }
-  }, [videoEl, renderer, containerRef])
+  }, [videoEl, renderer, containerRef, videoContainerRef])
 
   if (!showSubtitles) {
     return null
