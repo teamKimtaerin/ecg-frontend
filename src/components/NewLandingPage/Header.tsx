@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({
   user = null,
   isLoading = false,
 }) => {
-  const { } = useAuthStatus()
+  const {} = useAuthStatus()
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 

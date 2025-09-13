@@ -190,12 +190,13 @@ const AuthPageContent: React.FC = () => {
           {/* Divider */}
           <div className="flex items-center space-x-4">
             <div className="flex-1 h-px bg-gray-300"></div>
-            <span className="text-xs text-gray-500 px-2">혹은 이메일로 로그인</span>
+            <span className="text-xs text-gray-500 px-2">
+              혹은 이메일로 로그인
+            </span>
             <div className="flex-1 h-px bg-gray-300"></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-
             {/* Email Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-900">

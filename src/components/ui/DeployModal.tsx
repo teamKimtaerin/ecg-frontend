@@ -2,7 +2,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { LuX, LuGlobe, LuCopy, LuCheck, LuExternalLink, LuPlay, LuDownload } from 'react-icons/lu'
+import {
+  LuX,
+  LuGlobe,
+  LuCopy,
+  LuCheck,
+  LuExternalLink,
+  LuPlay,
+  LuDownload,
+} from 'react-icons/lu'
 
 export interface DeployTask {
   id: number
@@ -59,7 +67,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
   // 모달이 처음 열릴 때만 초기화
   const [hasInitialized, setHasInitialized] = useState(false)
-  
+
   useEffect(() => {
     if (isOpen && project && !hasInitialized) {
       // 처음 열릴 때만 모든 상태 초기화
@@ -86,7 +94,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
   const handleDeploy = () => {
     setCurrentStep('deploying')
-    
+
     // 배포 진행률 시뮬레이션
     let progress = 0
     const interval = setInterval(() => {
@@ -95,7 +103,9 @@ const DeployModal: React.FC<DeployModalProps> = ({
         progress = 100
         clearInterval(interval)
         setTimeout(() => {
-          setDeployUrl(`https://hoit.video/watch/${Math.random().toString(36).substring(7)}`)
+          setDeployUrl(
+            `https://hoit.video/watch/${Math.random().toString(36).substring(7)}`
+          )
           setCurrentStep('completed')
         }, 500)
       }
@@ -138,19 +148,19 @@ const DeployModal: React.FC<DeployModalProps> = ({
   if (!isOpen || !isMounted || !project) return null
 
   return createPortal(
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] flex items-center justify-center p-4"
       onClick={(e) => {
         // 배포 진행 중에는 모달 닫기 방지
         if (currentStep === 'deploying') return
-        
+
         // 배경 클릭 시에만 모달 닫기
         if (e.target === e.currentTarget) {
           handleClose()
         }
       }}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
@@ -160,7 +170,9 @@ const DeployModal: React.FC<DeployModalProps> = ({
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
               <LuGlobe className="w-4 h-4 text-blue-600" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-900">프로젝트 배포</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              프로젝트 배포
+            </h2>
           </div>
           {/* 배포 진행 중에는 X 버튼 숨김 */}
           {currentStep !== 'deploying' && (
@@ -182,7 +194,9 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 <LuPlay className="w-6 h-6 text-gray-600" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900">{project.filename}</h3>
+                <h3 className="font-medium text-gray-900">
+                  {project.filename}
+                </h3>
                 <p className="text-sm text-gray-500">준비된 프로젝트</p>
               </div>
             </div>
@@ -193,33 +207,43 @@ const DeployModal: React.FC<DeployModalProps> = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  제목 {deployConfig.title && `(${deployConfig.title.length}자)`}
+                  제목{' '}
+                  {deployConfig.title && `(${deployConfig.title.length}자)`}
                 </label>
                 <input
                   type="text"
                   value={deployConfig.title}
                   onChange={(e) => {
                     console.log('Title input changed:', e.target.value)
-                    setDeployConfig(prev => ({ ...prev, title: e.target.value }))
+                    setDeployConfig((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                   placeholder="프로젝트 제목을 입력하세요"
                 />
                 {/* 디버깅용 - 현재 값 표시 */}
                 <div className="text-xs text-gray-500 mt-1">
-                  현재 값: "{deployConfig.title}" (길이: {deployConfig.title.length})
+                  현재 값: "{deployConfig.title}" (길이:{' '}
+                  {deployConfig.title.length})
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  설명 (선택) {deployConfig.description && `(${deployConfig.description.length}자)`}
+                  설명 (선택){' '}
+                  {deployConfig.description &&
+                    `(${deployConfig.description.length}자)`}
                 </label>
                 <textarea
                   value={deployConfig.description}
                   onChange={(e) => {
                     console.log('Description input changed:', e.target.value)
-                    setDeployConfig(prev => ({ ...prev, description: e.target.value }))
+                    setDeployConfig((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-black"
                   rows={3}
@@ -227,25 +251,37 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 />
                 {/* 디버깅용 - 현재 값 표시 */}
                 <div className="text-xs text-gray-500 mt-1">
-                  현재 값: "{deployConfig.description}" (길이: {deployConfig.description.length})
+                  현재 값: "{deployConfig.description}" (길이:{' '}
+                  {deployConfig.description.length})
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">공개 설정</label>
-                    <p className="text-xs text-gray-500">다른 사람들이 볼 수 있습니다</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      공개 설정
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      다른 사람들이 볼 수 있습니다
+                    </p>
                   </div>
                   <button
-                    onClick={() => setDeployConfig(prev => ({ ...prev, isPublic: !prev.isPublic }))}
+                    onClick={() =>
+                      setDeployConfig((prev) => ({
+                        ...prev,
+                        isPublic: !prev.isPublic,
+                      }))
+                    }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       deployConfig.isPublic ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        deployConfig.isPublic ? 'translate-x-6' : 'translate-x-1'
+                        deployConfig.isPublic
+                          ? 'translate-x-6'
+                          : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -253,18 +289,29 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">다운로드 허용</label>
-                    <p className="text-xs text-gray-500">다른 사람들이 다운로드할 수 있습니다</p>
+                    <label className="text-sm font-medium text-gray-700">
+                      다운로드 허용
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      다른 사람들이 다운로드할 수 있습니다
+                    </p>
                   </div>
                   <button
-                    onClick={() => setDeployConfig(prev => ({ ...prev, allowDownload: !prev.allowDownload }))}
+                    onClick={() =>
+                      setDeployConfig((prev) => ({
+                        ...prev,
+                        allowDownload: !prev.allowDownload,
+                      }))
+                    }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       deployConfig.allowDownload ? 'bg-blue-600' : 'bg-gray-200'
                     }`}
                   >
                     <span
                       className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        deployConfig.allowDownload ? 'translate-x-6' : 'translate-x-1'
+                        deployConfig.allowDownload
+                          ? 'translate-x-6'
+                          : 'translate-x-1'
                       }`}
                     />
                   </button>
@@ -279,16 +326,22 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">배포 진행 중...</h3>
-                <p className="text-sm text-gray-500 mb-4">프로젝트를 배포하고 있습니다</p>
-                
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  배포 진행 중...
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  프로젝트를 배포하고 있습니다
+                </p>
+
                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${deployProgress}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500">{Math.round(deployProgress)}% 완료</p>
+                <p className="text-xs text-gray-500">
+                  {Math.round(deployProgress)}% 완료
+                </p>
               </div>
             </div>
           )}
@@ -299,12 +352,18 @@ const DeployModal: React.FC<DeployModalProps> = ({
                 <LuCheck className="w-8 h-8 text-green-600" />
               </div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">배포 완료!</h3>
-                <p className="text-sm text-gray-500 mb-4">프로젝트가 성공적으로 배포되었습니다</p>
-                
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  배포 완료!
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  프로젝트가 성공적으로 배포되었습니다
+                </p>
+
                 <div className="bg-gray-50 rounded-lg p-3 mb-4">
                   <div className="flex items-center justify-between">
-                    <code className="text-sm text-blue-600 font-mono truncate">{deployUrl}</code>
+                    <code className="text-sm text-blue-600 font-mono truncate">
+                      {deployUrl}
+                    </code>
                     <button
                       onClick={handleCopyUrl}
                       className="ml-2 p-1 hover:bg-gray-200 rounded transition-colors"
@@ -352,11 +411,13 @@ const DeployModal: React.FC<DeployModalProps> = ({
               onClick={handleDeploy}
               disabled={!deployConfig.title.trim()}
               className={`px-6 py-2.5 text-base font-bold rounded-full transition-all shadow-md hover:shadow-lg ${
-                deployConfig.title.trim() 
-                  ? 'bg-black text-white border-2 border-black hover:bg-gray-800 hover:border-gray-800 cursor-pointer' 
+                deployConfig.title.trim()
+                  ? 'bg-black text-white border-2 border-black hover:bg-gray-800 hover:border-gray-800 cursor-pointer'
                   : 'bg-gray-300 text-gray-500 border-2 border-gray-300 cursor-not-allowed'
               }`}
-              title={deployConfig.title.trim() ? '배포하기' : '제목을 입력해주세요'}
+              title={
+                deployConfig.title.trim() ? '배포하기' : '제목을 입력해주세요'
+              }
             >
               배포하기 {deployConfig.title.trim() && '✓'}
             </button>

@@ -51,10 +51,10 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     if (isOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect()
       const modalWidth = 384 // 실제 모달 너비 (w-96 = 384px)
-      
+
       setPosition({
         top: buttonRect.bottom + 8, // 8px gap below button
-        left: buttonRect.left + (buttonRect.width / 2) - (modalWidth / 2), // 버튼 중앙에 모달 중앙 정렬
+        left: buttonRect.left + buttonRect.width / 2 - modalWidth / 2, // 버튼 중앙에 모달 중앙 정렬
       })
     }
   }, [isOpen, buttonRef])

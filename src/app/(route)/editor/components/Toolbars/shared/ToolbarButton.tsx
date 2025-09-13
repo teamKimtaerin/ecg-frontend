@@ -30,10 +30,12 @@ export default function ToolbarButton({
   variant = 'base',
 }: ToolbarButtonProps) {
   const toolbarColors = EDITOR_COLORS.toolbar[variant]
-  const iconColor = 'iconColor' in toolbarColors ? toolbarColors.iconColor : 'text-black'
-  const textColor = 'text' in toolbarColors ? toolbarColors.text : 'text-black' 
-  const hoverColor = 'hover' in toolbarColors ? toolbarColors.hover : 'hover:bg-gray-200'
-  
+  const iconColor =
+    'iconColor' in toolbarColors ? toolbarColors.iconColor : 'text-black'
+  const textColor = 'text' in toolbarColors ? toolbarColors.text : 'text-black'
+  const hoverColor =
+    'hover' in toolbarColors ? toolbarColors.hover : 'hover:bg-gray-200'
+
   const buttonClasses = `
     flex flex-col items-center space-y-1 px-2 py-1 rounded cursor-pointer transition-colors
     ${
@@ -48,14 +50,10 @@ export default function ToolbarButton({
 
   const content = (
     <div className={buttonClasses} onClick={disabled ? undefined : onClick}>
-      <div
-        className={`w-5 h-5 ${disabled ? 'opacity-50' : iconColor}`}
-      >
+      <div className={`w-5 h-5 ${disabled ? 'opacity-50' : iconColor}`}>
         {icon}
       </div>
-      <span
-        className={`text-xs ${disabled ? 'opacity-50' : textColor}`}
-      >
+      <span className={`text-xs ${disabled ? 'opacity-50' : textColor}`}>
         {label}
       </span>
     </div>

@@ -18,7 +18,7 @@ export default function SignupPage() {
   const router = useRouter()
   const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const [hasAgreedTerms, setHasAgreedTerms] = useState(false)
-  
+
   const {
     formData,
     errors,

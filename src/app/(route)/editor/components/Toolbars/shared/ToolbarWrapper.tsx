@@ -62,9 +62,12 @@ export default function ToolbarWrapper({
       <div className="flex items-center w-full">
         {/* 툴바별 컨텐츠 */}
         <div className="flex items-center space-x-3 flex-1">
-          {React.Children.map(children, child =>
+          {React.Children.map(children, (child) =>
             React.isValidElement(child)
-              ? React.cloneElement(child as React.ReactElement<{variant?: ToolbarVariant}>, { variant })
+              ? React.cloneElement(
+                  child as React.ReactElement<{ variant?: ToolbarVariant }>,
+                  { variant }
+                )
               : child
           )}
         </div>
@@ -91,8 +94,8 @@ export default function ToolbarWrapper({
           {/* 내보내기 - variant에 따라 다른 스타일 적용 */}
           <button
             className={`px-5 py-3 rounded hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
-              variant === 'dark' 
-                ? 'bg-white text-black hover:bg-gray-200' 
+              variant === 'dark'
+                ? 'bg-white text-black hover:bg-gray-200'
                 : 'bg-gray-600 text-white hover:bg-black'
             }`}
             onClick={handleExportClick}

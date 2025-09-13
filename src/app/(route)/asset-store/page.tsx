@@ -331,8 +331,8 @@ export default function AssetPage() {
 
   return (
     <div className={mainContainerClasses}>
-      <Header 
-        onTryClick={handleTryClick} 
+      <Header
+        onTryClick={handleTryClick}
         onLoginClick={handleLoginClick}
         isLoggedIn={isLoggedIn}
         user={user}
@@ -442,7 +442,7 @@ export default function AssetPage() {
                 onClick={handleUploadClick}
                 className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-2 cursor-pointer"
               >
-                <span className='font-bold'>+</span>
+                <span className="font-bold">+</span>
                 <span>에셋 업로드</span>
               </button>
             </div>

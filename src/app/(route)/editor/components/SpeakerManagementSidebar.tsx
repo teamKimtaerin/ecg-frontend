@@ -224,10 +224,10 @@ export default function SpeakerManagementSidebar({
     if (otherSpeakerWithColor) {
       const [otherSpeaker] = otherSpeakerWithColor
       const currentSpeakerColor = speakerColors[selectedColorSpeaker]
-      
+
       // 색상 교환 확인 다이얼로그
       const confirmMessage = `${otherSpeaker}가 이미 이 색상을 사용 중입니다.\n${selectedColorSpeaker}와 ${otherSpeaker}의 색상을 교환하시겠습니까?`
-      
+
       if (confirm(confirmMessage)) {
         // 두 화자의 색상을 교환
         onSpeakerColorChange(selectedColorSpeaker, colorHex)
@@ -461,7 +461,9 @@ export default function SpeakerManagementSidebar({
             <div className="flex flex-col items-center">
               {/* 기본 색상들 */}
               <div className="mb-4">
-                <p className="text-xs text-gray-600 text-center mb-2">기본 색상</p>
+                <p className="text-xs text-gray-600 text-center mb-2">
+                  기본 색상
+                </p>
                 <div className="flex justify-center gap-2">
                   {basicColors.map((colorData, index) => {
                     const isCurrentSpeakerColor =
@@ -537,10 +539,17 @@ export default function SpeakerManagementSidebar({
               </div>
 
               {/* 색상환 */}
-              <div className="relative w-32 h-32 mb-3" style={{ marginTop: '3px' }}>
-                <p className="text-xs text-gray-600 text-center mb-2" style={{ marginTop: '-7px' }}>색상환</p>
+              <div
+                className="relative w-32 h-32 mb-3"
+                style={{ marginTop: '3px' }}
+              >
+                <p
+                  className="text-xs text-gray-600 text-center mb-2"
+                  style={{ marginTop: '-7px' }}
+                >
+                  색상환
+                </p>
                 {/* 색상환 배경 그라디언트 */}
-                
 
                 {/* 색상환의 색상 점들 */}
                 {colorWheelColors.map((colorData, index) => {
@@ -557,7 +566,6 @@ export default function SpeakerManagementSidebar({
                       speaker !== selectedColorSpeaker &&
                       color === colorData.color
                   )
-          
 
                   return (
                     <div
@@ -620,7 +628,15 @@ export default function SpeakerManagementSidebar({
                 })}
 
                 {/* 중앙 원 */}
-                <div className="absolute inset-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300 flex items-center justify-center" style={{ top: '40px', left: '40px', right: '40px', bottom: '40px' }}>
+                <div
+                  className="absolute inset-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-300 flex items-center justify-center"
+                  style={{
+                    top: '40px',
+                    left: '40px',
+                    right: '40px',
+                    bottom: '40px',
+                  }}
+                >
                   <div className="text-xs text-gray-600 text-center font-medium">
                     색상
                   </div>

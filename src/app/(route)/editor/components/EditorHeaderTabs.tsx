@@ -54,7 +54,7 @@ export default function EditorHeaderTabs({
   // Document modal state
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const documentButtonRef = useRef<HTMLButtonElement>(null)
-  
+
   // Deploy modal state
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
   const [selectedDeployProject, setSelectedDeployProject] = useState<any>(null)
@@ -140,12 +140,12 @@ export default function EditorHeaderTabs({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element
-      
+
       // 드롭다운 내부 클릭은 무시
       if (target.closest('.nav-dropdown')) {
         return
       }
-      
+
       if (
         navButtonRef.current &&
         !navButtonRef.current.contains(event.target as Node) &&
@@ -163,7 +163,6 @@ export default function EditorHeaderTabs({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isNavDropdownOpen])
-
 
   const getSaveStatusText = () => {
     switch (projectType) {
@@ -325,11 +324,15 @@ export default function EditorHeaderTabs({
           setIsDeployModalOpen(false)
           setSelectedDeployProject(null)
         }}
-        project={selectedDeployProject ? {
-          id: selectedDeployProject.id,
-          filename: selectedDeployProject.filename,
-          title: selectedDeployProject.filename.replace(/\.[^/.]+$/, '')
-        } : null}
+        project={
+          selectedDeployProject
+            ? {
+                id: selectedDeployProject.id,
+                filename: selectedDeployProject.filename,
+                title: selectedDeployProject.filename.replace(/\.[^/.]+$/, ''),
+              }
+            : null
+        }
       />
     </div>
   )
