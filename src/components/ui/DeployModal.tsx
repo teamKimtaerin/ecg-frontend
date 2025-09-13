@@ -62,7 +62,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, currentStep, handleClose])
+  }, [isOpen, currentStep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 모달이 처음 열릴 때만 초기화
   const [hasInitialized, setHasInitialized] = useState(false)
