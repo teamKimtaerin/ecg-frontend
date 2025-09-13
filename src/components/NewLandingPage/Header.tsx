@@ -55,7 +55,6 @@ const Header: React.FC<HeaderProps> = ({
     },
   ]
 
-
   const uploadTasks = [
     {
       id: 1,
@@ -166,7 +165,7 @@ const Header: React.FC<HeaderProps> = ({
               onDeployClick={(task) => {
                 openDeployModal({
                   id: task.id,
-                  filename: task.filename
+                  filename: task.filename,
                 })
               }}
             />

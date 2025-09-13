@@ -62,7 +62,7 @@ export default function EditorHeaderTabs({
   const handleDeployClick = (task: any) => {
     openDeployModal({
       id: task.id,
-      filename: task.filename
+      filename: task.filename,
     })
   }
 

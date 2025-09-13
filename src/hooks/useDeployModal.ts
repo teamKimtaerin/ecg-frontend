@@ -7,7 +7,8 @@ export interface DeployProject {
 
 export const useDeployModal = () => {
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
-  const [selectedDeployProject, setSelectedDeployProject] = useState<DeployProject | null>(null)
+  const [selectedDeployProject, setSelectedDeployProject] =
+    useState<DeployProject | null>(null)
 
   const openDeployModal = (project: DeployProject) => {
     setSelectedDeployProject(project)

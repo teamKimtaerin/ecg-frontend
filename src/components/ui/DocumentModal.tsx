@@ -46,7 +46,6 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     setIsMounted(true)
   }, [])
 
-
   // Calculate position based on button position
   useEffect(() => {
     if (isOpen && buttonRef.current) {
