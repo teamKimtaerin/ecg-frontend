@@ -6,6 +6,8 @@ import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextInputModal from './TextInsertion/TextInputModal'
+import TextEditingPanel from './TextInsertion/TextEditingPanel'
+import { useEditorStore } from '../store'
 // import ScenarioJsonEditor from './ScenarioJsonEditor' // TODO: Re-enable when needed
 
 interface VideoSectionProps {
@@ -14,6 +16,12 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
+  
+  // Text insertion store
+  const { 
+    isEditingPanelOpen, 
+    toggleEditingPanel 
+  } = useEditorStore()
   
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
@@ -69,34 +77,43 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
   return (
     <div
-      className="bg-white p-4 flex-shrink-0 h-full flex flex-col border-r border-gray-200"
+      className="bg-white flex-shrink-0 h-full flex flex-col border-r border-gray-200"
       style={{ width: `${width}px` }}
     >
-      {/* Video Player with Subtitles */}
-      <div
-        ref={videoContainerRef}
-        className="bg-black rounded-lg mb-4 relative flex-shrink-0 overflow-hidden"
-        style={{ aspectRatio: '16/9' }}
-      >
-        <VideoPlayer 
-          className="w-full h-full rounded-lg overflow-hidden"
-          onTimeUpdate={handleTimeUpdate}
-        />
-        {/* MotionText overlay (legacy HTML overlay removed) */}
-        <EditorMotionTextOverlay
-          videoContainerRef={videoContainerRef}
-          onScenarioUpdate={handleScenarioUpdate}
-          scenarioOverride={scenarioOverride || undefined}
-        />
-        
-        {/* Text Insertion Overlay */}
-        <TextInsertionOverlay
-          videoContainerRef={videoContainerRef}
-          currentTime={currentTime}
-          onTextClick={handleTextClick}
-          onTextDoubleClick={handleTextDoubleClick}
-        />
+      {/* Video Player Container */}
+      <div className="p-4 flex-1 flex flex-col">
+        {/* Video Player with Subtitles */}
+        <div
+          ref={videoContainerRef}
+          className="bg-black rounded-lg mb-4 relative flex-shrink-0 overflow-hidden"
+          style={{ aspectRatio: '16/9' }}
+        >
+          <VideoPlayer 
+            className="w-full h-full rounded-lg overflow-hidden"
+            onTimeUpdate={handleTimeUpdate}
+          />
+          {/* MotionText overlay (legacy HTML overlay removed) */}
+          <EditorMotionTextOverlay
+            videoContainerRef={videoContainerRef}
+            onScenarioUpdate={handleScenarioUpdate}
+            scenarioOverride={scenarioOverride || undefined}
+          />
+          
+          {/* Text Insertion Overlay */}
+          <TextInsertionOverlay
+            videoContainerRef={videoContainerRef}
+            currentTime={currentTime}
+            onTextClick={handleTextClick}
+            onTextDoubleClick={handleTextDoubleClick}
+          />
+        </div>
       </div>
+
+      {/* Text Editing Panel */}
+      <TextEditingPanel 
+        isOpen={isEditingPanelOpen}
+        onToggle={toggleEditingPanel}
+      />
 
       {/* Text Input Modal */}
       <TextInputModal

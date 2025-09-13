@@ -23,6 +23,7 @@ export const createTextInsertionSlice: StateCreator<
   isInsertionMode: false,
   isEditingText: false,
   editingTextId: null,
+  isEditingPanelOpen: false,
   defaultStyle: DEFAULT_TEXT_STYLE,
   clipboard: [],
 
@@ -32,6 +33,20 @@ export const createTextInsertionSlice: StateCreator<
       ...state,
       isInsertionMode: enabled,
       selectedTextId: enabled ? state.selectedTextId : null,
+    }))
+  },
+
+  setEditingPanelOpen: (open: boolean) => {
+    set((state) => ({
+      ...state,
+      isEditingPanelOpen: open,
+    }))
+  },
+
+  toggleEditingPanel: () => {
+    set((state) => ({
+      ...state,
+      isEditingPanelOpen: !state.isEditingPanelOpen,
     }))
   },
 
@@ -104,6 +119,7 @@ export const createTextInsertionSlice: StateCreator<
     set((state) => ({
       ...state,
       selectedTextId: id,
+      isEditingPanelOpen: id ? true : state.isEditingPanelOpen, // Auto-open panel when text is selected
       insertedTexts: state.insertedTexts.map((text) => ({
         ...text,
         isSelected: text.id === id,

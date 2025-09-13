@@ -48,6 +48,7 @@ export interface TextInsertionState {
   isInsertionMode: boolean
   isEditingText: boolean
   editingTextId: string | null
+  isEditingPanelOpen: boolean
   defaultStyle: TextStyle
   clipboard: InsertedText[]
 }
@@ -55,6 +56,8 @@ export interface TextInsertionState {
 export interface TextInsertionActions {
   // Mode management
   setInsertionMode: (enabled: boolean) => void
+  setEditingPanelOpen: (open: boolean) => void
+  toggleEditingPanel: () => void
   
   // Text CRUD operations
   addText: (text: Omit<InsertedText, 'id' | 'createdAt' | 'updatedAt'>) => void
