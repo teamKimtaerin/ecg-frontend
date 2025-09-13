@@ -11,6 +11,7 @@ import { useEditorStore } from '../store'
 import { EDITOR_TABS } from '../types'
 import { useEffect, useState, useRef } from 'react'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
+import { LuMenu, LuShoppingBag, LuHouse } from 'react-icons/lu'
 
 export interface EditorHeaderTabsProps {
   activeTab?: string
@@ -45,6 +46,10 @@ export default function EditorHeaderTabs({
   const [projectType, setProjectType] = useState<
     'browser' | 'device' | 'cloud'
   >('browser')
+
+  // Navigation dropdown state
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false)
+  const navButtonRef = useRef<HTMLButtonElement>(null)
 
   // Document modal state
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
@@ -131,6 +136,35 @@ export default function EditorHeaderTabs({
     return unsubscribe
   }, [])
 
+  // Close navigation dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      
+      // 드롭다운 내부 클릭은 무시
+      if (target.closest('.nav-dropdown')) {
+        return
+      }
+      
+      if (
+        navButtonRef.current &&
+        !navButtonRef.current.contains(event.target as Node) &&
+        isNavDropdownOpen
+      ) {
+        setIsNavDropdownOpen(false)
+      }
+    }
+
+    if (isNavDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isNavDropdownOpen])
+
+
   const getSaveStatusText = () => {
     switch (projectType) {
       case 'browser':
@@ -145,7 +179,39 @@ export default function EditorHeaderTabs({
   return (
     <div className="bg-gray-100 border-b border-gray-300 shadow-sm relative">
       <div className="flex items-center px-6 py-1">
-        {/* Left Side - User Dropdown */}
+        {/* Left Side - Navigation Menu */}
+        <div className="relative mr-4">
+          <button
+            ref={navButtonRef}
+            onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
+            title="메뉴"
+          >
+            <LuMenu className="w-5 h-5" />
+          </button>
+
+          {/* Navigation Dropdown */}
+          {isNavDropdownOpen && (
+            <div className="nav-dropdown absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]">
+              <a
+                href="/"
+                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
+              >
+                <LuHouse className="w-4 h-4 mr-3" />
+                메인 페이지
+              </a>
+              <a
+                href="/asset-store"
+                className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
+              >
+                <LuShoppingBag className="w-4 h-4 mr-3" />
+                에셋 스토어
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* User Dropdown */}
         <div className="relative">
           <UserDropdown />
         </div>
