@@ -78,49 +78,52 @@ export default function VideoPlayer({
   }, [onLoadedMetadata, clips])
 
   // Play/Pause toggle with debounce to prevent rapid clicks
-  const togglePlayPause = useCallback(async (e?: React.MouseEvent) => {
-    console.log('🎥 VIDEO PLAYER CLICKED:', {
-      isPlaying,
-      isToggling,
-      event: e ? 'mouse_click' : 'keyboard_shortcut',
-      target: e?.target,
-      currentTarget: e?.currentTarget
-    })
-    
-    if (!videoRef.current || isToggling) return
-
-    setIsToggling(true)
-
-    try {
-      if (isPlaying) {
-        videoRef.current.pause()
-        setIsPlaying(false)
-        useEditorStore.getState().setMediaInfo({
-          isPlaying: false,
-        })
-      } else {
-        // Handle play() promise properly
-        await videoRef.current.play()
-        setIsPlaying(true)
-        useEditorStore.getState().setMediaInfo({
-          isPlaying: true,
-        })
-      }
-    } catch (error) {
-      // AbortError는 무시 (이미 다른 play/pause가 진행중)
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.warn('Video play/pause failed:', error)
-      }
-      // Reset state on error
-      setIsPlaying(videoRef.current.paused === false)
-      useEditorStore.getState().setMediaInfo({
-        isPlaying: videoRef.current.paused === false,
+  const togglePlayPause = useCallback(
+    async (e?: React.MouseEvent) => {
+      console.log('🎥 VIDEO PLAYER CLICKED:', {
+        isPlaying,
+        isToggling,
+        event: e ? 'mouse_click' : 'keyboard_shortcut',
+        target: e?.target,
+        currentTarget: e?.currentTarget,
       })
-    } finally {
-      // 짧은 지연 후 다시 토글 가능하도록
-      setTimeout(() => setIsToggling(false), 100)
-    }
-  }, [isPlaying, isToggling])
+
+      if (!videoRef.current || isToggling) return
+
+      setIsToggling(true)
+
+      try {
+        if (isPlaying) {
+          videoRef.current.pause()
+          setIsPlaying(false)
+          useEditorStore.getState().setMediaInfo({
+            isPlaying: false,
+          })
+        } else {
+          // Handle play() promise properly
+          await videoRef.current.play()
+          setIsPlaying(true)
+          useEditorStore.getState().setMediaInfo({
+            isPlaying: true,
+          })
+        }
+      } catch (error) {
+        // AbortError는 무시 (이미 다른 play/pause가 진행중)
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.warn('Video play/pause failed:', error)
+        }
+        // Reset state on error
+        setIsPlaying(videoRef.current.paused === false)
+        useEditorStore.getState().setMediaInfo({
+          isPlaying: videoRef.current.paused === false,
+        })
+      } finally {
+        // 짧은 지연 후 다시 토글 가능하도록
+        setTimeout(() => setIsToggling(false), 100)
+      }
+    },
+    [isPlaying, isToggling]
+  )
 
   // Seek to specific time
   const seekTo = useCallback(

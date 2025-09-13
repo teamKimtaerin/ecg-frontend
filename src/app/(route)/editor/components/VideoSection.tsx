@@ -14,7 +14,7 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
-  
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
     null
@@ -39,7 +39,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const handleTimeUpdate = useCallback((time: number) => {
     setCurrentTime(time)
   }, [])
-
 
   // Handle text click for selection
   const handleTextClick = useCallback((textId: string) => {
@@ -66,7 +65,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           className="bg-black rounded-lg mb-4 relative flex-shrink-0 overflow-hidden"
           style={{ aspectRatio: '16/9' }}
         >
-          <VideoPlayer 
+          <VideoPlayer
             className="w-full h-full rounded-lg overflow-hidden"
             onTimeUpdate={handleTimeUpdate}
           />
@@ -76,7 +75,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
             onScenarioUpdate={handleScenarioUpdate}
             scenarioOverride={scenarioOverride || undefined}
           />
-          
+
           {/* Text Insertion Overlay */}
           <TextInsertionOverlay
             videoContainerRef={videoContainerRef}

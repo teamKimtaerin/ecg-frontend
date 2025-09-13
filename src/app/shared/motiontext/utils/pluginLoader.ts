@@ -106,8 +106,7 @@ export async function loadLocalPlugin(
         manifest: manifest,
       })
       registeredPlugins.add(key)
-    } catch (error) {
-    }
+    } catch (error) {}
   }
 
   return mod

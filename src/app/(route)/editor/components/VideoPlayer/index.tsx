@@ -13,9 +13,9 @@ interface VideoPlayerProps {
   onTimeUpdate?: (currentTime: number, duration: number) => void
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
-  className = '', 
-  onTimeUpdate
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
+  className = '',
+  onTimeUpdate,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -305,7 +305,6 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (clips.length > 0) {
           videoSegmentManager.initialize(clips, videoDuration)
         }
-
       }
     }
   }

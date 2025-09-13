@@ -9,18 +9,14 @@ interface TextEditInputProps {
 }
 
 const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
-  const { 
-    selectedTextId, 
-    insertedTexts, 
-    updateText,
-    selectText 
-  } = useEditorStore()
+  const { selectedTextId, insertedTexts, updateText, selectText } =
+    useEditorStore()
 
   const [inputValue, setInputValue] = useState('')
   const [isEditing, setIsEditing] = useState(false)
 
   // Get selected text
-  const selectedText = insertedTexts.find(text => text.id === selectedTextId)
+  const selectedText = insertedTexts.find((text) => text.id === selectedTextId)
 
   // Update input value when selected text changes
   useEffect(() => {
@@ -34,43 +30,53 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
   }, [selectedText])
 
   // Handle input change
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value)
-    setIsEditing(true)
-  }, [])
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setInputValue(e.target.value)
+      setIsEditing(true)
+    },
+    []
+  )
 
   // Handle input blur (save changes)
   const handleInputBlur = useCallback(() => {
-    if (selectedTextId && isEditing && inputValue.trim() !== selectedText?.content) {
-      updateText(selectedTextId, { 
-        content: inputValue.trim() || '텍스트를 입력하세요' 
+    if (
+      selectedTextId &&
+      isEditing &&
+      inputValue.trim() !== selectedText?.content
+    ) {
+      updateText(selectedTextId, {
+        content: inputValue.trim() || '텍스트를 입력하세요',
       })
     }
     setIsEditing(false)
   }, [selectedTextId, isEditing, inputValue, selectedText?.content, updateText])
 
   // Handle Enter key (save changes)
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      if (selectedTextId && inputValue.trim() !== selectedText?.content) {
-        updateText(selectedTextId, { 
-          content: inputValue.trim() || '텍스트를 입력하세요' 
-        })
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        if (selectedTextId && inputValue.trim() !== selectedText?.content) {
+          updateText(selectedTextId, {
+            content: inputValue.trim() || '텍스트를 입력하세요',
+          })
+        }
+        setIsEditing(false)
+        // Optional: blur the input
+        e.currentTarget.blur()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        // Reset to original value
+        if (selectedText) {
+          setInputValue(selectedText.content)
+        }
+        setIsEditing(false)
+        e.currentTarget.blur()
       }
-      setIsEditing(false)
-      // Optional: blur the input
-      e.currentTarget.blur()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      // Reset to original value
-      if (selectedText) {
-        setInputValue(selectedText.content)
-      }
-      setIsEditing(false)
-      e.currentTarget.blur()
-    }
-  }, [selectedTextId, inputValue, selectedText, updateText])
+    },
+    [selectedTextId, inputValue, selectedText, updateText]
+  )
 
   // Handle clear selection
   const handleClearSelection = useCallback(() => {
@@ -98,7 +104,7 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
           ✕ 선택 해제
         </button>
       </div>
-      
+
       <div className="flex flex-col gap-2">
         <input
           type="text"
@@ -109,10 +115,11 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
           placeholder="텍스트를 입력하세요"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        
+
         <div className="flex justify-between items-center text-xs text-gray-500">
           <span>
-            시간: {selectedText.startTime.toFixed(1)}s - {selectedText.endTime.toFixed(1)}s
+            시간: {selectedText.startTime.toFixed(1)}s -{' '}
+            {selectedText.endTime.toFixed(1)}s
           </span>
           <div className="flex gap-2">
             <span>Enter: 저장</span>

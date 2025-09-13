@@ -22,34 +22,33 @@ export default function TextInsertionOverlay({
   const overlayRef = useRef<HTMLDivElement>(null)
 
   // Get text insertion state from store
-  const {
-    selectedTextId,
-    selectText,
-    updateText,
-    getActiveTexts,
-  } = useEditorStore()
+  const { selectedTextId, selectText, updateText, getActiveTexts } =
+    useEditorStore()
 
   // Get currently active texts
   const activeTexts = getActiveTexts(currentTime)
 
   // Handle video container click (no longer used for text insertion)
-  const handleContainerClick = useCallback((e: React.MouseEvent) => {
-    console.log('🎬 VIDEO CONTAINER CLICKED:', {
-      target: e.target,
-      currentTarget: e.currentTarget,
-      isDirectClick: e.target === e.currentTarget,
-      targetTagName: (e.target as HTMLElement).tagName,
-      targetClassName: (e.target as HTMLElement).className
-    })
-    
-    // Only handle clicks on the container itself, not on child elements
-    if (e.target === e.currentTarget) {
-      console.log('🔄 Clearing text selection (clicked on empty area)')
-      selectText(null)
-    } else {
-      console.log('👆 Click on child element, ignoring')
-    }
-  }, [selectText])
+  const handleContainerClick = useCallback(
+    (e: React.MouseEvent) => {
+      console.log('🎬 VIDEO CONTAINER CLICKED:', {
+        target: e.target,
+        currentTarget: e.currentTarget,
+        isDirectClick: e.target === e.currentTarget,
+        targetTagName: (e.target as HTMLElement).tagName,
+        targetClassName: (e.target as HTMLElement).className,
+      })
+
+      // Only handle clicks on the container itself, not on child elements
+      if (e.target === e.currentTarget) {
+        console.log('🔄 Clearing text selection (clicked on empty area)')
+        selectText(null)
+      } else {
+        console.log('👆 Click on child element, ignoring')
+      }
+    },
+    [selectText]
+  )
 
   // Handle text selection
   const handleTextSelect = useCallback(

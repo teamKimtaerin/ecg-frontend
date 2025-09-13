@@ -11,7 +11,6 @@ export const useAuthStatus = () => {
     isAuthenticated,
   } = useAuth()
 
-
   const logout = () => {
     authLogout()
   }

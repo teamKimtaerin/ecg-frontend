@@ -6,7 +6,10 @@ import { UISlice, createUISlice } from './slices/uiSlice'
 import { SaveSlice, createSaveSlice } from './slices/saveSlice'
 import { MediaSlice, createMediaSlice } from './slices/mediaSlice'
 import { WordSlice, createWordSlice } from './slices/wordSlice'
-import { TextInsertionSlice, createTextInsertionSlice } from './slices/textInsertionSlice'
+import {
+  TextInsertionSlice,
+  createTextInsertionSlice,
+} from './slices/textInsertionSlice'
 
 // Combine all slices into a single store type
 export type EditorStore = ClipSlice &

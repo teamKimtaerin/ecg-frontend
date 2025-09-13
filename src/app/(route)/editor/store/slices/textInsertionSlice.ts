@@ -41,13 +41,12 @@ export const createTextInsertionSlice: StateCreator<
     set((state) => ({
       ...state,
       insertedTexts: [
-        ...state.insertedTexts.map(text => ({ ...text, isSelected: false })), // Deselect others
-        newText // Add new selected text
+        ...state.insertedTexts.map((text) => ({ ...text, isSelected: false })), // Deselect others
+        newText, // Add new selected text
       ],
       selectedTextId: newText.id,
     }))
   },
-
 
   // Text CRUD operations
   addText: (textData) => {
@@ -69,9 +68,7 @@ export const createTextInsertionSlice: StateCreator<
     set((state) => ({
       ...state,
       insertedTexts: state.insertedTexts.map((text) =>
-        text.id === id
-          ? { ...text, ...updates, updatedAt: Date.now() }
-          : text
+        text.id === id ? { ...text, ...updates, updatedAt: Date.now() } : text
       ),
     }))
   },
@@ -87,7 +84,7 @@ export const createTextInsertionSlice: StateCreator<
   duplicateText: (id: string) => {
     const { insertedTexts } = get()
     const originalText = insertedTexts.find((text) => text.id === id)
-    
+
     if (originalText) {
       const duplicatedText: InsertedText = {
         ...originalText,
@@ -136,7 +133,6 @@ export const createTextInsertionSlice: StateCreator<
     }))
   },
 
-
   // Style management
   updateDefaultStyle: (style: Partial<TextStyle>) => {
     set((state) => ({
@@ -167,7 +163,7 @@ export const createTextInsertionSlice: StateCreator<
   copyText: (id: string) => {
     const { insertedTexts } = get()
     const textToCopy = insertedTexts.find((text) => text.id === id)
-    
+
     if (textToCopy) {
       set((state) => ({
         ...state,
@@ -184,7 +180,7 @@ export const createTextInsertionSlice: StateCreator<
 
   pasteText: (position: TextPosition, currentTime: number) => {
     const { clipboard, addText } = get()
-    
+
     if (clipboard.length > 0) {
       const textToPaste = clipboard[0]
       const pastedText = createInsertedText(
@@ -195,7 +191,7 @@ export const createTextInsertionSlice: StateCreator<
         textToPaste.style,
         textToPaste.animation
       )
-      
+
       addText(pastedText)
     }
   },
@@ -216,8 +212,14 @@ export const createTextInsertionSlice: StateCreator<
           ? {
               ...text,
               position: {
-                x: Math.max(0, Math.min(100, text.position.x + deltaPosition.x)),
-                y: Math.max(0, Math.min(100, text.position.y + deltaPosition.y)),
+                x: Math.max(
+                  0,
+                  Math.min(100, text.position.x + deltaPosition.x)
+                ),
+                y: Math.max(
+                  0,
+                  Math.min(100, text.position.y + deltaPosition.y)
+                ),
               },
               updatedAt: Date.now(),
             }

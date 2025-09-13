@@ -13,11 +13,11 @@ interface InsertToolbarProps {
 }
 
 const InsertToolbar: React.FC<InsertToolbarProps> = () => {
-  const { 
-    isAssetSidebarOpen, 
+  const {
+    isAssetSidebarOpen,
     setIsAssetSidebarOpen,
     addTextAtCenter,
-    currentTime
+    currentTime,
   } = useEditorStore()
 
   const handleToggleAssetSidebar = () => {

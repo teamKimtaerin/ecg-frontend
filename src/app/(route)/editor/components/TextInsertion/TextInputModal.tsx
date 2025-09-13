@@ -20,13 +20,13 @@ export default function TextInputModal({
   onSave,
 }: TextInputModalProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  
+
   // Get store functions
   const { insertedTexts, updateText, selectText } = useEditorStore()
-  
+
   // Get current text data
-  const currentText = textId ? insertedTexts.find(t => t.id === textId) : null
-  
+  const currentText = textId ? insertedTexts.find((t) => t.id === textId) : null
+
   // Local state for content only
   const [content, setContent] = useState('')
 
@@ -117,7 +117,7 @@ export default function TextInputModal({
               placeholder="텍스트를 입력하세요..."
             />
           </div>
-          
+
           {currentText && (
             <div className="text-sm text-gray-600 mb-4">
               스타일과 타이밍은 하단 편집 패널에서 조정할 수 있습니다.
@@ -126,10 +126,7 @@ export default function TextInputModal({
 
           {/* Footer */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-            >
+            <Button variant="secondary" onClick={onClose}>
               취소
             </Button>
             <Button

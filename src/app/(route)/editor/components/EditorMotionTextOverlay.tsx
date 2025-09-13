@@ -142,8 +142,7 @@ export default function EditorMotionTextOverlay({
           key: pluginName,
         } as PluginManifest & { key: string }
         defaultParamsRef.current = getDefaultParameters(manifest)
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     void ensureManifest()
     return () => {
@@ -152,14 +151,12 @@ export default function EditorMotionTextOverlay({
   }, [])
 
   const buildScenarioFromClips = useCallback((): RendererConfig => {
-
     const pluginName = (manifestRef.current?.key as string) || 'elastic@1.0.0'
     const rawParams = defaultParamsRef.current || {}
     const manifest = manifestRef.current
     const params = manifest
       ? validateAndNormalizeParams(rawParams, manifest)
       : rawParams
-
 
     // Map editor UI → positioning and font size (using relative coordinates like demo)
     const centerX = 0.5 // Always center horizontally
@@ -189,7 +186,6 @@ export default function EditorMotionTextOverlay({
       const adjEnd = videoSegmentManager.mapToAdjustedTime(s1)
       if (adjStart == null || adjEnd == null) continue
       const text = clip.subtitle || clip.fullText || ''
-
 
       validClipsCount++
       cues.push({
@@ -240,7 +236,6 @@ export default function EditorMotionTextOverlay({
       cues,
     }
 
-
     return config
   }, [subtitlePosition, subtitleSize, clips, deletedClipIds])
 
@@ -253,7 +248,6 @@ export default function EditorMotionTextOverlay({
       params.get('scenario') === '1' ||
       process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO === '1' ||
       process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO === 'true'
-
 
     if (!useScenario) return
 
@@ -274,8 +268,7 @@ export default function EditorMotionTextOverlay({
           onScenarioUpdate(json)
         }
         // Controller will handle synchronization automatically
-      } catch (e) {
-      }
+      } catch (e) {}
     }
     void load()
     return () => {
@@ -297,7 +290,6 @@ export default function EditorMotionTextOverlay({
       typeof window !== 'undefined' ? window.location.search : ''
     )
     const useReal = params.get('scenario') === 'real'
-
 
     if (!useReal) return
 
@@ -368,8 +360,7 @@ export default function EditorMotionTextOverlay({
         .then(() => {
           // Controller will handle synchronization automatically
         })
-        .catch((e) => {
-        })
+        .catch((e) => {})
     }, 120)
     return () => clearTimeout(t)
   }, [
@@ -408,8 +399,7 @@ export default function EditorMotionTextOverlay({
         )
         controller.mount()
         controllerRef.current = controller
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     void initController()
@@ -420,8 +410,7 @@ export default function EditorMotionTextOverlay({
         try {
           controllerRef.current.destroy()
           controllerRef.current = null
-        } catch (e) {
-        }
+        } catch (e) {}
       }
     }
   }, [videoEl, renderer, containerRef])

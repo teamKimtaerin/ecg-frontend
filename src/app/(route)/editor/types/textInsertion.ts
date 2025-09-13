@@ -54,24 +54,24 @@ export interface TextInsertionActions {
   updateText: (id: string, updates: Partial<InsertedText>) => void
   deleteText: (id: string) => void
   duplicateText: (id: string) => void
-  
+
   // Selection management
   selectText: (id: string | null) => void
   clearSelection: () => void
-  
+
   // Style management
   updateDefaultStyle: (style: Partial<TextStyle>) => void
   applyStyleToSelected: (style: Partial<TextStyle>) => void
-  
+
   // Clipboard operations
   copyText: (id: string) => void
   cutText: (id: string) => void
   pasteText: (position: TextPosition, currentTime: number) => void
-  
+
   // Batch operations
   deleteSelectedTexts: () => void
   moveTexts: (ids: string[], deltaPosition: TextPosition) => void
-  
+
   // Time management
   getActiveTexts: (currentTime: number) => InsertedText[]
   updateTextTiming: (id: string, startTime: number, endTime: number) => void
@@ -124,7 +124,10 @@ export const createInsertedText = (
   }
 }
 
-export const isTextActiveAtTime = (text: InsertedText, currentTime: number): boolean => {
+export const isTextActiveAtTime = (
+  text: InsertedText,
+  currentTime: number
+): boolean => {
   return currentTime >= text.startTime && currentTime <= text.endTime
 }
 
