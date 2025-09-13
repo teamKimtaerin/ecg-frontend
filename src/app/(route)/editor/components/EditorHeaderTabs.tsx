@@ -14,6 +14,7 @@ import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { LuMenu, LuShoppingBag, LuHouse } from 'react-icons/lu'
 import { useDeployModal } from '@/hooks/useDeployModal'
 
+
 export interface EditorHeaderTabsProps {
   activeTab?: string
   onTabChange?: (tabId: string) => void
@@ -65,6 +66,7 @@ export default function EditorHeaderTabs({
       filename: task.filename,
     })
   }
+
 
   // Mock data for document modal
   const exportTasks = [
@@ -330,6 +332,7 @@ export default function EditorHeaderTabs({
 
       {/* Deploy Modal - Separate from DocumentModal */}
       <DeployModal {...deployModalProps} />
+
     </div>
   )
 }
