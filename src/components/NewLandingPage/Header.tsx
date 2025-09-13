@@ -6,7 +6,9 @@ import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { type User } from '@/lib/api/auth'
 import HoitLogo from '@/components/ui/HoitLogo'
 import DocumentModal from '@/components/ui/DocumentModal'
+import DeployModal from '@/components/ui/DeployModal'
 import UserDropdown from '@/components/ui/UserDropdown'
+import { useDeployModal } from '@/hooks/useDeployModal'
 
 export interface HeaderProps {
   onTryClick?: () => void
@@ -25,6 +27,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const {} = useAuthStatus()
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
+  const { openDeployModal, deployModalProps } = useDeployModal()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   // TODO 데이터를 실제 서버에서 받은 데이터로 받은 진행도 + 사용자가 정한 프로젝트 이름으로 바꾸면 될듯.
@@ -51,6 +54,7 @@ const Header: React.FC<HeaderProps> = ({
       completedAt: '2025-01-11 12:15',
     },
   ]
+
 
   const uploadTasks = [
     {
@@ -159,6 +163,12 @@ const Header: React.FC<HeaderProps> = ({
               buttonRef={buttonRef}
               exportTasks={exportTasks}
               uploadTasks={uploadTasks}
+              onDeployClick={(task) => {
+                openDeployModal({
+                  id: task.id,
+                  filename: task.filename
+                })
+              }}
             />
           </div>
 
@@ -178,6 +188,9 @@ const Header: React.FC<HeaderProps> = ({
           )}
         </div>
       </div>
+
+      {/* Deploy Modal */}
+      <DeployModal {...deployModalProps} />
     </header>
   )
 }

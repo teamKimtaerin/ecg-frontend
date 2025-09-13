@@ -47,6 +47,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
     setIsMounted(true)
   }, [])
 
+
   // ESC 키로 모달 닫기 (배포 진행 중에는 비활성화)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

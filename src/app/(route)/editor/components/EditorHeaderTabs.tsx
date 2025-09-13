@@ -12,6 +12,7 @@ import { EDITOR_TABS } from '../types'
 import { useEffect, useState, useRef } from 'react'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { LuMenu, LuShoppingBag, LuHouse } from 'react-icons/lu'
+import { useDeployModal } from '@/hooks/useDeployModal'
 
 export interface EditorHeaderTabsProps {
   activeTab?: string
@@ -55,12 +56,15 @@ export default function EditorHeaderTabs({
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const documentButtonRef = useRef<HTMLButtonElement>(null)
 
-  // Deploy modal state
-  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
-  const [selectedDeployProject, setSelectedDeployProject] = useState<{
-    id: number
-    filename: string
-  } | null>(null)
+  // Deploy modal hook
+  const { openDeployModal, deployModalProps } = useDeployModal()
+
+  const handleDeployClick = (task: any) => {
+    openDeployModal({
+      id: task.id,
+      filename: task.filename
+    })
+  }
 
   // Mock data for document modal
   const exportTasks = [
@@ -76,6 +80,13 @@ export default function EditorHeaderTabs({
       progress: 100,
       status: 'completed' as const,
       completedAt: '2025-01-11 14:30',
+    },
+    {
+      id: 3,
+      filename: 'video_project_3.mp4',
+      progress: 100,
+      status: 'completed' as const,
+      completedAt: '2025-01-11 12:15',
     },
   ]
 
@@ -300,10 +311,7 @@ export default function EditorHeaderTabs({
               buttonRef={documentButtonRef}
               exportTasks={exportTasks}
               uploadTasks={uploadTasks}
-              onDeployClick={(task) => {
-                setSelectedDeployProject(task)
-                setIsDeployModalOpen(true)
-              }}
+              onDeployClick={handleDeployClick}
             />
           </div>
 
@@ -321,22 +329,7 @@ export default function EditorHeaderTabs({
       </div>
 
       {/* Deploy Modal - Separate from DocumentModal */}
-      <DeployModal
-        isOpen={isDeployModalOpen}
-        onClose={() => {
-          setIsDeployModalOpen(false)
-          setSelectedDeployProject(null)
-        }}
-        project={
-          selectedDeployProject
-            ? {
-                id: selectedDeployProject.id,
-                filename: selectedDeployProject.filename,
-                title: selectedDeployProject.filename.replace(/\.[^/.]+$/, ''),
-              }
-            : null
-        }
-      />
+      <DeployModal {...deployModalProps} />
     </div>
   )
 }
