@@ -70,9 +70,6 @@ export default function EditorMotionTextOverlay({
       if (videoContainerRef?.current) {
         const video = videoContainerRef.current.querySelector('video')
         if (video) {
-          console.log(
-            '[EditorMotionTextOverlay] Found video element from container'
-          )
           return video
         }
       }
@@ -101,16 +98,12 @@ export default function EditorMotionTextOverlay({
       if (el) {
         setVideoEl(el)
         clearInterval(interval)
-        console.log('[EditorMotionTextOverlay] Video element found after retry')
       }
     }, 100)
 
     // Cleanup after 5 seconds
     const timeout = setTimeout(() => {
       clearInterval(interval)
-      console.warn(
-        '[EditorMotionTextOverlay] Video element not found after 5 seconds'
-      )
     }, 5000)
 
     return () => {
@@ -149,9 +142,7 @@ export default function EditorMotionTextOverlay({
           key: pluginName,
         } as PluginManifest & { key: string }
         defaultParamsRef.current = getDefaultParameters(manifest)
-        console.log('[EditorMotionTextOverlay] Loaded manifest:', pluginName)
       } catch (e) {
-        console.warn('[EditorMotionTextOverlay] Failed to load manifest', e)
       }
     }
     void ensureManifest()
@@ -161,13 +152,6 @@ export default function EditorMotionTextOverlay({
   }, [])
 
   const buildScenarioFromClips = useCallback((): RendererConfig => {
-    console.log('[EditorMotionTextOverlay] Building scenario from clips:', {
-      clipsCount: clips.length,
-      deletedClipsCount: deletedClipIds.size,
-      showSubtitles,
-      subtitlePosition,
-      subtitleSize,
-    })
 
     const pluginName = (manifestRef.current?.key as string) || 'elastic@1.0.0'
     const rawParams = defaultParamsRef.current || {}
@@ -176,11 +160,6 @@ export default function EditorMotionTextOverlay({
       ? validateAndNormalizeParams(rawParams, manifest)
       : rawParams
 
-    console.log('[EditorMotionTextOverlay] Using plugin:', {
-      pluginName,
-      hasManifest: !!manifest,
-      params,
-    })
 
     // Map editor UI → positioning and font size (using relative coordinates like demo)
     const centerX = 0.5 // Always center horizontally
@@ -211,16 +190,6 @@ export default function EditorMotionTextOverlay({
       if (adjStart == null || adjEnd == null) continue
       const text = clip.subtitle || clip.fullText || ''
 
-      // Debug logging for text extraction
-      console.log(`[EditorMotionTextOverlay] Processing clip ${clip.id}:`, {
-        timeline: clip.timeline,
-        originalTimes: { s0, s1 },
-        adjustedTimes: { adjStart, adjEnd },
-        subtitle: clip.subtitle,
-        fullText: clip.fullText,
-        finalText: text,
-        textEmpty: !text.trim(),
-      })
 
       validClipsCount++
       cues.push({
@@ -271,11 +240,6 @@ export default function EditorMotionTextOverlay({
       cues,
     }
 
-    console.log('[EditorMotionTextOverlay] Generated scenario config:', {
-      validClipsCount,
-      totalCues: cues.length,
-      config,
-    })
 
     return config
   }, [subtitlePosition, subtitleSize, clips, deletedClipIds])
@@ -290,53 +254,27 @@ export default function EditorMotionTextOverlay({
       process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO === '1' ||
       process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO === 'true'
 
-    console.log('[EditorMotionTextOverlay] External scenario check:', {
-      urlParam: params.get('scenario'),
-      envVar: process.env.NEXT_PUBLIC_EDITOR_USE_SCENARIO,
-      useScenario,
-    })
 
     if (!useScenario) return
 
     let cancelled = false
     const path =
       process.env.NEXT_PUBLIC_EDITOR_SCENARIO_PATH || '/scenario.json'
-    console.log(
-      '[EditorMotionTextOverlay] Loading external scenario from:',
-      path
-    )
 
     const load = async () => {
       try {
         const res = await fetch(path)
-        console.log(
-          '[EditorMotionTextOverlay] External scenario fetch response:',
-          {
-            ok: res.ok,
-            status: res.status,
-            statusText: res.statusText,
-          }
-        )
         if (!res.ok) return
         const json = (await res.json()) as RendererConfig
-        console.log('[EditorMotionTextOverlay] Loaded external scenario:', {
-          version: json.version,
-          cuesCount: json.cues?.length || 0,
-        })
         if (cancelled) return
         setUsingExternalScenario(true)
         await loadScenario(json)
-        console.log('[EditorMotionTextOverlay] External scenario loaded')
         // Send scenario to parent for JSON editor
         if (onScenarioUpdate) {
           onScenarioUpdate(json)
         }
         // Controller will handle synchronization automatically
       } catch (e) {
-        console.warn(
-          '[EditorMotionTextOverlay] Failed to load external scenario',
-          e
-        )
       }
     }
     void load()
@@ -348,9 +286,6 @@ export default function EditorMotionTextOverlay({
   // Handle scenario override from JSON editor
   useEffect(() => {
     if (scenarioOverride && renderer) {
-      console.log(
-        '[EditorMotionTextOverlay] Applying scenario override from JSON editor'
-      )
       void loadScenario(scenarioOverride)
     }
   }, [scenarioOverride, renderer, loadScenario])
@@ -363,76 +298,40 @@ export default function EditorMotionTextOverlay({
     )
     const useReal = params.get('scenario') === 'real'
 
-    console.log('[EditorMotionTextOverlay] Real.json scenario check:', {
-      usingExternalScenario,
-      isLoadingScenario,
-      urlParam: params.get('scenario'),
-      useReal,
-      hasVideoEl: !!videoEl,
-    })
 
     if (!useReal) return
 
     // Wait for video element to be available
     if (!videoEl) {
-      console.log(
-        '[EditorMotionTextOverlay] Waiting for video element before loading real.json scenario'
-      )
       return
     }
 
-    console.log('[EditorMotionTextOverlay] Loading real.json scenario...')
     setIsLoadingScenario(true)
 
     let cancelled = false
     const load = async () => {
       try {
-        console.log('[EditorMotionTextOverlay] Fetching /real.json')
         const res = await fetch('/real.json')
-        console.log('[EditorMotionTextOverlay] Real.json fetch response:', {
-          ok: res.ok,
-          status: res.status,
-          statusText: res.statusText,
-        })
         if (!res.ok) {
           throw new Error(
             `Failed to fetch real.json: ${res.status} ${res.statusText}`
           )
         }
         const real = (await res.json()) as RealJson
-        console.log('[EditorMotionTextOverlay] Loaded real.json data:', {
-          segmentsCount: real.segments?.length || 0,
-          firstSegment: real.segments?.[0] || null,
-        })
         if (cancelled) return
 
         const cfg = buildScenarioFromReal(real)
-        console.log(
-          '[EditorMotionTextOverlay] Generated scenario from real.json:',
-          {
-            version: cfg.version,
-            cuesCount: cfg.cues?.length || 0,
-            firstCue: cfg.cues?.[0] || null,
-          }
-        )
 
-        console.log('[EditorMotionTextOverlay] About to load scenario...')
         await loadScenario(cfg)
-        console.log('[EditorMotionTextOverlay] Scenario loaded successfully')
 
         // Send scenario to parent for JSON editor
         if (onScenarioUpdate) {
           onScenarioUpdate(cfg)
         }
 
-        console.log('[EditorMotionTextOverlay] Real.json scenario loaded')
         // Controller will handle synchronization automatically
         setUsingExternalScenario(true)
       } catch (e) {
-        console.error(
-          '[EditorMotionTextOverlay] Failed to build scenario from real.json',
-          e
-        )
       } finally {
         setIsLoadingScenario(false)
       }
@@ -457,7 +356,6 @@ export default function EditorMotionTextOverlay({
     if (usingExternalScenario || isLoadingScenario || scenarioOverride) return
     if (!showSubtitles) return
 
-    console.log('[EditorMotionTextOverlay] Loading default scenario from clips')
     const config = buildScenarioFromClips()
 
     // Send current scenario to parent for JSON editor
@@ -468,14 +366,9 @@ export default function EditorMotionTextOverlay({
     const t = setTimeout(() => {
       void loadScenario(config)
         .then(() => {
-          console.log('[EditorMotionTextOverlay] Default scenario loaded')
           // Controller will handle synchronization automatically
         })
         .catch((e) => {
-          console.warn(
-            '[EditorMotionTextOverlay] loadScenario (default) failed',
-            e
-          )
         })
     }, 120)
     return () => clearTimeout(t)
@@ -516,10 +409,6 @@ export default function EditorMotionTextOverlay({
         controller.mount()
         controllerRef.current = controller
       } catch (e) {
-        console.error(
-          '[EditorMotionTextOverlay] Failed to initialize MotionTextController:',
-          e
-        )
       }
     }
 
@@ -531,14 +420,7 @@ export default function EditorMotionTextOverlay({
         try {
           controllerRef.current.destroy()
           controllerRef.current = null
-          console.log(
-            '[EditorMotionTextOverlay] MotionTextController destroyed'
-          )
         } catch (e) {
-          console.error(
-            '[EditorMotionTextOverlay] Error destroying controller:',
-            e
-          )
         }
       }
     }
