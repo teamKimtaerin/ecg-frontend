@@ -34,6 +34,7 @@ import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
 import AlertDialog from '@/components/ui/AlertDialog'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { RenderProgressModal } from './components/UploadProgress'
 import Toolbars from './components/Toolbars'
 import SimpleToolbar from './components/SimpleToolbar'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
@@ -483,6 +484,9 @@ export default function EditorPage() {
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isRenderProgressOpen, setIsRenderProgressOpen] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(6)
+  const [uploadFileName, setUploadFileName] = useState('friends.mp4')
   const [showTutorialModal, setShowTutorialModal] = useState(false)
   const [isToolbarVisible, setIsToolbarVisible] = useState(true)
   const [editorHistory] = useState(() => {
@@ -970,7 +974,22 @@ export default function EditorPage() {
   const wrappedHandleStartTranscription = async () => {
     // TODO: Implement actual file upload and transcription logic
     setIsUploadModalOpen(false)
-    showToast('파일 업로드 기능은 준비 중입니다')
+    setIsRenderProgressOpen(true)
+
+    // Simulate progress updates
+    let progress = 6
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 3
+      if (progress >= 100) {
+        progress = 100
+        clearInterval(progressInterval)
+        setTimeout(() => {
+          setIsRenderProgressOpen(false)
+          showToast('분석이 완료되었습니다')
+        }, 1000)
+      }
+      setUploadProgress(Math.floor(progress))
+    }, 2000)
   }
 
   // Merge clips handler
@@ -1920,6 +1939,15 @@ export default function EditorPage() {
           isOpen={showTutorialModal}
           onClose={handleTutorialClose}
           onComplete={handleTutorialComplete}
+        />
+
+        <RenderProgressModal
+          isOpen={isRenderProgressOpen}
+          onClose={() => setIsRenderProgressOpen(false)}
+          fileName={uploadFileName}
+          progress={uploadProgress}
+          analysisTime="8분"
+          userName="테스트테스트"
         />
 
         {/* 원본 복원 확인 모달 */}
