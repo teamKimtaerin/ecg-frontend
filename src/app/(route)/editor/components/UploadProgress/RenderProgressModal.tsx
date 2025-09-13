@@ -20,23 +20,33 @@ export default function RenderProgressModal({
 }: RenderProgressModalProps) {
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-center p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-gray-900">
-          3분의 음성을 분석하고 있습니다.
-        </h1>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <LuX className="w-6 h-6 text-gray-500" />
-        </button>
-      </div>
+  const handleBackdropClick = (event: React.MouseEvent) => {
+    if (event.target === event.currentTarget) {
+      onClose()
+    }
+  }
 
-      {/* Content */}
-      <div className="flex-1 p-8 max-w-4xl mx-auto w-full">
+  return (
+    <div
+      className="fixed inset-0 bg-black/20 z-50 flex items-center justify-end p-4"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-white rounded-xl w-[800px] max-w-[90vw] max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900">
+            3분의 음성을 분석하고 있습니다.
+          </h1>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <LuX className="w-6 h-6 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
         {/* Greeting */}
         <div className="mb-8">
           <h2 className="text-lg text-gray-900 mb-2">
@@ -103,38 +113,6 @@ export default function RenderProgressModal({
           </div>
         </div>
 
-        {/* Tip Section */}
-        <div className="mb-8">
-          <div className="bg-blue-50 rounded-lg p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                <span className="text-blue-600 text-lg">💡</span>
-              </div>
-              <h3 className="text-lg font-semibold text-blue-900">알고 계셨나요?</h3>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center text-gray-700">
-                <span className="font-medium mr-2">따라하다</span>
-                <LuChevronDown className="w-4 h-4 mx-1" />
-                <span className="font-medium mr-2">따라</span>
-                <LuChevronDown className="w-4 h-4 mx-1" />
-                <span className="font-medium">하다</span>
-                <span className="ml-2">로 나누어짐</span>
-              </div>
-
-              <p className="text-gray-600 text-sm">
-                위드를 더블 클릭하고 재생바를 옮긴 뒤
-                <span className="inline-flex items-center mx-1">
-                  <span className="bg-gray-200 px-2 py-1 rounded text-xs">Ctrl</span>
-                  <span className="mx-1">+</span>
-                  <span className="bg-gray-200 px-2 py-1 rounded text-xs">Z</span>
-                </span>
-                나누기를 클릭해 보세요.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {/* Progress Section */}
         <div className="mb-4">
@@ -152,6 +130,7 @@ export default function RenderProgressModal({
               style={{ width: `${progress}%` }}
             ></div>
           </div>
+        </div>
         </div>
       </div>
     </div>
