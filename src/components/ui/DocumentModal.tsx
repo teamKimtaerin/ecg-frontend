@@ -36,7 +36,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'export' | 'upload'>('export')
   const modalRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ top: 0, right: 0 })
+  const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
 
   // Set mounted state
@@ -48,9 +48,11 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const buttonRect = buttonRef.current.getBoundingClientRect()
+      const modalWidth = 384 // 실제 모달 너비 (w-96 = 384px)
+      
       setPosition({
         top: buttonRect.bottom + 8, // 8px gap below button
-        right: window.innerWidth - buttonRect.right, // Align right edge with button
+        left: buttonRect.left + (buttonRect.width / 2) - (modalWidth / 2), // 버튼 중앙에 모달 중앙 정렬
       })
     }
   }, [isOpen, buttonRef])
@@ -85,7 +87,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       className="fixed w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]"
       style={{
         top: position.top,
-        right: position.right,
+        left: position.left,
       }}
     >
       {/* Tab Bar */}
