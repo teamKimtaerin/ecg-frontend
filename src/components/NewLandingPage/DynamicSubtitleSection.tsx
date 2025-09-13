@@ -6,9 +6,11 @@ export interface DynamicSubtitleSectionProps {
   onApplyDynamicSubtitleClick?: () => void
 }
 
-const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = ({
-  // onApplyDynamicSubtitleClick,
-}) => {
+const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = (
+  {
+    // onApplyDynamicSubtitleClick,
+  }
+) => {
   const [selectedAnimation, setSelectedAnimation] = useState('fade')
   const [currentSubtitle, setCurrentSubtitle] = useState(0)
   const [animationKey, setAnimationKey] = useState(0)

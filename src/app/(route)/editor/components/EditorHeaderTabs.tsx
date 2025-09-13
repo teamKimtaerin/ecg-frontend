@@ -57,7 +57,10 @@ export default function EditorHeaderTabs({
 
   // Deploy modal state
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
-  const [selectedDeployProject, setSelectedDeployProject] = useState<{id: number, filename: string} | null>(null)
+  const [selectedDeployProject, setSelectedDeployProject] = useState<{
+    id: number
+    filename: string
+  } | null>(null)
 
   // Mock data for document modal
   const exportTasks = [
@@ -193,14 +196,14 @@ export default function EditorHeaderTabs({
           {isNavDropdownOpen && (
             <div className="nav-dropdown absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] min-w-[150px]">
               <button
-                onClick={() => window.location.href = '/'}
+                onClick={() => (window.location.href = '/')}
                 className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg transition-colors cursor-pointer"
               >
                 <LuHouse className="w-4 h-4 mr-3" />
                 메인 페이지
               </button>
               <button
-                onClick={() => window.location.href = '/asset-store'}
+                onClick={() => (window.location.href = '/asset-store')}
                 className="w-full flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 last:rounded-b-lg transition-colors cursor-pointer"
               >
                 <LuShoppingBag className="w-4 h-4 mr-3" />
