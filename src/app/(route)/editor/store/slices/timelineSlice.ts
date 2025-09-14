@@ -72,7 +72,7 @@ export interface TimelineActions {
   // 연속 재생 모드 관리
   enableSequentialMode: () => void
   disableSequentialMode: () => void
-  reorderClips: (newOrder: string[]) => void
+  reorderTimelineClips: (newOrder: string[]) => void
   getSequentialClips: () => TimelineClip[]
   calculateSequentialDuration: () => number
   
@@ -680,7 +680,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   },
 
   // 클립 순서 재배열 (연속 타임라인 재구성)
-  reorderClips: (newOrder) => {
+  reorderTimelineClips: (newOrder) => {
     set((state) => {
       if (state.timeline.isSequentialMode) {
         // 연속 재생 모드: 클립들을 새로운 순서로 연속 배치
@@ -746,7 +746,9 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       return state.timeline.clips
     }
 
-    return state.timeline.clipOrder
+    // Safety check: ensure clipOrder is an array
+    const clipOrder = Array.isArray(state.timeline.clipOrder) ? state.timeline.clipOrder : []
+    return clipOrder
       .map(clipId => state.timeline.clips.find(clip => clip.id === clipId))
       .filter(Boolean) as TimelineClip[]
   },

@@ -20,6 +20,7 @@ interface SubtitleEditListProps {
   onOpenSpeakerManagement?: () => void
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
+  onTimelineEdit?: (clipId: string, newTimeline: string) => void
   onEmptySpaceClick?: () => void
 }
 
@@ -37,6 +38,7 @@ export default function SubtitleEditList({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
+  onTimelineEdit,
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
   const { overId, activeId } = useEditorStore()
@@ -82,7 +84,7 @@ export default function SubtitleEditList({
                 isSelected={activeClipId === clip.id} // 포커스 상태
                 isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
                 isMultiSelected={selectedClipIds.has(clip.id)}
-                enableDragAndDrop={selectedClipIds.has(clip.id)} // 체크된 클립만 드래그 가능
+                enableDragAndDrop={true} // 모든 클립 드래그 가능
                 speakers={speakers}
                 speakerColors={speakerColors}
                 onSelect={onClipSelect}
@@ -93,6 +95,7 @@ export default function SubtitleEditList({
                 onOpenSpeakerManagement={onOpenSpeakerManagement}
                 onAddSpeaker={onAddSpeaker}
                 onRenameSpeaker={onRenameSpeaker}
+                onTimelineEdit={onTimelineEdit}
               />
 
               {/* 드롭 인디케이터 - 현재 위치 아래에 표시 */}

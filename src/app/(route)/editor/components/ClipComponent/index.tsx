@@ -29,6 +29,7 @@ export default function ClipComponent({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
+  onTimelineEdit,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { expandedClipId, focusedWordId } = useEditorStore()
@@ -75,7 +76,12 @@ export default function ClipComponent({
           className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''} cursor-pointer`}
           onClick={handleSidebarClick}
         >
-          <ClipTimeline index={index} />
+          <ClipTimeline 
+            index={index}
+            clipId={clip.id}
+            timeline={clip.timeline}
+            onTimelineEdit={onTimelineEdit}
+          />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               <ClipCheckbox

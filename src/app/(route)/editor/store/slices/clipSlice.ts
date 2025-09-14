@@ -212,12 +212,14 @@ export const createClipSlice: StateCreator<
   },
 
   reorderClips: (activeId, overId, selectedIds) => {
+    const fullState = get()
     set((state) => {
       const { clips } = state
       const oldIndex = clips.findIndex((item) => item.id === activeId)
       const newIndex = clips.findIndex((item) => item.id === overId)
 
       // If multiple items are selected, move them as a group
+      let newClips: ClipItem[]
       if (selectedIds.size > 1 && selectedIds.has(activeId)) {
         // Get selected items in their current order
         const selectedItems = clips.filter((item) => selectedIds.has(item.id))
@@ -245,17 +247,25 @@ export const createClipSlice: StateCreator<
         }
 
         // Create new array with items in correct positions
-        const newClips = [
+        newClips = [
           ...unselectedItems.slice(0, insertIndex),
           ...selectedItems,
           ...unselectedItems.slice(insertIndex),
         ]
-
-        return { clips: newClips }
       } else {
         // Single item drag
-        return { clips: arrayMove(clips, oldIndex, newIndex) }
+        newClips = arrayMove(clips, oldIndex, newIndex)
       }
+
+      // If in sequential mode, update timeline clips order as well
+      let updatedState = { clips: newClips }
+      if ('timeline' in fullState && (fullState as any).timeline?.isSequentialMode) {
+        const newOrder = newClips.map(clip => clip.id)
+        // Call the timeline reorder function
+        get().reorderTimelineClips?.(newOrder)
+      }
+
+      return updatedState
     })
   },
 

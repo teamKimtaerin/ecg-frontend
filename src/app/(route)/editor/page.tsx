@@ -966,6 +966,48 @@ export default function EditorPage() {
     }
   }
 
+  // 타임라인 편집 핸들러
+  const handleTimelineEdit = useCallback((clipId: string, newTimeline: string) => {
+    const clipIndex = clips.findIndex(clip => clip.id === clipId)
+    if (clipIndex === -1) return
+
+    const oldTimeline = clips[clipIndex].timeline
+
+    const updatedClips = [...clips]
+    updatedClips[clipIndex] = {
+      ...updatedClips[clipIndex],
+      timeline: newTimeline
+    }
+    
+    setClips(updatedClips)
+    
+    // 명령 기록에 추가
+    editorHistory.execute({
+      type: 'editClipTimeline',
+      clipId,
+      oldTimeline,
+      newTimeline,
+      execute: () => {
+        const currentClips = useEditorStore.getState().clips
+        const idx = currentClips.findIndex(c => c.id === clipId)
+        if (idx !== -1) {
+          const newClips = [...currentClips]
+          newClips[idx] = { ...newClips[idx], timeline: newTimeline }
+          setClips(newClips)
+        }
+      },
+      undo: () => {
+        const currentClips = useEditorStore.getState().clips
+        const idx = currentClips.findIndex(c => c.id === clipId)
+        if (idx !== -1) {
+          const newClips = [...currentClips]
+          newClips[idx] = { ...newClips[idx], timeline: oldTimeline }
+          setClips(newClips)
+        }
+      }
+    })
+  }, [clips, setClips])
+
   // Upload modal handler - currently not used, placeholder for future implementation
   const wrappedHandleStartTranscription = async () => {
     // TODO: Implement actual file upload and transcription logic
@@ -1752,6 +1794,7 @@ export default function EditorPage() {
                 onOpenSpeakerManagement={handleOpenSpeakerManagement}
                 onAddSpeaker={handleAddSpeaker}
                 onRenameSpeaker={handleRenameSpeaker}
+                onTimelineEdit={handleTimelineEdit}
                 onEmptySpaceClick={handleEmptySpaceClick}
               />
             ) : (
