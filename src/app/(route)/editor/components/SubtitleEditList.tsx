@@ -20,8 +20,6 @@ interface SubtitleEditListProps {
   onOpenSpeakerManagement?: () => void
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
-  onTimelineEdit?: (clipId: string, newTimeline: string) => void
-  onClipTimingUpdate?: (clipId: string, newStartTime: number, newEndTime: number) => void
   onEmptySpaceClick?: () => void
 }
 
@@ -39,8 +37,6 @@ export default function SubtitleEditList({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
-  onTimelineEdit,
-  onClipTimingUpdate,
   onEmptySpaceClick,
 }: SubtitleEditListProps) {
   const { overId, activeId } = useEditorStore()
@@ -97,8 +93,6 @@ export default function SubtitleEditList({
                 onOpenSpeakerManagement={onOpenSpeakerManagement}
                 onAddSpeaker={onAddSpeaker}
                 onRenameSpeaker={onRenameSpeaker}
-                onTimelineEdit={onTimelineEdit}
-                onClipTimingUpdate={onClipTimingUpdate}
               />
 
               {/* 드롭 인디케이터 - 현재 위치 아래에 표시 */}

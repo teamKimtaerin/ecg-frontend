@@ -129,10 +129,19 @@ export default function ClipWords({
 
       // Seek video player to word start time
       const videoPlayer = (
-        window as { videoPlayer?: { seekTo: (time: number) => void } }
+        window as { 
+          videoPlayer?: { 
+            seekTo: (time: number) => void 
+            pauseAutoWordSelection?: () => void
+          } 
+        }
       ).videoPlayer
       if (videoPlayer) {
         videoPlayer.seekTo(word.start)
+        // Pause auto word selection for a few seconds when user manually selects a word
+        if (videoPlayer.pauseAutoWordSelection) {
+          videoPlayer.pauseAutoWordSelection()
+        }
       }
 
       if (isCenter) {

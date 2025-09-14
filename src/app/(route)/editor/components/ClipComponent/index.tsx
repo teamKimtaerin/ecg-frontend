@@ -29,8 +29,6 @@ export default function ClipComponent({
   onOpenSpeakerManagement,
   onAddSpeaker,
   onRenameSpeaker,
-  onTimelineEdit,
-  onClipTimingUpdate,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { expandedClipId, focusedWordId } = useEditorStore()

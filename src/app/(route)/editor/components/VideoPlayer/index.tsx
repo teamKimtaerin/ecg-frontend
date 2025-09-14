@@ -6,6 +6,7 @@ import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { log } from '@/utils/logger'
 import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
+import { findCurrentWord, shouldUpdateWordSelection } from '@/utils/video/currentWordFinder'
 import API_CONFIG from '@/config/api.config'
 
 interface VideoPlayerProps {
@@ -29,6 +30,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [videoSrc, setVideoSrc] = useState<string | null>(null)
   const [currentSubtitle, setCurrentSubtitle] = useState<string | null>(null)
 
+  // Track last word selection update time to throttle updates
+  const lastWordUpdateTimeRef = useRef(0)
+  // Track when user manually selects a word to pause auto selection
+  const manualSelectionPauseUntilRef = useRef(0)
+
   // Get media state from store
   const {
     mediaId,
@@ -38,6 +44,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     setVideoError,
     clips,
     deletedClipIds,
+    setFocusedWord,
+    setActiveClipId,
+    setPlayingWord,
+    clearPlayingWord,
   } = useEditorStore()
 
   // Load video from IndexedDB or URL
@@ -272,6 +282,42 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       // Notify parent component of time update
       onTimeUpdate?.(newTime, newDuration || 0)
+
+      // Auto-select current word during playback (temporarily disabled for debugging)
+      // TODO: Re-enable after fixing video playback issues
+      /*
+      if (
+        isPlaying && 
+        clips.length > 0 &&
+        newTime > manualSelectionPauseUntilRef.current &&
+        shouldUpdateWordSelection(newTime, lastWordUpdateTimeRef.current)
+      ) {
+        try {
+          const currentWordInfo = findCurrentWord(newTime, clips)
+          if (currentWordInfo) {
+            setPlayingWord(currentWordInfo.clipId, currentWordInfo.wordId)
+            
+            const currentFocusedWordId = useEditorStore.getState().focusedWordId
+            const currentFocusedClipId = useEditorStore.getState().focusedClipId
+            
+            if (
+              currentFocusedWordId !== currentWordInfo.wordId ||
+              currentFocusedClipId !== currentWordInfo.clipId
+            ) {
+              setFocusedWord(currentWordInfo.clipId, currentWordInfo.wordId)
+              setActiveClipId(currentWordInfo.clipId)
+            }
+          } else {
+            clearPlayingWord()
+          }
+          lastWordUpdateTimeRef.current = newTime
+        } catch (error) {
+          console.warn('Word synchronization error:', error)
+        }
+      } else if (!isPlaying) {
+        clearPlayingWord()
+      }
+      */
 
       // Update subtitles based on current time
       if (clips.length > 0) {

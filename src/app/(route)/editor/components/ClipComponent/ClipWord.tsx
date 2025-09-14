@@ -41,6 +41,9 @@ export default function ClipWord({
     isAssetSidebarOpen,
     setIsAssetSidebarOpen,
     expandClip,
+    playingWordId,
+    playingClipId,
+    isWordPlaying,
   } = useEditorStore()
 
   const isFocused = focusedWordId === word.id && focusedClipId === clipId
@@ -49,6 +52,9 @@ export default function ClipWord({
   const isBeingDragged = draggedWordId === word.id
   const isDropTarget = dropTargetWordId === word.id
   const isEditing = editingWordId === word.id && editingClipId === clipId
+  const isPlaying = playingWordId === word.id
+  const isInPlayingClip = playingClipId === clipId
+  const isOtherClipPlaying = playingClipId !== null && playingClipId !== clipId
 
   // Setup drag and drop
   const {
@@ -111,10 +117,19 @@ export default function ClipWord({
 
         // Seek video player to word start time
         const videoPlayer = (
-          window as { videoPlayer?: { seekTo: (time: number) => void } }
+          window as { 
+            videoPlayer?: { 
+              seekTo: (time: number) => void 
+              pauseAutoWordSelection?: () => void
+            } 
+          }
         ).videoPlayer
         if (videoPlayer) {
           videoPlayer.seekTo(word.start)
+          // Pause auto word selection for a few seconds when user manually selects a word
+          if (videoPlayer.pauseAutoWordSelection) {
+            videoPlayer.pauseAutoWordSelection()
+          }
         }
 
         // If already focused and clicking in center, start inline edit
@@ -131,6 +146,7 @@ export default function ClipWord({
     [
       word.id,
       word.text,
+      word.start,
       isFocused,
       isEditing,
       lastClickTime,
@@ -204,6 +220,24 @@ export default function ClipWord({
 
     if (isEditing) {
       classes.push('bg-yel', 'text-black')
+    } else if (isPlaying) {
+      // Currently playing word - highlighted with animated gradient
+      classes.push(
+        'bg-gradient-to-r',
+        'from-blue-400',
+        'via-blue-500',
+        'to-blue-600',
+        'text-white',
+        'shadow-md',
+        'ring-2',
+        'ring-blue-300',
+        'ring-opacity-50',
+        'transform',
+        'scale-105',
+        'transition-all',
+        'duration-300',
+        'animate-pulse'
+      )
     } else if (isFocused) {
       classes.push('bg-black', 'text-white')
     } else if (isInGroup) {
@@ -218,6 +252,14 @@ export default function ClipWord({
         'text-black',
         'font-bold'
       )
+      
+      // Dim words when other clips are playing
+      if (isOtherClipPlaying) {
+        classes.push('opacity-40')
+      } else if (isInPlayingClip && !isPlaying) {
+        // Slightly dim non-playing words in the same clip
+        classes.push('opacity-70')
+      }
     }
 
     if (isBeingDragged && !isEditing) {

@@ -752,7 +752,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     
     // If clipOrder is empty, return clips in their original order
     if (clipOrder.length === 0) {
-      console.warn('[timelineSlice] clipOrder is empty, returning clips in original order')
+      console.log('[timelineSlice] clipOrder is empty, returning clips in original order')
       return state.timeline.clips
     }
     

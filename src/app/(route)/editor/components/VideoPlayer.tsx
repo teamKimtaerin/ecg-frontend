@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useEditorStore } from '../store'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
+import { findCurrentWord, shouldUpdateWordSelection } from '@/utils/video/currentWordFinder'
 
 interface VideoPlayerProps {
   className?: string
@@ -31,7 +32,16 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
     stopSegmentPlayback,
     clips,
     deletedClipIds,
+    setFocusedWord,
+    setActiveClipId,
+    setPlayingWord,
+    clearPlayingWord,
   } = useEditorStore()
+
+  // Track last word selection update time to throttle updates
+  const lastWordUpdateTimeRef = useRef(0)
+  // Track when user manually selects a word to pause auto selection
+  const manualSelectionPauseUntilRef = useRef(0)
 
   // Handle time update
   const handleTimeUpdate = useCallback(() => {
@@ -44,6 +54,42 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
       useEditorStore.getState().setMediaInfo({
         currentTime: time,
       })
+
+      // Auto-select current word during playback (temporarily disabled for debugging)
+      // TODO: Re-enable after fixing video playback issues
+      /*
+      if (
+        isPlaying && 
+        clips.length > 0 &&
+        time > manualSelectionPauseUntilRef.current &&
+        shouldUpdateWordSelection(time, lastWordUpdateTimeRef.current)
+      ) {
+        try {
+          const currentWordInfo = findCurrentWord(time, clips)
+          if (currentWordInfo) {
+            setPlayingWord(currentWordInfo.clipId, currentWordInfo.wordId)
+            
+            const currentFocusedWordId = useEditorStore.getState().focusedWordId
+            const currentFocusedClipId = useEditorStore.getState().focusedClipId
+            
+            if (
+              currentFocusedWordId !== currentWordInfo.wordId ||
+              currentFocusedClipId !== currentWordInfo.clipId
+            ) {
+              setFocusedWord(currentWordInfo.clipId, currentWordInfo.wordId)
+              setActiveClipId(currentWordInfo.clipId)
+            }
+          } else {
+            clearPlayingWord()
+          }
+          lastWordUpdateTimeRef.current = time
+        } catch (error) {
+          console.warn('Word synchronization error:', error)
+        }
+      } else if (!isPlaying) {
+        clearPlayingWord()
+      }
+      */
 
       // Check segment playback boundaries
       if (isSegmentPlayback && segmentEnd !== null && time >= segmentEnd) {
@@ -58,6 +104,12 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
     segmentStart,
     segmentEnd,
     stopSegmentPlayback,
+    isPlaying,
+    clips,
+    setFocusedWord,
+    setActiveClipId,
+    setPlayingWord,
+    clearPlayingWord,
   ])
 
   // Handle loaded metadata
@@ -178,6 +230,13 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
     }
   }, [isSegmentPlayback, segmentStart])
 
+  // Function to pause auto word selection temporarily
+  const pauseAutoWordSelection = useCallback(() => {
+    const currentTime = videoRef.current?.currentTime || 0
+    // Pause auto selection for 3 seconds after manual word selection
+    manualSelectionPauseUntilRef.current = currentTime + 3
+  }, [])
+
   // Expose methods to parent via ref (optional)
   useEffect(() => {
     // Store video ref globally for external control
@@ -190,6 +249,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
             seekTo: (time: number) => void
             getCurrentTime: () => number
             playSegment: (start: number, end: number) => void
+            pauseAutoWordSelection: () => void
           }
         }
       ).videoPlayer = {
@@ -200,9 +260,10 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
         playSegment: (start: number, end: number) => {
           useEditorStore.getState().playSegment(start, end)
         },
+        pauseAutoWordSelection,
       }
     }
-  }, [seekTo])
+  }, [seekTo, pauseAutoWordSelection])
 
   // Update segment manager when clips or duration change
   useEffect(() => {

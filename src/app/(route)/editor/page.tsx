@@ -52,7 +52,6 @@ import { areClipsConsecutive } from '@/utils/editor/clipMerger'
 import { BatchChangeSpeakerCommand } from '@/utils/editor/commands/BatchChangeSpeakerCommand'
 import { ChangeSpeakerCommand } from '@/utils/editor/commands/ChangeSpeakerCommand'
 import { CopyClipsCommand } from '@/utils/editor/commands/CopyClipsCommand'
-import { CutClipsCommand } from '@/utils/editor/commands/CutClipsCommand'
 import { DeleteClipCommand } from '@/utils/editor/commands/DeleteClipCommand'
 import { MergeClipsCommand } from '@/utils/editor/commands/MergeClipsCommand'
 import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
@@ -967,56 +966,6 @@ export default function EditorPage() {
     }
   }
 
-  // 타임라인 편집 핸들러
-  const handleTimelineEdit = useCallback((clipId: string, newTimeline: string) => {
-    const clipIndex = clips.findIndex(clip => clip.id === clipId)
-    if (clipIndex === -1) return
-
-    const oldTimeline = clips[clipIndex].timeline
-
-    const updatedClips = [...clips]
-    updatedClips[clipIndex] = {
-      ...updatedClips[clipIndex],
-      timeline: newTimeline
-    }
-    
-    setClips(updatedClips)
-    
-    // 명령 기록에 추가
-    editorHistory.execute({
-      type: 'editClipTimeline',
-      clipId,
-      oldTimeline,
-      newTimeline,
-      execute: () => {
-        const currentClips = useEditorStore.getState().clips
-        const idx = currentClips.findIndex(c => c.id === clipId)
-        if (idx !== -1) {
-          const newClips = [...currentClips]
-          newClips[idx] = { ...newClips[idx], timeline: newTimeline }
-          setClips(newClips)
-        }
-      },
-      undo: () => {
-        const currentClips = useEditorStore.getState().clips
-        const idx = currentClips.findIndex(c => c.id === clipId)
-        if (idx !== -1) {
-          const newClips = [...currentClips]
-          newClips[idx] = { ...newClips[idx], timeline: oldTimeline }
-          setClips(newClips)
-        }
-      }
-    })
-  }, [clips, setClips])
-
-  // 컷편집 핸들러 - 드래그로 타임라인 조정
-  const handleClipTimingUpdate = useCallback((clipId: string, newStartTime: number, newEndTime: number) => {
-    // clipSlice의 updateClipTiming 함수 호출
-    updateClipTiming(clipId, newStartTime, newEndTime)
-    
-    // 상태 변경이 발생했으므로 저장 상태 업데이트
-    setHasUnsavedChanges(true)
-  }, [updateClipTiming, setHasUnsavedChanges])
 
   // Upload modal handler - currently not used, placeholder for future implementation
   const wrappedHandleStartTranscription = async () => {
@@ -1249,67 +1198,6 @@ export default function EditorPage() {
     }
   }, [activeClipId, clips, setClips, editorHistory, setActiveClipId])
 
-  // Cut clips handler
-  const handleCutClips = useCallback(() => {
-    try {
-      const selectedIds = Array.from(selectedClipIds)
-
-      if (selectedIds.length === 0) {
-        showToast('잘라낼 클립을 선택해주세요.')
-        return
-      }
-
-      // 잘라낼 클립들의 첫 번째 인덱스 저장 (포커스 이동용)
-      const firstCutIndex = clips.findIndex((clip) =>
-        selectedIds.includes(clip.id)
-      )
-
-      // Create and execute cut command
-      const command = new CutClipsCommand(
-        clips,
-        selectedIds,
-        setClips,
-        setClipboard
-      )
-
-      editorHistory.executeCommand(command)
-      clearSelection() // Clear selection after cutting
-
-      // 자동 포커스 스킵 설정 및 적절한 클립에 포커스
-      setSkipAutoFocus(true)
-      setTimeout(() => {
-        const remainingClips = clips.filter(
-          (clip) => !selectedIds.includes(clip.id)
-        )
-        if (remainingClips.length > 0) {
-          // 잘라낸 위치의 다음 클립에 포커스, 없으면 이전 클립
-          let nextFocusIndex = firstCutIndex
-          if (nextFocusIndex >= remainingClips.length) {
-            nextFocusIndex = Math.max(0, remainingClips.length - 1)
-          }
-          setActiveClipId(remainingClips[nextFocusIndex].id)
-          console.log(
-            'Cut completed, focused on clip at index:',
-            nextFocusIndex
-          )
-        }
-      }, 0)
-
-      showToast(`${selectedIds.length}개 클립을 잘라냈습니다.`, 'success')
-    } catch (error) {
-      console.error('클립 잘라내기 오류:', error)
-      showToast('클립 잘라내기 중 오류가 발생했습니다.')
-    }
-  }, [
-    clips,
-    selectedClipIds,
-    setClips,
-    setClipboard,
-    editorHistory,
-    clearSelection,
-    setActiveClipId,
-  ])
-
   // Copy clips handler
   const handleCopyClips = useCallback(() => {
     try {
@@ -1500,14 +1388,10 @@ export default function EditorPage() {
         event.preventDefault()
         handleMergeClips()
       }
-      // Command/Ctrl+X (cut clips) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
+      // Command/Ctrl+X (delete clips) - 윈도우에서는 Ctrl+X, Mac에서는 Command+X
       else if (cmdOrCtrl && event.key === 'x') {
         event.preventDefault()
-        if (selectedClipIds.size > 0) {
-          handleCutClips()
-        } else {
-          handleDeleteClip() // 선택된 클립이 없으면 기존처럼 삭제
-        }
+        handleDeleteClip()
       }
       // Command/Ctrl+C (copy clips)
       else if (cmdOrCtrl && event.key === 'c') {
@@ -1541,7 +1425,6 @@ export default function EditorPage() {
     handleMergeClips,
     handleSplitClip,
     handleDeleteClip,
-    handleCutClips,
     handleCopyClips,
     handlePasteClips,
     selectedClipIds,
@@ -1726,7 +1609,7 @@ export default function EditorPage() {
               onMergeClips={handleMergeClips}
               onUndo={handleUndo}
               onRedo={handleRedo}
-              onCut={handleCutClips}
+              onCut={undefined}
               onCopy={handleCopyClips}
               onPaste={handlePasteClips}
               onSplitClip={handleSplitClip}
@@ -1804,8 +1687,6 @@ export default function EditorPage() {
                 onOpenSpeakerManagement={handleOpenSpeakerManagement}
                 onAddSpeaker={handleAddSpeaker}
                 onRenameSpeaker={handleRenameSpeaker}
-                onTimelineEdit={handleTimelineEdit}
-                onClipTimingUpdate={handleClipTimingUpdate}
                 onEmptySpaceClick={handleEmptySpaceClick}
               />
             ) : (

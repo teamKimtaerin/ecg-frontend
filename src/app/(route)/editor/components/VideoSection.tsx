@@ -6,8 +6,6 @@ import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
-import TimelineEditor from './TimelineEditor/TimelineEditor'
-import CutEditingControls from './CutEditingControls'
 import { useEditorStore } from '../store'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
@@ -30,7 +28,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
   // Text insertion state
   const [currentTime, setCurrentTime] = useState(0)
-  const [showTimeline, setShowTimeline] = useState(false)
 
   // Store hooks
   const {
@@ -91,14 +88,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     // Double click functionality disabled
   }, [])
 
-  // 타임라인 클릭 핸들러
-  const handleTimelineClick = useCallback((time: number) => {
-    // 비디오 플레이어를 해당 시간으로 시크
-    if (videoPlayerRef.current) {
-      videoPlayerRef.current.currentTime = time
-    }
-    setCurrentTime(time)
-  }, [])
 
   return (
     <div
@@ -137,30 +126,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         {/* Text Edit Input Panel */}
         <TextEditInput />
 
-        {/* Cut Editing Controls */}
-        <div className="mb-4">
-          <CutEditingControls />
-        </div>
-
-        {/* Timeline Toggle Button */}
-        <div className="mb-2">
-          <button
-            onClick={() => setShowTimeline(!showTimeline)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-          >
-            {showTimeline ? '타임라인 숨기기' : '타임라인 표시'}
-          </button>
-        </div>
-
-        {/* Timeline Editor */}
-        {showTimeline && (
-          <div className="border border-gray-200 rounded-lg overflow-hidden">
-            <TimelineEditor
-              height={300}
-              onTimelineClick={handleTimelineClick}
-            />
-          </div>
-        )}
       </div>
     </div>
   )
