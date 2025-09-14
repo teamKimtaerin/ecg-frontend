@@ -1,6 +1,8 @@
 import React from 'react'
 import {
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Info,
   X,
   XCircle,
@@ -13,6 +15,10 @@ import {
   AlertCircle,
   CheckCircle,
   AlertTriangle,
+  Play,
+  Pause,
+  Copy,
+  Trash2,
 } from 'lucide-react'
 
 export interface IconProps {
@@ -86,4 +92,29 @@ export const ExclamationTriangleIcon: React.FC<IconProps> = ({
 // X Circle Icon (AlertDialog error용)
 export const XCircleIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <XCircle className={className} size={size} />
+)
+
+// Video/Audio Control Icons
+export const PlayIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Play className={className} size={size} />
+)
+
+export const PauseIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Pause className={className} size={size} />
+)
+
+export const ChevronLeftIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <ChevronLeft className={className} size={size} />
+)
+
+export const ChevronRightIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <ChevronRight className={className} size={size} />
+)
+
+export const CopyIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Copy className={className} size={size} />
+)
+
+export const TrashIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Trash2 className={className} size={size} />
 )

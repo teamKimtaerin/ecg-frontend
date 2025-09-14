@@ -10,12 +10,14 @@ interface VideoPlayerProps {
   onLoadedMetadata?: (duration: number) => void
 }
 
-export default function VideoPlayer({
+const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(({
   className = '',
   onTimeUpdate,
   onLoadedMetadata,
-}: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null)
+}, ref) => {
+  // videoRef를 외부 ref와 내부 ref를 모두 처리할 수 있도록 수정
+  const internalRef = useRef<HTMLVideoElement>(null)
+  const videoRef = (ref as React.RefObject<HTMLVideoElement>) || internalRef
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -258,4 +260,8 @@ export default function VideoPlayer({
       />
     </div>
   )
-}
+})
+
+VideoPlayer.displayName = 'VideoPlayer'
+
+export default VideoPlayer

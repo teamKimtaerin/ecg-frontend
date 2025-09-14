@@ -1,11 +1,16 @@
 'use client'
 
-import React, { useRef, useState, useCallback } from 'react'
+import React, { useRef, useState, useCallback, useEffect } from 'react'
 import type { RendererConfig } from '@/app/shared/motiontext'
 import VideoPlayer from './VideoPlayer'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
+import TimelineEditor from './TimelineEditor/TimelineEditor'
+import CutEditingControls from './CutEditingControls'
+import { useEditorStore } from '../store'
+import { playbackEngine } from '@/utils/timeline/playbackEngine'
+import { timelineEngine } from '@/utils/timeline/timelineEngine'
 // import ScenarioJsonEditor from './ScenarioJsonEditor' // TODO: Re-enable when needed
 
 interface VideoSectionProps {
@@ -14,6 +19,7 @@ interface VideoSectionProps {
 
 const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
+  const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentScenario, setCurrentScenario] = useState<RendererConfig | null>(
@@ -24,6 +30,16 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
   // Text insertion state
   const [currentTime, setCurrentTime] = useState(0)
+  const [showTimeline, setShowTimeline] = useState(false)
+
+  // Store hooks
+  const {
+    clips,
+    timeline,
+    initializeTimeline,
+    setPlaybackPosition,
+    videoUrl,
+  } = useEditorStore()
 
   const handleScenarioUpdate = useCallback((scenario: RendererConfig) => {
     setCurrentScenario(scenario)
@@ -35,10 +51,33 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     setScenarioOverride(newScenario)
   }, [])
 
+  // 타임라인 초기화
+  useEffect(() => {
+    if (clips.length > 0 && timeline.clips.length === 0) {
+      // 원본 클립들로부터 타임라인 초기화
+      initializeTimeline(clips)
+      
+      // 재생 엔진 초기화
+      const timelineClips = timelineEngine.initializeFromClips(clips)
+      playbackEngine.initialize(timelineClips, clips)
+    }
+  }, [clips, timeline.clips.length, initializeTimeline])
+
+  // 비디오 플레이어 레퍼런스 설정
+  useEffect(() => {
+    if (videoPlayerRef.current) {
+      playbackEngine.setVideoPlayer(videoPlayerRef.current)
+    }
+  }, [videoUrl])
+
   // Handle time update from video player
   const handleTimeUpdate = useCallback((time: number) => {
     setCurrentTime(time)
-  }, [])
+    
+    // 타임라인 재생 위치 업데이트
+    setPlaybackPosition(time)
+    playbackEngine.setCurrentTime(time)
+  }, [setPlaybackPosition])
 
   // Handle text click for selection
   const handleTextClick = useCallback((textId: string) => {
@@ -50,6 +89,15 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const handleTextDoubleClick = useCallback((textId: string) => {
     console.log('📱 VideoSection handleTextDoubleClick:', textId)
     // Double click functionality disabled
+  }, [])
+
+  // 타임라인 클릭 핸들러
+  const handleTimelineClick = useCallback((time: number) => {
+    // 비디오 플레이어를 해당 시간으로 시크
+    if (videoPlayerRef.current) {
+      videoPlayerRef.current.currentTime = time
+    }
+    setCurrentTime(time)
   }, [])
 
   return (
@@ -66,6 +114,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           style={{ aspectRatio: '16/9' }}
         >
           <VideoPlayer
+            ref={videoPlayerRef}
             className="w-full h-full rounded-lg overflow-hidden"
             onTimeUpdate={handleTimeUpdate}
           />
@@ -87,6 +136,31 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
         {/* Text Edit Input Panel */}
         <TextEditInput />
+
+        {/* Cut Editing Controls */}
+        <div className="mb-4">
+          <CutEditingControls />
+        </div>
+
+        {/* Timeline Toggle Button */}
+        <div className="mb-2">
+          <button
+            onClick={() => setShowTimeline(!showTimeline)}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            {showTimeline ? '타임라인 숨기기' : '타임라인 표시'}
+          </button>
+        </div>
+
+        {/* Timeline Editor */}
+        {showTimeline && (
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <TimelineEditor
+              height={300}
+              onTimelineClick={handleTimelineClick}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
