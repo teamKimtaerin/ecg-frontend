@@ -197,6 +197,12 @@ export default function EditorMotionTextOverlay({
     if (timeline.isSequentialMode) {
       // Sequential mode: use timeline clips with proper timing
       const timelineClips = getSequentialClips()
+      console.log('[EditorMotionTextOverlay] Sequential mode debug:', {
+        timelineClipsCount: timelineClips.length,
+        clipOrder: timeline.clipOrder,
+        clipsCount: clips.length,
+        timelineClips: timelineClips.map(tc => ({ id: tc.id, sourceClipId: tc.sourceClipId, startTime: tc.startTime, duration: tc.duration }))
+      })
       
       for (const timelineClip of timelineClips) {
         if (deletedClipIds.has(timelineClip.id)) continue

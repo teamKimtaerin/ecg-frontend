@@ -464,6 +464,7 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
+    updateClipTiming,
     saveProject,
     activeClipId,
     setActiveClipId,
@@ -1007,6 +1008,15 @@ export default function EditorPage() {
       }
     })
   }, [clips, setClips])
+
+  // 컷편집 핸들러 - 드래그로 타임라인 조정
+  const handleClipTimingUpdate = useCallback((clipId: string, newStartTime: number, newEndTime: number) => {
+    // clipSlice의 updateClipTiming 함수 호출
+    updateClipTiming(clipId, newStartTime, newEndTime)
+    
+    // 상태 변경이 발생했으므로 저장 상태 업데이트
+    setHasUnsavedChanges(true)
+  }, [updateClipTiming, setHasUnsavedChanges])
 
   // Upload modal handler - currently not used, placeholder for future implementation
   const wrappedHandleStartTranscription = async () => {
@@ -1795,6 +1805,7 @@ export default function EditorPage() {
                 onAddSpeaker={handleAddSpeaker}
                 onRenameSpeaker={handleRenameSpeaker}
                 onTimelineEdit={handleTimelineEdit}
+                onClipTimingUpdate={handleClipTimingUpdate}
                 onEmptySpaceClick={handleEmptySpaceClick}
               />
             ) : (

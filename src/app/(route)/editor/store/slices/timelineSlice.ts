@@ -75,6 +75,7 @@ export interface TimelineActions {
   reorderTimelineClips: (newOrder: string[]) => void
   getSequentialClips: () => TimelineClip[]
   calculateSequentialDuration: () => number
+  recalculateSequentialTimeline: () => void
   
   // 클립 관리
   addTimelineClip: (clip: TimelineClip) => void
@@ -748,9 +749,26 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
 
     // Safety check: ensure clipOrder is an array
     const clipOrder = Array.isArray(state.timeline.clipOrder) ? state.timeline.clipOrder : []
-    return clipOrder
+    
+    // If clipOrder is empty, return clips in their original order
+    if (clipOrder.length === 0) {
+      console.warn('[timelineSlice] clipOrder is empty, returning clips in original order')
+      return state.timeline.clips
+    }
+    
+    const sequentialClips = clipOrder
       .map(clipId => state.timeline.clips.find(clip => clip.id === clipId))
       .filter(Boolean) as TimelineClip[]
+      
+    console.log('[timelineSlice] getSequentialClips:', {
+      clipOrder: clipOrder.length,
+      timelineClips: state.timeline.clips.length,
+      sequentialClips: sequentialClips.length,
+      clipOrderIds: clipOrder,
+      timelineClipIds: state.timeline.clips.map(c => c.id)
+    })
+    
+    return sequentialClips
   },
 
   // 연속 재생 모드 총 지속 시간 계산
@@ -772,6 +790,58 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     }))
 
     return totalDuration
+  },
+
+  // 시퀀셜 타임라인 재계산 - 클립 타이밍 변경 시 호출
+  recalculateSequentialTimeline: () => {
+    const state = get()
+    if (!state.timeline.isSequentialMode) {
+      return
+    }
+
+    console.log('[timelineSlice] Recalculating sequential timeline')
+
+    set((currentState) => {
+      let currentTime = 0
+      const updatedClips = currentState.timeline.clips.map(clip => {
+        // clipOrder에 있는 순서로 클립들을 연속 배치
+        const orderIndex = currentState.timeline.clipOrder.indexOf(clip.id)
+        if (orderIndex >= 0) {
+          const updatedClip = {
+            ...clip,
+            startTime: currentTime,
+          }
+          currentTime += clip.duration
+          return updatedClip
+        }
+        // clipOrder에 없는 클립은 원래 위치 유지
+        return clip
+      })
+
+      // clipOrder 순서대로 정렬
+      const orderedClips = [...updatedClips].sort((a, b) => {
+        const aIndex = currentState.timeline.clipOrder.indexOf(a.id)
+        const bIndex = currentState.timeline.clipOrder.indexOf(b.id)
+        
+        // clipOrder에 없는 클립은 맨 뒤로
+        if (aIndex === -1 && bIndex === -1) return 0
+        if (aIndex === -1) return 1
+        if (bIndex === -1) return -1
+        
+        return aIndex - bIndex
+      })
+
+      return {
+        ...currentState,
+        timeline: {
+          ...currentState.timeline,
+          clips: orderedClips,
+          totalDuration: currentTime,
+        }
+      }
+    })
+
+    console.log('[timelineSlice] Sequential timeline recalculated')
   },
 
   // 타임라인 데이터 내보내기

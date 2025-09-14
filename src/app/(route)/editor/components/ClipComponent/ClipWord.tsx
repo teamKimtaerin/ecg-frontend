@@ -109,6 +109,14 @@ export default function ClipWord({
         const centerThreshold = width * 0.3
         const isCenter = x > centerThreshold && x < width - centerThreshold
 
+        // Seek video player to word start time
+        const videoPlayer = (
+          window as { videoPlayer?: { seekTo: (time: number) => void } }
+        ).videoPlayer
+        if (videoPlayer) {
+          videoPlayer.seekTo(word.start)
+        }
+
         // If already focused and clicking in center, start inline edit
         if (isFocused && isCenter) {
           startInlineEdit(clipId, word.id)

@@ -127,6 +127,14 @@ export default function ClipWords({
       }
       lastClickTimeRef.current = now
 
+      // Seek video player to word start time
+      const videoPlayer = (
+        window as { videoPlayer?: { seekTo: (time: number) => void } }
+      ).videoPlayer
+      if (videoPlayer) {
+        videoPlayer.seekTo(word.start)
+      }
+
       if (isCenter) {
         // Batch all state updates for center click
         const wordAssets =

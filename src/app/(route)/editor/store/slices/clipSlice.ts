@@ -38,6 +38,9 @@ export interface ClipSlice {
     overId: string,
     selectedIds: Set<string>
   ) => void
+  // Cut editing functions
+  updateClipTiming: (clipId: string, newStartTime: number, newEndTime: number) => void
+  recalculateWordTimings: (clipId: string, oldStartTime: number, oldEndTime: number, newStartTime: number, newEndTime: number) => void
   // Clip deletion management
   markClipAsDeleted: (clipId: string) => void
   restoreDeletedClip: (clipId: string) => void
@@ -213,6 +216,7 @@ export const createClipSlice: StateCreator<
 
   reorderClips: (activeId, overId, selectedIds) => {
     const fullState = get()
+    
     set((state) => {
       const { clips } = state
       const oldIndex = clips.findIndex((item) => item.id === activeId)
@@ -257,15 +261,111 @@ export const createClipSlice: StateCreator<
         newClips = arrayMove(clips, oldIndex, newIndex)
       }
 
-      // If in sequential mode, update timeline clips order as well
-      let updatedState = { clips: newClips }
-      if ('timeline' in fullState && (fullState as any).timeline?.isSequentialMode) {
-        const newOrder = newClips.map(clip => clip.id)
-        // Call the timeline reorder function
-        get().reorderTimelineClips?.(newOrder)
+      return { clips: newClips }
+    })
+
+    // After state is updated, synchronize timeline clips if in sequential mode
+    const updatedState = get()
+    if ('timeline' in updatedState && (updatedState as any).timeline?.isSequentialMode) {
+      const newOrder = updatedState.clips.map(clip => clip.id)
+      console.log('[clipSlice] Calling reorderTimelineClips with order:', newOrder)
+      ;(updatedState as any).reorderTimelineClips?.(newOrder)
+    }
+  },
+
+  // Cut editing functions
+  updateClipTiming: (clipId, newStartTime, newEndTime) => {
+    // 기존 클립 정보 가져오기
+    const state = get()
+    const clip = state.clips.find(c => c.id === clipId)
+    if (!clip) return
+
+    // 기존 시간 파싱
+    const timeToSeconds = (timeStr: string): number => {
+      const parts = timeStr.split(':')
+      if (parts.length === 2) {
+        const minutes = parseInt(parts[0], 10) || 0
+        const seconds = parseFloat(parts[1]) || 0
+        return minutes * 60 + seconds
+      }
+      return 0
+    }
+
+    const timeRange = clip.timeline.split(' → ')
+    const oldStartTime = timeToSeconds(timeRange[0])
+    const oldEndTime = timeToSeconds(timeRange[1])
+
+    // Word 타이밍 먼저 재계산
+    get().recalculateWordTimings(clipId, oldStartTime, oldEndTime, newStartTime, newEndTime)
+
+    // 클립 정보 업데이트
+    set((state) => {
+      const clipIndex = state.clips.findIndex(clip => clip.id === clipId)
+      if (clipIndex === -1) return state
+      
+      // timeline 문자열 업데이트
+      const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60)
+        const secs = seconds % 60
+        return `${minutes}:${secs.toFixed(1).padStart(4, '0')}`
+      }
+      
+      const newTimeline = `${formatTime(newStartTime)} → ${formatTime(newEndTime)}`
+      const newDuration = `${(newEndTime - newStartTime).toFixed(1)}초`
+      
+      const updatedClips = [...state.clips]
+      updatedClips[clipIndex] = {
+        ...updatedClips[clipIndex],
+        timeline: newTimeline,
+        duration: newDuration
       }
 
-      return updatedState
+      return { clips: updatedClips }
+    })
+
+    // 시퀀셜 타임라인 재계산 (클립 타이밍 변경 시)
+    const updatedState = get()
+    if ('timeline' in updatedState && (updatedState as any).timeline?.isSequentialMode) {
+      console.log('[clipSlice] Calling recalculateSequentialTimeline after clip timing update')
+      ;(updatedState as any).recalculateSequentialTimeline?.()
+    }
+  },
+
+  recalculateWordTimings: (clipId, oldStartTime, oldEndTime, newStartTime, newEndTime) => {
+    set((state) => {
+      const clipIndex = state.clips.findIndex(clip => clip.id === clipId)
+      if (clipIndex === -1) return state
+
+      const clip = state.clips[clipIndex]
+      const oldDuration = oldEndTime - oldStartTime
+      const newDuration = newEndTime - newStartTime
+      
+      if (oldDuration <= 0 || newDuration <= 0) return state
+
+      // 각 word의 시간을 비례적으로 조정
+      const updatedWords = clip.words.map(word => {
+        // 원래 word의 상대적 위치 계산 (0-1 범위)
+        const relativeStart = (word.start - oldStartTime) / oldDuration
+        const relativeEnd = (word.end - oldStartTime) / oldDuration
+        
+        // 새로운 절대 시간 계산
+        const newWordStart = newStartTime + (relativeStart * newDuration)
+        const newWordEnd = newStartTime + (relativeEnd * newDuration)
+        
+        return {
+          ...word,
+          start: Math.max(newStartTime, Math.min(newWordEnd - 0.1, newWordStart)), // 경계 검사
+          end: Math.min(newEndTime, Math.max(newWordStart + 0.1, newWordEnd)) // 경계 검사
+        }
+      })
+
+      const updatedClips = [...state.clips]
+      updatedClips[clipIndex] = {
+        ...clip,
+        words: updatedWords
+      }
+
+      return { clips: updatedClips }
     })
   },
 

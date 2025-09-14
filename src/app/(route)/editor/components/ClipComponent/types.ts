@@ -37,6 +37,7 @@ export interface ClipComponentProps {
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
   onTimelineEdit?: (clipId: string, newTimeline: string) => void
+  onClipTimingUpdate?: (clipId: string, newStartTime: number, newEndTime: number) => void
   speakerColors?: Record<string, string> // 화자별 색상 매핑
   onMouseDown?: () => void
   onMouseEnter?: () => void

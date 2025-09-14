@@ -30,6 +30,7 @@ export default function ClipComponent({
   onAddSpeaker,
   onRenameSpeaker,
   onTimelineEdit,
+  onClipTimingUpdate,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
   const { expandedClipId, focusedWordId } = useEditorStore()
@@ -76,12 +77,13 @@ export default function ClipComponent({
           className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''} cursor-pointer`}
           onClick={handleSidebarClick}
         >
-          <ClipTimeline 
-            index={index}
-            clipId={clip.id}
-            timeline={clip.timeline}
-            onTimelineEdit={onTimelineEdit}
-          />
+          {/* 넘버링 표시 */}
+          <div className="flex flex-col items-center pt-1 px-1">
+            <span className="text-xs text-gray-600 font-mono font-bold mb-1">
+              #{index}
+            </span>
+          </div>
+          
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               <ClipCheckbox
