@@ -3,14 +3,10 @@ import {
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
 } from '@dnd-kit/core'
 import { useEditorStore } from '../store'
 
-export function useWordDragAndDrop(clipId: string) {
+export function useGlobalWordDragAndDrop() {
   const {
     focusedWordId,
     focusedClipId,
@@ -18,24 +14,14 @@ export function useWordDragAndDrop(clipId: string) {
     startWordDrag,
     endWordDrag,
     setDropTarget,
+    clips,
+    moveWordBetweenClips,
+    reorderWordsInClip,
   } = useEditorStore()
 
   const draggedWordsRef = useRef<Set<string>>(new Set())
 
-  // Configure sensors for drag activation
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 5, // Small distance for word dragging
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 100,
-        tolerance: 5,
-      },
-    })
-  )
+  // Sensors are managed at page level to avoid conflicts
 
   const handleWordDragStart = useCallback(
     (event: DragStartEvent) => {
@@ -93,7 +79,7 @@ export function useWordDragAndDrop(clipId: string) {
         setDropTarget(null, null)
       }
     },
-    [clipId, setDropTarget]
+    [setDropTarget]
   )
 
   const handleWordDragEnd = useCallback(
@@ -119,16 +105,14 @@ export function useWordDragAndDrop(clipId: string) {
         // Handle both within-clip reordering and cross-clip movement
         if (sourceClipId === targetClipId) {
           // Same clip: reorder words
-          const { reorderWordsInClip } = useEditorStore.getState()
           if (reorderWordsInClip) {
             reorderWordsInClip(sourceClipId, sourceWordId, targetWordId)
           }
         } else {
           // Different clips: move word between clips
-          const { moveWordBetweenClips } = useEditorStore.getState()
           if (moveWordBetweenClips) {
             // Find target position based on the target word
-            const targetClip = useEditorStore.getState().clips.find((clip) => clip.id === targetClipId)
+            const targetClip = clips.find((clip) => clip.id === targetClipId)
             if (targetClip) {
               const targetWordIndex = targetClip.words.findIndex((word) => word.id === targetWordId)
               // Insert position depends on drop position (before or after)
@@ -140,7 +124,7 @@ export function useWordDragAndDrop(clipId: string) {
         }
       }
     },
-    [clipId, endWordDrag]
+    [endWordDrag, clips, moveWordBetweenClips, reorderWordsInClip]
   )
 
   const handleWordDragCancel = useCallback(() => {
@@ -149,7 +133,6 @@ export function useWordDragAndDrop(clipId: string) {
   }, [endWordDrag])
 
   return {
-    sensors,
     handleWordDragStart,
     handleWordDragOver,
     handleWordDragEnd,

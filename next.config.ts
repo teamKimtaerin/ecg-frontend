@@ -1,9 +1,9 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // S3 정적 호스팅을 위한 설정
-  output: 'export', // 정적 파일로 빌드
-  trailingSlash: true, // S3용 URL 형식
+  // S3 정적 호스팅을 위한 설정 - 프로덕션 빌드시에만 적용
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  trailingSlash: process.env.NODE_ENV === 'production' ? true : false,
 
   // ES Module 패키지 transpile 설정
   transpilePackages: ['motiontext-renderer'],

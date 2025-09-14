@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext, closestCenter } from '@dnd-kit/core'
+import { DndContext, closestCenter, closestCorners, DragOverlay } from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -27,6 +27,7 @@ import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -716,6 +717,14 @@ export default function EditorPage() {
     handleDragEnd,
     handleDragCancel,
   } = useDragAndDrop()
+
+  // Word drag and drop functionality (cross-clip support)
+  const {
+    handleWordDragStart,
+    handleWordDragOver,
+    handleWordDragEnd,
+    handleWordDragCancel,
+  } = useGlobalWordDragAndDrop()
 
   // Selection box functionality
   const {
@@ -1576,11 +1585,61 @@ export default function EditorPage() {
     <DndContext
       id={dndContextId}
       sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
+      collisionDetection={closestCorners}
+      onDragStart={(event) => {
+        console.log('[page] onDragStart:', {
+          activeId: event.active.id,
+          activeData: event.active.data.current
+        })
+        
+        // Handle both clip and word drag start
+        if (event.active.data.current?.type === 'word') {
+          console.log('[page] Handling word drag start')
+          handleWordDragStart(event)
+        } else if (event.active.data.current?.type === 'clip') {
+          console.log('[page] Handling clip drag start - explicit type')
+          handleDragStart(event)
+        } else {
+          console.log('[page] Handling clip drag start - fallback (no type)')
+          handleDragStart(event)
+        }
+      }}
+      onDragOver={(event) => {
+        // Handle both clip and word drag over
+        if (event.active.data.current?.type === 'word') {
+          handleWordDragOver(event)
+        } else {
+          handleDragOver(event)
+        }
+      }}
+      onDragEnd={(event) => {
+        console.log('[page] onDragEnd:', {
+          activeId: event.active.id,
+          overId: event.over?.id,
+          activeData: event.active.data.current,
+          overData: event.over?.data.current
+        })
+        
+        // Handle both clip and word drag end
+        if (event.active.data.current?.type === 'word') {
+          console.log('[page] Handling word drag end')
+          handleWordDragEnd(event)
+        } else if (event.active.data.current?.type === 'clip') {
+          console.log('[page] Handling clip drag end - explicit type')
+          handleDragEnd(event)
+        } else {
+          console.log('[page] Handling clip drag end - fallback (no type)')
+          handleDragEnd(event)
+        }
+      }}
+      onDragCancel={(event) => {
+        // Handle both clip and word drag cancel
+        if (event.active.data.current?.type === 'word') {
+          handleWordDragCancel()
+        } else {
+          handleDragCancel()
+        }
+      }}
     >
       <div className="min-h-screen bg-gray-50 text-gray-900">
         <EditorHeaderTabs
@@ -1869,6 +1928,28 @@ export default function EditorPage() {
           onCancel={() => setShowRestoreModal(false)}
           onClose={() => setShowRestoreModal(false)}
         />
+
+        {/* Drag overlay for word drag and drop */}
+        <DragOverlay>
+          {(() => {
+            const { draggedWordId, clips, groupedWordIds } = useEditorStore.getState()
+            if (!draggedWordId) return null
+            
+            const draggedWord = clips
+              .flatMap(clip => clip.words)
+              .find(word => word.id === draggedWordId)
+              
+            if (!draggedWord) return null
+            
+            return (
+              <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
+                {groupedWordIds.size > 1
+                  ? `${groupedWordIds.size} words`
+                  : draggedWord.text}
+              </div>
+            )
+          })()}
+        </DragOverlay>
       </div>
     </DndContext>
   )

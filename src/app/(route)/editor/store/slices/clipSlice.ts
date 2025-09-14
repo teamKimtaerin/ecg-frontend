@@ -33,6 +33,12 @@ export interface ClipSlice {
     sourceWordId: string,
     targetWordId: string
   ) => void
+  moveWordBetweenClips: (
+    sourceClipId: string,
+    targetClipId: string,
+    wordId: string,
+    targetPosition?: number
+  ) => void
   reorderClips: (
     activeId: string,
     overId: string,
@@ -214,13 +220,63 @@ export const createClipSlice: StateCreator<
     }))
   },
 
+  moveWordBetweenClips: (sourceClipId, targetClipId, wordId, targetPosition) => {
+    set((state) => {
+      const sourceClipIndex = state.clips.findIndex((clip) => clip.id === sourceClipId)
+      const targetClipIndex = state.clips.findIndex((clip) => clip.id === targetClipId)
+      
+      if (sourceClipIndex === -1 || targetClipIndex === -1) return state
+      
+      const sourceClip = state.clips[sourceClipIndex]
+      const targetClip = state.clips[targetClipIndex]
+      
+      const wordIndex = sourceClip.words.findIndex((word) => word.id === wordId)
+      if (wordIndex === -1) return state
+      
+      // Remove word from source clip
+      const wordToMove = sourceClip.words[wordIndex]
+      const updatedSourceWords = sourceClip.words.filter((word) => word.id !== wordId)
+      
+      // Add word to target clip at specified position
+      const updatedTargetWords = [...targetClip.words]
+      const insertPosition = targetPosition !== undefined ? targetPosition : updatedTargetWords.length
+      updatedTargetWords.splice(insertPosition, 0, wordToMove)
+      
+      // Update both clips
+      const updatedClips = [...state.clips]
+      updatedClips[sourceClipIndex] = {
+        ...sourceClip,
+        words: updatedSourceWords,
+        fullText: updatedSourceWords.map((w) => w.text).join(' '),
+        subtitle: updatedSourceWords.map((w) => w.text).join(' '),
+      }
+      updatedClips[targetClipIndex] = {
+        ...targetClip,
+        words: updatedTargetWords,
+        fullText: updatedTargetWords.map((w) => w.text).join(' '),
+        subtitle: updatedTargetWords.map((w) => w.text).join(' '),
+      }
+      
+      return { clips: updatedClips }
+    })
+  },
+
   reorderClips: (activeId, overId, selectedIds) => {
     const fullState = get()
+    
+    console.log('[clipSlice] reorderClips called:', {
+      activeId,
+      overId,
+      selectedIds: Array.from(selectedIds),
+      clipsLength: fullState.clips.length
+    })
     
     set((state) => {
       const { clips } = state
       const oldIndex = clips.findIndex((item) => item.id === activeId)
       const newIndex = clips.findIndex((item) => item.id === overId)
+      
+      console.log('[clipSlice] Found indices:', { oldIndex, newIndex })
 
       // If multiple items are selected, move them as a group
       let newClips: ClipItem[]
@@ -248,6 +304,21 @@ export const createClipSlice: StateCreator<
           } else {
             insertIndex = overIndexInUnselected
           }
+        } else {
+          // If dropping on a selected item, find its position in the original array
+          // and maintain relative position
+          const overIndex = clips.findIndex((item) => item.id === overId)
+          const selectedIndexes = clips
+            .map((item, index) => ({ item, index }))
+            .filter(({ item }) => selectedIds.has(item.id))
+            .map(({ index }) => index)
+          
+          // Find the position in unselected items array
+          const unselectedBeforeOver = clips
+            .slice(0, overIndex)
+            .filter((item) => !selectedIds.has(item.id)).length
+          
+          insertIndex = unselectedBeforeOver
         }
 
         // Create new array with items in correct positions

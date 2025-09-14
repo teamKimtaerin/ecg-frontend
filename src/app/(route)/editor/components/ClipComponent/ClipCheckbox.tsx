@@ -23,7 +23,7 @@ export default function ClipCheckbox({
     <button
       type="button"
       onClick={handleClick}
-      className="group relative w-5 h-5 focus:outline-none rounded"
+      className="clip-checkbox group relative w-5 h-5 focus:outline-none rounded"
       aria-checked={isChecked}
       role="checkbox"
     >
