@@ -10,7 +10,8 @@ import {
   AiOutlineFolderAdd,
 } from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
-import { ExportFormat } from './Export/ExportTypes'
+import YouTubeUploadModal from './Export/YouTubeUploadModal'
+import { ExportFormat, SocialPlatform, YouTubeUploadSettings } from './Export/ExportTypes'
 
 interface SimpleToolbarProps {
   activeClipId: string | null
@@ -40,6 +41,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   onSaveAs,
 }) => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false)
 
   const handleExportClick = () => {
     setIsExportModalOpen(true)
@@ -48,6 +50,22 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   const handleExportConfirm = (format: ExportFormat) => {
     // TODO: Implement actual export functionality based on format
     console.log('Exporting in format:', format)
+  }
+
+  const handleSocialShare = (platform: SocialPlatform) => {
+    if (platform === 'youtube') {
+      setIsExportModalOpen(false) // 내보내기 모달 닫기
+      setIsYouTubeModalOpen(true) // YouTube 설정 모달 열기
+    }
+  }
+
+  const handleYouTubeUpload = (settings: YouTubeUploadSettings) => {
+    // TODO: Implement actual YouTube upload functionality
+    console.log('Uploading to YouTube with settings:', settings)
+  }
+
+  const handleYouTubeModalClose = () => {
+    setIsYouTubeModalOpen(false)
   }
 
   const handleCloseModal = () => {
@@ -227,6 +245,15 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
         isOpen={isExportModalOpen}
         onClose={handleCloseModal}
         onExport={handleExportConfirm}
+        onSocialShare={handleSocialShare}
+      />
+
+      {/* YouTube Upload Modal */}
+      <YouTubeUploadModal
+        isOpen={isYouTubeModalOpen}
+        onClose={handleYouTubeModalClose}
+        onUpload={handleYouTubeUpload}
+        defaultTitle="202509142147"
       />
     </ToolbarBase>
   )
