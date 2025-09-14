@@ -1,17 +1,25 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { FaChevronDown, FaArrowLeft } from 'react-icons/fa'
-import { YouTubeUploadModalProps, YouTubeUploadSettings } from './ExportTypes'
+import React, { useEffect, useState } from 'react'
+import { YouTubePrivacy, YouTubeUploadData, YouTubeUploadModalProps, YouTubeUploadSettings, YouTubeUploadStatus } from './ExportTypes'
 import Portal from './Portal'
+import YouTubeExportSettings from './components/YouTubeExportSettings'
+import YouTubeVideoPreview from './components/YouTubeVideoPreview'
+import YouTubeUploadForm from './components/YouTubeUploadForm'
+import YouTubeUploadProgress from './components/YouTubeUploadProgress'
+import YouTubeUploadComplete from './components/YouTubeUploadComplete'
 
 export default function YouTubeUploadModal({
   isOpen,
   onClose,
   onUpload,
-  videoThumbnail,
   defaultTitle = '202509142147',
 }: YouTubeUploadModalProps) {
+  const [status, setStatus] = useState<YouTubeUploadStatus>('settings')
+  const [progress, setProgress] = useState(0)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  // 2단계 설정 데이터
   const [settings, setSettings] = useState<YouTubeUploadSettings>({
     title: defaultTitle,
     resolution: '720p',
@@ -20,9 +28,20 @@ export default function YouTubeUploadModal({
     format: 'MP4',
   })
 
+  // 3단계 YouTube 데이터
+  const [data, setData] = useState<YouTubeUploadData>({
+    title: defaultTitle,
+    description: 'Hoit으로 생성됨:\nhttps://www.capcut.com/s/CTtk_OftECn683Mb\n/ #CapCut',
+    privacy: 'private',
+    channel: '테스트테스트'
+  })
+
   // 모달이 열릴 때 기본값으로 리셋
   useEffect(() => {
     if (isOpen) {
+      setStatus('settings')
+      setProgress(0)
+      setIsPlaying(false)
       setSettings({
         title: defaultTitle,
         resolution: '720p',
@@ -30,13 +49,19 @@ export default function YouTubeUploadModal({
         frameRate: '30fps',
         format: 'MP4',
       })
+      setData({
+        title: defaultTitle,
+        description: 'CapCut으로 생성됨:\nhttps://www.capcut.com/s/CTtk_OftECn683Mb\n/ #CapCut',
+        privacy: 'private',
+        channel: '테스트테스트'
+      })
     }
   }, [isOpen, defaultTitle])
 
   // ESC 키로 모달 닫기
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
+      if (event.key === 'Escape' && isOpen && status !== 'uploading') {
         onClose()
       }
     }
@@ -50,24 +75,75 @@ export default function YouTubeUploadModal({
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = 'unset'
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, status])
 
   const handleBackdropClick = (event: React.MouseEvent) => {
-    if (event.target === event.currentTarget) {
+    if (event.target === event.currentTarget && status !== 'uploading') {
       onClose()
     }
   }
 
-  const handleUpload = () => {
-    onUpload(settings)
-    onClose()
+  // 2단계 → 3단계
+  const handleSettingsNext = () => {
+    setData(prev => ({ ...prev, title: settings.title }))
+    setStatus('details')
   }
 
-  const handleInputChange = (field: keyof YouTubeUploadSettings, value: string) => {
+  // 3단계 → 4단계 (업로드 시작)
+  const handleUpload = () => {
+    setStatus('uploading')
+
+    // 진행률 시뮬레이션
+    let currentProgress = 0
+    const interval = setInterval(() => {
+      currentProgress += Math.random() * 5 + 1
+      if (currentProgress >= 100) {
+        currentProgress = 100
+        setProgress(100)
+        setStatus('completed')
+        clearInterval(interval)
+      } else {
+        setProgress(Math.floor(currentProgress))
+      }
+    }, 200)
+
+    onUpload(data)
+  }
+
+  // 설정 변경
+  const handleSettingsChange = (field: keyof YouTubeUploadSettings, value: string) => {
     setSettings(prev => ({ ...prev, [field]: value }))
   }
 
+  // 데이터 변경
+  const handleDataChange = (field: keyof YouTubeUploadData, value: string) => {
+    setData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handlePrivacyChange = (privacy: YouTubePrivacy) => {
+    setData(prev => ({ ...prev, privacy }))
+  }
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying)
+  }
+
   if (!isOpen) return null
+
+  // 모달 크기 및 위치 계산
+  const getModalSize = () => {
+    switch (status) {
+      case 'settings':
+        return 'top-16 right-4 w-[400px] max-h-[80vh]'
+      case 'details':
+        return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] max-h-[90vh]'
+      case 'uploading':
+      case 'completed':
+        return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] max-h-[70vh]'
+      default:
+        return 'top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] max-h-[90vh]'
+    }
+  }
 
   return (
     <Portal>
@@ -77,126 +153,80 @@ export default function YouTubeUploadModal({
         onClick={handleBackdropClick}
       >
         <div
-          className="absolute top-16 right-4 bg-white rounded-lg shadow-2xl w-[400px] max-h-[80vh] overflow-y-auto border border-gray-200 ring-1 ring-black/10"
+          className={`absolute bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden ${getModalSize()}`}
           style={{ zIndex: 9999999 }}
         >
-          {/* 헤더 */}
-          <div className="px-4 py-3 border-b border-gray-200 flex items-center">
-            <button
-              onClick={onClose}
-              className="mr-3 text-gray-600 hover:text-black transition-colors"
-            >
-              <FaArrowLeft className="w-4 h-4" />
-            </button>
-            <h2 className="text-lg font-medium text-black">내보내기 설정</h2>
-          </div>
+          {/* 1단계: 내보내기 설정 */}
+          {status === 'settings' && (
+            <YouTubeExportSettings
+              settings={settings}
+              onSettingsChange={handleSettingsChange}
+              onNext={handleSettingsNext}
+              onClose={onClose}
+            />
+          )}
 
-          {/* 콘텐츠 */}
-          <div className="p-4">
-            {/* 동영상 커버 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-black mb-3">동영상 커버</h3>
-              <div className="w-full h-20 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                {videoThumbnail ? (
-                  <img
-                    src={videoThumbnail}
-                    alt="Video thumbnail"
-                    className="w-full h-full object-cover rounded-lg"
+          {/* 2단계: YouTube에 공유 */}
+          {status === 'details' && (
+            <div className="flex flex-col h-full">
+              {/* 헤더 */}
+              <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
+                <h2 className="text-lg font-medium text-black">YouTube에 공유</h2>
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* 콘텐츠 영역 */}
+              <div className="flex flex-1 min-h-0">
+                {/* 좌측 - 비디오 미리보기 */}
+                <div className="w-2/5 p-4 flex items-center justify-center">
+                  <YouTubeVideoPreview
+                    isPlaying={isPlaying}
+                    onTogglePlay={togglePlay}
                   />
-                ) : (
-                  <div className="bg-orange-400 w-16 h-12 rounded flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                )}
+                </div>
+
+                {/* 우측 - 설정 폼 */}
+                <div className="w-3/5 flex flex-col min-h-0">
+                  <YouTubeUploadForm
+                    data={data}
+                    onDataChange={handleDataChange}
+                    onPrivacyChange={handlePrivacyChange}
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* 제목 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-black mb-2">제목</h3>
-              <input
-                type="text"
-                value={settings.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50"
-                placeholder="동영상 제목을 입력하세요"
-              />
-            </div>
-
-            {/* 해상도 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-black mb-2">해상도</h3>
-              <div className="relative">
-                <select
-                  value={settings.resolution}
-                  onChange={(e) => handleInputChange('resolution', e.target.value as YouTubeUploadSettings['resolution'])}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
+              {/* 하단 버튼 */}
+              <div className="px-4 py-3 border-t border-gray-200 flex justify-end flex-shrink-0">
+                <button
+                  onClick={handleUpload}
+                  className="bg-cyan-400 hover:bg-cyan-500 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
                 >
-                  <option value="720p">720p</option>
-                  <option value="1080p">1080p</option>
-                  <option value="4K">4K</option>
-                </select>
-                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
+                  내보내기
+                </button>
               </div>
             </div>
+          )}
 
-            {/* 품질 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-black mb-2">품질</h3>
-              <div className="relative">
-                <select
-                  value={settings.quality}
-                  onChange={(e) => handleInputChange('quality', e.target.value as YouTubeUploadSettings['quality'])}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
-                >
-                  <option value="추천 품질">추천 품질</option>
-                  <option value="고품질">고품질</option>
-                  <option value="최고 품질">최고 품질</option>
-                </select>
-                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
-              </div>
-            </div>
+          {/* 3단계: 업로드 중 */}
+          {status === 'uploading' && (
+            <YouTubeUploadProgress
+              progress={progress}
+              data={data}
+            />
+          )}
 
-            {/* 프레임 속도 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-black mb-2">프레임 속도</h3>
-              <div className="relative">
-                <select
-                  value={settings.frameRate}
-                  onChange={(e) => handleInputChange('frameRate', e.target.value as YouTubeUploadSettings['frameRate'])}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
-                >
-                  <option value="30fps">30fps</option>
-                  <option value="60fps">60fps</option>
-                </select>
-                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* 형식 */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-black mb-2">형식</h3>
-              <div className="relative">
-                <select
-                  value={settings.format}
-                  onChange={(e) => handleInputChange('format', e.target.value as YouTubeUploadSettings['format'])}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
-                >
-                  <option value="MP4">MP4</option>
-                  <option value="MOV">MOV</option>
-                </select>
-                <FaChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* 내보내기 버튼 */}
-            <button
-              onClick={handleUpload}
-              className="w-full bg-cyan-400 hover:bg-cyan-500 text-white font-medium py-3 rounded-lg transition-colors duration-200"
-            >
-              내보내기
-            </button>
-          </div>
+          {/* 4단계: 업로드 완료 */}
+          {status === 'completed' && (
+            <YouTubeUploadComplete
+              data={data}
+              onClose={onClose}
+            />
+          )}
         </div>
       </div>
     </Portal>

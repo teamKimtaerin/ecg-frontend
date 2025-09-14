@@ -30,6 +30,16 @@ export interface SocialMediaOption {
   icon: string
 }
 
+export type YouTubeUploadStatus = 'settings' | 'details' | 'uploading' | 'completed'
+export type YouTubePrivacy = 'private' | 'unlisted' | 'public'
+
+export interface YouTubeUploadData {
+  title: string
+  description: string
+  privacy: YouTubePrivacy
+  channel?: string
+}
+
 export interface YouTubeUploadSettings {
   title: string
   resolution: '720p' | '1080p' | '4K'
@@ -48,7 +58,7 @@ export interface ExportModalProps {
 export interface YouTubeUploadModalProps {
   isOpen: boolean
   onClose: () => void
-  onUpload: (settings: YouTubeUploadSettings) => void
+  onUpload: (data: YouTubeUploadData) => void
   videoThumbnail?: string
   defaultTitle?: string
 }

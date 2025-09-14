@@ -11,7 +11,7 @@ import {
 } from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
 import YouTubeUploadModal from './Export/YouTubeUploadModal'
-import { ExportFormat, SocialPlatform, YouTubeUploadSettings } from './Export/ExportTypes'
+import { ExportFormat, SocialPlatform, YouTubeUploadData } from './Export/ExportTypes'
 
 interface SimpleToolbarProps {
   activeClipId: string | null
@@ -59,9 +59,9 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
     }
   }
 
-  const handleYouTubeUpload = (settings: YouTubeUploadSettings) => {
+  const handleYouTubeUpload = (data: YouTubeUploadData) => {
     // TODO: Implement actual YouTube upload functionality
-    console.log('Uploading to YouTube with settings:', settings)
+    console.log('Uploading to YouTube with data:', data)
   }
 
   const handleYouTubeModalClose = () => {
