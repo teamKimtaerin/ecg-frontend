@@ -275,71 +275,14 @@ export const VirtualTimelineVideoController: React.FC<VirtualTimelineVideoContro
             className="mx-4"
           />
 
-          {/* Volume Controls */}
-          {showVolumeControls && (
-            <div 
-              className="flex items-center gap-2 relative"
-              onMouseEnter={() => setShowVolumeSlider(true)}
-              onMouseLeave={() => setShowVolumeSlider(false)}
-            >
-              <Button
-                variant="secondary"
-                size="small"
-                onClick={toggleMute}
-                className="text-gray-600 hover:bg-gray-100"
-              >
-                {isMuted || volume === 0 ? (
-                  <VolumeOffIcon className="w-5 h-5" />
-                ) : (
-                  <VolumeIcon className="w-5 h-5" />
-                )}
-              </Button>
-
-              {/* Volume Slider */}
-              {showVolumeSlider && (
-                <div className="absolute left-8 bottom-0 bg-gray-800 p-2 rounded shadow-lg">
-                  <Slider
-                    value={volume}
-                    minValue={0}
-                    maxValue={1}
-                    step={0.1}
-                    width={80}
-                    hasFill
-                    onChange={handleVolumeChange}
-                    className="transform rotate-0"
-                  />
-                </div>
-              )}
-            </div>
-          )}
+ 
         </div>
 
-        {/* Right Side - Playback Rate */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">속도:</span>
-          <select
-            value={playbackRate}
-            onChange={(e) => handlePlaybackRateChange(parseFloat(e.target.value))}
-            className="bg-white border border-gray-300 text-gray-700 rounded px-2 py-1 text-sm focus:outline-none focus:border-blue-500"
-          >
-            {playbackRateOptions.map((rate) => (
-              <option key={rate} value={rate}>
-                {rate}x
-              </option>
-            ))}
-          </select>
-        </div>
+
       </div>
 
       {/* Virtual Timeline Info */}
-      <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
-        <span>
-          세그먼트: {segments.filter((s: any) => s.isEnabled).length} / {segments.length}
-        </span>
-        <span>
-          가상 타임라인 모드
-        </span>
-      </div>
+
     </div>
   )
 }
