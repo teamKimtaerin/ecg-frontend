@@ -19,6 +19,12 @@ import {
   Pause,
   Copy,
   Trash2,
+  SkipBack,
+  SkipForward,
+  Rewind,
+  FastForward,
+  Volume2,
+  VolumeX,
 } from 'lucide-react'
 
 export interface IconProps {
@@ -117,4 +123,29 @@ export const CopyIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
 
 export const TrashIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <Trash2 className={className} size={size} />
+)
+
+// Virtual Timeline Video Control Icons
+export const SkipBackIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <SkipBack className={className} size={size} />
+)
+
+export const SkipForwardIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <SkipForward className={className} size={size} />
+)
+
+export const RewindIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Rewind className={className} size={size} />
+)
+
+export const FastForwardIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <FastForward className={className} size={size} />
+)
+
+export const VolumeIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <Volume2 className={className} size={size} />
+)
+
+export const VolumeOffIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
+  <VolumeX className={className} size={size} />
 )

@@ -46,6 +46,7 @@ import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import TemplateSidebar from './components/TemplateSidebar'
 import { ChevronDownIcon } from '@/components/icons'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -624,7 +625,9 @@ export default function EditorPage() {
               savedProject.clips.length > 0
             ) {
               log('EditorPage.tsx', `Recovered project: ${savedProject.name}`)
-              setClips(savedProject.clips)
+              // 프로젝트 복구 시 클립 순서를 실제 타임라인 순서로 정규화
+              const normalizedClips = normalizeClipOrder(savedProject.clips)
+              setClips(normalizedClips)
 
               // 프로젝트 복구 시 IndexedDB에서 원본 클립 로드 시도
               if (projectId) {
@@ -671,7 +674,9 @@ export default function EditorPage() {
               'EditorPage.tsx',
               `Found autosaved project: ${currentProject.name}`
             )
-            setClips(currentProject.clips)
+            // 기존 프로젝트 로드 시에도 클립 순서를 실제 타임라인 순서로 정규화
+            const normalizedClips = normalizeClipOrder(currentProject.clips)
+            setClips(normalizedClips)
             autosaveManager.setProject(currentProject.id, 'browser')
           } else {
             // New project
