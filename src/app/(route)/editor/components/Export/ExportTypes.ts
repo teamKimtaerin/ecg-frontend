@@ -62,3 +62,27 @@ export interface YouTubeUploadModalProps {
   videoThumbnail?: string
   defaultTitle?: string
 }
+
+
+export interface UploadProgress {
+  status: 'initializing' | 'navigating' | 'uploading' | 'processing' | 'publishing' | 'completed' | 'error'
+  progress: number
+  message: string
+  error?: string
+}
+
+export interface YouTubeUploadRequest {
+  videoPath: string
+  title: string
+  description: string
+  privacy: YouTubePrivacy
+  settings: YouTubeUploadSettings
+}
+
+export interface YouTubeUploadResponse {
+  success: boolean
+  videoUrl?: string
+  videoId?: string
+  error?: string
+  progress?: UploadProgress
+}

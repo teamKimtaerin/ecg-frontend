@@ -1,17 +1,87 @@
 'use client'
 
-import React from 'react'
-import { YouTubeUploadData } from '../ExportTypes'
+import React, { useState, useEffect } from 'react'
+import { YouTubeUploadData, UploadProgress } from '../ExportTypes'
 
 interface YouTubeUploadProgressProps {
   progress: number
   data: YouTubeUploadData
+  currentStatus?: UploadProgress
+  onCancel?: () => void
+  sessionId?: string
 }
 
 export default function YouTubeUploadProgress({
   progress,
   data,
+  currentStatus,
+  onCancel,
+  sessionId,
 }: YouTubeUploadProgressProps) {
+  const [estimatedTimeLeft, setEstimatedTimeLeft] = useState<string | null>(null)
+  const [uploadStartTime] = useState(Date.now())
+
+  useEffect(() => {
+    if (progress > 0 && progress < 100) {
+      const elapsed = Date.now() - uploadStartTime
+      const estimated = (elapsed / progress) * (100 - progress)
+      const minutes = Math.floor(estimated / 60000)
+      const seconds = Math.floor((estimated % 60000) / 1000)
+
+      if (minutes > 0) {
+        setEstimatedTimeLeft(`약 ${minutes}분 ${seconds}초 남음`)
+      } else {
+        setEstimatedTimeLeft(`약 ${seconds}초 남음`)
+      }
+    } else {
+      setEstimatedTimeLeft(null)
+    }
+  }, [progress, uploadStartTime])
+
+  const getStatusMessage = () => {
+    if (!currentStatus) return '업로드 준비 중...'
+
+    switch (currentStatus.status) {
+      case 'initializing':
+        return '브라우저 초기화 중...'
+      case 'navigating':
+        return 'YouTube Studio 접속 중...'
+      case 'uploading':
+        return '파일 업로드 중...'
+      case 'processing':
+        return '비디오 정보 입력 중...'
+      case 'publishing':
+        return '비디오 게시 중...'
+      case 'completed':
+        return '업로드 완료!'
+      case 'error':
+        return '업로드 중 오류 발생'
+      default:
+        return currentStatus.message || '처리 중...'
+    }
+  }
+
+  const getStatusIcon = () => {
+    if (!currentStatus) return null
+
+    switch (currentStatus.status) {
+      case 'initializing':
+      case 'navigating':
+        return '🌐'
+      case 'uploading':
+        return '📤'
+      case 'processing':
+        return '⚙️'
+      case 'publishing':
+        return '🚀'
+      case 'completed':
+        return '✅'
+      case 'error':
+        return '❌'
+      default:
+        return '⏳'
+    }
+  }
   return (
     <div className="flex h-full">
       {/* 좌측 - 비디오 미리보기 */}
@@ -23,14 +93,53 @@ export default function YouTubeUploadProgress({
             className="w-full h-auto"
           />
           <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+            {/* 진행률 표시 */}
             <div className="text-4xl md:text-6xl font-bold text-white mb-2">{progress}%</div>
-            <div className="text-white text-base md:text-lg mb-4">내보내는 중...</div>
-            <div className="text-xs md:text-sm text-white/70 mb-2 text-center px-4">브라우저를 닫아도 내보내기가 중단되지 않습니다</div>
-            <div className="text-xs md:text-sm text-white/70 text-center px-4">동영상이 위험님의 공간에 저장됩니다.</div>
+
+            {/* 상태 메시지 */}
+            <div className="flex items-center gap-2 text-white text-base md:text-lg mb-3">
+              <span>{getStatusIcon()}</span>
+              <span>{getStatusMessage()}</span>
+            </div>
+
+            {/* 진행률 바 */}
+            <div className="w-full max-w-xs bg-gray-700 rounded-full h-2 mb-3">
+              <div
+                className="bg-red-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            {/* 예상 시간 */}
+            {estimatedTimeLeft && (
+              <div className="text-xs md:text-sm text-white/80 mb-2">{estimatedTimeLeft}</div>
+            )}
+
+            {/* 안내 메시지 */}
+            <div className="text-xs md:text-sm text-white/70 mb-2 text-center px-4">
+              브라우저를 닫아도 업로드가 중단되지 않습니다
+            </div>
+            <div className="text-xs md:text-sm text-white/70 text-center px-4">
+              동영상이 YouTube 채널에 저장됩니다
+            </div>
           </div>
-          <button className="absolute top-4 left-4 bg-gray-800/50 text-white px-4 py-2 rounded text-sm">
-            취소
-          </button>
+
+          {/* 취소 버튼 */}
+          {onCancel && currentStatus?.status !== 'completed' && (
+            <button
+              onClick={onCancel}
+              className="absolute top-4 left-4 bg-gray-800/70 hover:bg-gray-800/90 text-white px-3 py-1.5 rounded text-sm transition-colors"
+            >
+              취소
+            </button>
+          )}
+
+          {/* 로딩 스피너 */}
+          {currentStatus?.status !== 'completed' && currentStatus?.status !== 'error' && (
+            <div className="absolute bottom-4 right-4">
+              <div className="w-4 h-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent text-white" />
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,22 +1,114 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { FaChevronDown } from 'react-icons/fa'
 import { YouTubePrivacy, YouTubeUploadData } from '../ExportTypes'
+import YouTubeStatusChecker from './YouTubeStatusChecker'
+import YouTubeErrorHandler from './YouTubeErrorHandler'
+import YouTubeAuthButton from './YouTubeAuthButton'
 
 interface YouTubeUploadFormProps {
   data: YouTubeUploadData
   onDataChange: (field: keyof YouTubeUploadData, value: string) => void
   onPrivacyChange: (privacy: YouTubePrivacy) => void
+  onReadyStateChange?: (isReady: boolean) => void
 }
 
 export default function YouTubeUploadForm({
   data,
   onDataChange,
   onPrivacyChange,
+  onReadyStateChange,
 }: YouTubeUploadFormProps) {
+  const [uploadReady, setUploadReady] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [statusError, setStatusError] = useState<{
+    error: string
+    type: 'login' | 'browser' | 'network' | 'unknown'
+  } | null>(null)
+
+  const handleAuthChange = (authenticated: boolean) => {
+    setIsAuthenticated(authenticated)
+    // 인증 상태와 업로드 준비 상태를 결합
+    const ready = authenticated && uploadReady
+    onReadyStateChange?.(ready)
+
+    if (authenticated) {
+      setStatusError(null)
+    }
+  }
+
+  const handleStatusChange = (status: {
+    isReady: boolean
+    browserInstalled: boolean
+    isLoggedIn: boolean
+    message: string
+  }) => {
+    setUploadReady(status.isReady)
+    // 인증 상태와 업로드 준비 상태를 결합
+    const ready = isAuthenticated && status.isReady
+    onReadyStateChange?.(ready)
+
+    // 에러 상태 설정 (인증되지 않은 경우 제외)
+    if (!status.isReady && isAuthenticated) {
+      if (!status.browserInstalled) {
+        setStatusError({
+          error: status.message,
+          type: 'browser'
+        })
+      } else if (!status.isLoggedIn) {
+        setStatusError({
+          error: status.message,
+          type: 'login'
+        })
+      } else {
+        setStatusError({
+          error: status.message,
+          type: 'unknown'
+        })
+      }
+    } else {
+      setStatusError(null)
+    }
+  }
+
+  const handleRetryStatus = async () => {
+    // 상태 재확인 트리거 (YouTubeStatusChecker에서 처리)
+    setStatusError(null)
+  }
   return (
     <div className="p-4 overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+      {/* YouTube 계정 인증 */}
+      <div className="mb-4">
+        <YouTubeAuthButton
+          onAuthChange={handleAuthChange}
+          sessionId={data.title} // 세션 추적용
+        />
+      </div>
+
+      {/* YouTube 업로드 상태 확인 (인증된 경우에만 표시) */}
+      {isAuthenticated && (
+        <div className="mb-4">
+        <YouTubeStatusChecker
+          onStatusChange={handleStatusChange}
+          showDetails={false}
+          className="mb-2"
+        />
+
+        {/* 에러 표시 */}
+        {statusError && (
+          <YouTubeErrorHandler
+            error={statusError.error}
+            errorType={statusError.type}
+            onRetry={handleRetryStatus}
+            onDismiss={() => setStatusError(null)}
+            showDetails={false}
+            className="mb-3"
+          />
+        )}
+        </div>
+      )}
+
       {/* YouTube 채널 */}
       <div className="mb-3">
         <label className="text-xs font-medium text-black mb-1 block">YouTube 채널</label>

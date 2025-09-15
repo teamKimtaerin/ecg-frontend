@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { YouTubePrivacy, YouTubeUploadData, YouTubeUploadModalProps, YouTubeUploadSettings, YouTubeUploadStatus } from './ExportTypes'
+import { YouTubePrivacy, YouTubeUploadData, YouTubeUploadModalProps, YouTubeUploadSettings, YouTubeUploadStatus, UploadProgress } from './ExportTypes'
 import Portal from './Portal'
 import YouTubeExportSettings from './components/YouTubeExportSettings'
 import YouTubeVideoPreview from './components/YouTubeVideoPreview'
@@ -18,6 +18,9 @@ export default function YouTubeUploadModal({
   const [status, setStatus] = useState<YouTubeUploadStatus>('settings')
   const [progress, setProgress] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [currentStatus, setCurrentStatus] = useState<UploadProgress | undefined>()
+  const [sessionId, setSessionId] = useState<string | undefined>()
+  const [uploadReady, setUploadReady] = useState(false)
 
   // 2단계 설정 데이터
   const [settings, setSettings] = useState<YouTubeUploadSettings>({
@@ -58,7 +61,7 @@ export default function YouTubeUploadModal({
     }
   }, [isOpen, defaultTitle])
 
-  // ESC 키로 모달 닫기
+  // ESC 키로 모달 닫기 (업로드 중이 아닐 때만)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && isOpen && status !== 'uploading') {
@@ -77,6 +80,46 @@ export default function YouTubeUploadModal({
     }
   }, [isOpen, onClose, status])
 
+  // 업로드 상태 모니터링
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null
+
+    if (status === 'uploading' && sessionId) {
+      pollInterval = setInterval(async () => {
+        try {
+          const response = await fetch(`/api/youtube/upload/status?sessionId=${sessionId}`)
+          if (response.ok) {
+            const statusData = await response.json()
+            setCurrentStatus(statusData.progress)
+            setProgress(statusData.progress?.progress || 0)
+
+            if (statusData.progress?.status === 'completed') {
+              setStatus('completed')
+              if (pollInterval) {
+                clearInterval(pollInterval)
+                pollInterval = null
+              }
+            } else if (statusData.progress?.status === 'error') {
+              setStatus('details') // 에러 시 다시 설정 화면으로
+              if (pollInterval) {
+                clearInterval(pollInterval)
+                pollInterval = null
+              }
+            }
+          }
+        } catch (error) {
+          console.error('상태 폴링 에러:', error)
+        }
+      }, 1000) // 1초마다 상태 확인
+    }
+
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+      }
+    }
+  }, [status, sessionId])
+
   const handleBackdropClick = (event: React.MouseEvent) => {
     if (event.target === event.currentTarget && status !== 'uploading') {
       onClose()
@@ -90,24 +133,112 @@ export default function YouTubeUploadModal({
   }
 
   // 3단계 → 4단계 (업로드 시작)
-  const handleUpload = () => {
+  const handleUpload = async () => {
+    // 중복 업로드 방지
+    if (status === 'uploading') {
+      console.warn('이미 업로드가 진행 중입니다.')
+      return
+    }
+
+    // 업로드 준비 상태 확인
+    if (!uploadReady) {
+      console.warn('업로드 준비가 완료되지 않았습니다.')
+      return
+    }
+
     setStatus('uploading')
+    setProgress(0)
+    setCurrentStatus(undefined)
 
-    // 진행률 시뮬레이션
-    let currentProgress = 0
-    const interval = setInterval(() => {
-      currentProgress += Math.random() * 5 + 1
-      if (currentProgress >= 100) {
-        currentProgress = 100
-        setProgress(100)
-        setStatus('completed')
-        clearInterval(interval)
-      } else {
-        setProgress(Math.floor(currentProgress))
+    // 세션 ID 생성
+    const newSessionId = `youtube_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    setSessionId(newSessionId)
+
+    try {
+      // API 엔드포인트로 업로드 요청
+      const response = await fetch('/api/youtube/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: newSessionId,
+          title: data.title,
+          description: data.description,
+          privacy: data.privacy,
+          videoPath: 'public/friends.mp4' // 샘플 비디오 경로
+        }),
+      })
+
+      if (!response.ok) {
+        const errorResult = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
+
+        if (response.status === 501) {
+          // Static export 환경 또는 프로덕션 환경
+          setStatus('details')
+          setCurrentStatus({
+            status: 'error',
+            progress: 0,
+            message: 'YouTube 업로드는 개발 환경에서만 지원됩니다.',
+            error: errorResult.error || 'API를 사용할 수 없는 환경입니다.'
+          })
+          return
+        }
+
+        throw new Error(`업로드 요청 실패: ${response.status} - ${errorResult.error || '알 수 없는 오류'}`)
       }
-    }, 200)
 
+      const result = await response.json()
+
+      if (!result.success) {
+        setStatus('details')
+        setCurrentStatus({
+          status: 'error',
+          progress: 0,
+          message: '업로드 시작에 실패했습니다.',
+          error: result.error || '알 수 없는 오류'
+        })
+        console.error('YouTube 업로드 시작 실패:', result.error)
+        return
+      }
+
+      console.log('YouTube 업로드 시작됨:', result.sessionId)
+
+    } catch (error) {
+      setStatus('details') // 에러 시 다시 설정 화면으로
+      setCurrentStatus({
+        status: 'error',
+        progress: 0,
+        message: '업로드 시작 중 오류가 발생했습니다.',
+        error: String(error)
+      })
+      console.error('YouTube 업로드 중 오류:', error)
+    }
+
+    // 기존 onUpload 콜백도 호출 (호환성 유지)
     onUpload(data)
+  }
+
+  // 업로드 취소
+  const handleCancelUpload = async () => {
+    if (sessionId) {
+      try {
+        await fetch('/api/youtube/cancel-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        })
+      } catch (error) {
+        console.error('업로드 취소 중 오류:', error)
+      }
+    }
+
+    setStatus('details')
+    setProgress(0)
+    setCurrentStatus(undefined)
+    setSessionId(undefined)
   }
 
   // 설정 변경
@@ -196,6 +327,7 @@ export default function YouTubeUploadModal({
                     data={data}
                     onDataChange={handleDataChange}
                     onPrivacyChange={handlePrivacyChange}
+                    onReadyStateChange={setUploadReady}
                   />
                 </div>
               </div>
@@ -204,7 +336,12 @@ export default function YouTubeUploadModal({
               <div className="px-4 py-3 border-t border-gray-200 flex justify-end flex-shrink-0">
                 <button
                   onClick={handleUpload}
-                  className="bg-cyan-400 hover:bg-cyan-500 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                  disabled={!uploadReady}
+                  className={`px-6 py-2 rounded-lg transition-colors duration-200 font-medium ${
+                    uploadReady
+                      ? 'bg-cyan-400 hover:bg-cyan-500 text-white'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   내보내기
                 </button>
@@ -217,6 +354,9 @@ export default function YouTubeUploadModal({
             <YouTubeUploadProgress
               progress={progress}
               data={data}
+              currentStatus={currentStatus}
+              onCancel={handleCancelUpload}
+              sessionId={sessionId}
             />
           )}
 
