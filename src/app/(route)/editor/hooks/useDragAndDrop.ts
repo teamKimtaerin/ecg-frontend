@@ -59,20 +59,7 @@ export function useDragAndDrop() {
     (event: DragEndEvent) => {
       const { active, over } = event
 
-      console.log('[useDragAndDrop] handleDragEnd:', {
-        activeId: active.id,
-        overId: over?.id,
-        activeData: active.data.current,
-        overData: over?.data.current,
-        selectedClipIds: Array.from(selectedClipIds)
-      })
-
       if (active.id !== over?.id && over) {
-        console.log('[useDragAndDrop] Calling reorderClips with:', {
-          activeId: active.id as string,
-          overId: over.id as string,
-          selectedClipIds: Array.from(selectedClipIds)
-        })
         reorderClips(active.id as string, over.id as string, selectedClipIds)
       }
 

@@ -156,10 +156,6 @@ export default function EditorMotionTextOverlay({
 
   const buildScenarioFromClips = useCallback((): RendererConfig => {
     // Ensure manifest is loaded before building scenario
-    if (!manifestRef.current?.key) {
-      console.warn('[EditorMotionTextOverlay] Manifest not loaded, using default plugin')
-    }
-    
     const pluginName = (manifestRef.current?.key as string) || 'elastic@1.0.0'
     const rawParams = defaultParamsRef.current || {}
     const manifest = manifestRef.current
@@ -170,8 +166,23 @@ export default function EditorMotionTextOverlay({
     console.log('[EditorMotionTextOverlay] Building scenario with:', {
       pluginName,
       hasManifest: !!manifest,
-      paramsKeys: Object.keys(params)
+      manifestKey: manifestRef.current?.key,
+      paramsKeys: Object.keys(params),
+      sequentialMode: timeline.isSequentialMode
     })
+
+    // Safety check: ensure we have a valid plugin name
+    if (!pluginName || pluginName === '') {
+      console.error('[EditorMotionTextOverlay] No valid plugin name found, using fallback')
+      const fallbackPluginName = 'elastic@1.0.0'
+      return {
+        version: '1.3',
+        timebase: { unit: 'seconds' },
+        stage: { baseAspect: '16:9' },
+        tracks: [{ id: 'editor', type: 'subtitle', layer: 1, defaultStyle: { fontSizeRel: 0.07, fontFamily: 'Arial, sans-serif', color: '#ffffff' } }],
+        cues: []
+      }
+    }
 
     // Map editor UI → positioning and font size (using relative coordinates like demo)
     const centerX = 0.5 // Always center horizontally
@@ -200,9 +211,21 @@ export default function EditorMotionTextOverlay({
       console.log('[EditorMotionTextOverlay] Sequential mode debug:', {
         timelineClipsCount: timelineClips.length,
         clipOrder: timeline.clipOrder,
+        clipOrderLength: timeline.clipOrder?.length || 0,
         clipsCount: clips.length,
+        isSequentialMode: timeline.isSequentialMode,
         timelineClips: timelineClips.map(tc => ({ id: tc.id, sourceClipId: tc.sourceClipId, startTime: tc.startTime, duration: tc.duration }))
       })
+
+      // Safety check: if no timeline clips available, return early with diagnostic info
+      if (timelineClips.length === 0) {
+        console.warn('[EditorMotionTextOverlay] No timeline clips available in sequential mode:', {
+          clipOrder: timeline.clipOrder,
+          originalClipsCount: clips.length,
+          isSequentialMode: timeline.isSequentialMode,
+          hasGetSequentialClips: typeof getSequentialClips === 'function'
+        })
+      }
       
       for (const timelineClip of timelineClips) {
         if (deletedClipIds.has(timelineClip.id)) continue
@@ -246,7 +269,7 @@ export default function EditorMotionTextOverlay({
                 },
                 pluginChain: [
                   {
-                    name: manifestRef.current?.key || 'elastic@1.0.0',
+                    name: pluginName, // Use the validated pluginName instead of potentially null manifestRef
                     params: params,
                   },
                 ],
@@ -309,7 +332,7 @@ export default function EditorMotionTextOverlay({
                 },
                 pluginChain: [
                   {
-                    name: manifestRef.current?.key || 'elastic@1.0.0',
+                    name: pluginName, // Use the validated pluginName instead of potentially null manifestRef
                     params: params,
                   },
                 ],
@@ -360,19 +383,53 @@ export default function EditorMotionTextOverlay({
     })
 
     // Safety check: ensure all cues have valid plugin chains
-    const validCues = cues.filter(cue => {
+    const validCues = cues.filter((cue, index) => {
       const children = cue.root?.children as any[] | undefined
       const pluginChain = children?.[0]?.pluginChain as any[] | undefined
       const firstPlugin = pluginChain?.[0] as any
-      if (!firstPlugin?.name) {
-        console.warn('[EditorMotionTextOverlay] Skipping cue with invalid plugin chain:', cue.id, firstPlugin)
+      
+      // Enhanced validation
+      if (!firstPlugin) {
+        console.warn('[EditorMotionTextOverlay] Skipping cue with missing plugin:', { cueId: cue.id, index, children, pluginChain })
         return false
       }
+      
+      if (!firstPlugin.name || firstPlugin.name.trim() === '') {
+        console.warn('[EditorMotionTextOverlay] Skipping cue with invalid plugin name:', { 
+          cueId: cue.id, 
+          index, 
+          pluginName: firstPlugin.name,
+          plugin: firstPlugin 
+        })
+        return false
+      }
+
+      // Validate timing
+      if (!cue.hintTime || !cue.hintTime.start || !cue.hintTime.end) {
+        console.warn('[EditorMotionTextOverlay] Skipping cue with invalid timing:', { 
+          cueId: cue.id, 
+          index, 
+          hintTime: cue.hintTime 
+        })
+        return false
+      }
+
       return true
     })
 
     if (validCues.length === 0) {
-      console.warn('[EditorMotionTextOverlay] No valid cues found, returning empty config')
+      console.warn('[EditorMotionTextOverlay] No valid cues found, returning empty config', {
+        totalCuesGenerated: cues.length,
+        validCuesCount: validCues.length,
+        isSequentialMode: timeline.isSequentialMode,
+        clipOrder: timeline.clipOrder,
+        clipsCount: clips.length,
+        deletedClipIdsCount: deletedClipIds.size,
+        pluginName: pluginName,
+        hasManifest: !!manifestRef.current,
+        manifestKey: manifestRef.current?.key,
+        reasonsForFailure: 'Check console for individual cue validation failures above'
+      })
       return {
         ...config,
         cues: []
@@ -383,7 +440,7 @@ export default function EditorMotionTextOverlay({
       ...config,
       cues: validCues
     }
-  }, [subtitlePosition, subtitleSize, clips, deletedClipIds, timeline, getSequentialClips])
+  }, [subtitlePosition, subtitleSize, clips, deletedClipIds, timeline, timeline.lastUpdated, getSequentialClips])
 
   // Option A: Load external scenario.json when requested (disabled for sequential timeline)
   useEffect(() => {

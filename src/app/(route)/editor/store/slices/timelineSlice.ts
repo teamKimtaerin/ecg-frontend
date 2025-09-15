@@ -51,6 +51,7 @@ export interface Timeline {
   gridSize: number         // 그리드 크기 (초)
   isSequentialMode: boolean // 연속 재생 모드 (클립들을 순서대로 이어붙임)
   clipOrder: string[]      // 클립 재생 순서 (클립 ID 배열)
+  lastUpdated?: number     // 마지막 업데이트 타임스탬프 (자막 시스템 동기화용)
 }
 
 export interface TimelineState {
@@ -715,7 +716,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
 
         log('timelineSlice.ts', `Sequential timeline reconstructed: ${reorderedClips.length} active clips, total duration: ${totalDuration}s`)
 
-        return {
+        const newState = {
           ...state,
           timeline: {
             ...state.timeline,
@@ -724,8 +725,19 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
             totalDuration,
             // 재생 위치가 새로운 길이를 초과하면 조정
             playbackPosition: Math.min(state.timeline.playbackPosition, totalDuration),
+            // Add a timestamp to force subtitle system re-render
+            lastUpdated: Date.now()
           }
         }
+
+        console.log('[timelineSlice] Timeline updated after reorder:', {
+          clipOrderLength: newOrder.length,
+          totalClips: allClips.length,
+          totalDuration,
+          timestamp: newState.timeline.lastUpdated
+        })
+
+        return newState
       } else {
         // 일반 모드: 순서만 기록, 실제 배치는 변경하지 않음
         log('timelineSlice.ts', `Clip order updated (non-sequential mode): ${newOrder.length} clips`)

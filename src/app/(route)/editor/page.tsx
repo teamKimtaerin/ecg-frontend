@@ -1587,20 +1587,10 @@ export default function EditorPage() {
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={(event) => {
-        console.log('[page] onDragStart:', {
-          activeId: event.active.id,
-          activeData: event.active.data.current
-        })
-        
         // Handle both clip and word drag start
         if (event.active.data.current?.type === 'word') {
-          console.log('[page] Handling word drag start')
           handleWordDragStart(event)
-        } else if (event.active.data.current?.type === 'clip') {
-          console.log('[page] Handling clip drag start - explicit type')
-          handleDragStart(event)
         } else {
-          console.log('[page] Handling clip drag start - fallback (no type)')
           handleDragStart(event)
         }
       }}
@@ -1613,22 +1603,10 @@ export default function EditorPage() {
         }
       }}
       onDragEnd={(event) => {
-        console.log('[page] onDragEnd:', {
-          activeId: event.active.id,
-          overId: event.over?.id,
-          activeData: event.active.data.current,
-          overData: event.over?.data.current
-        })
-        
         // Handle both clip and word drag end
         if (event.active.data.current?.type === 'word') {
-          console.log('[page] Handling word drag end')
           handleWordDragEnd(event)
-        } else if (event.active.data.current?.type === 'clip') {
-          console.log('[page] Handling clip drag end - explicit type')
-          handleDragEnd(event)
         } else {
-          console.log('[page] Handling clip drag end - fallback (no type)')
           handleDragEnd(event)
         }
       }}

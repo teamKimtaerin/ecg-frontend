@@ -264,19 +264,10 @@ export const createClipSlice: StateCreator<
   reorderClips: (activeId, overId, selectedIds) => {
     const fullState = get()
     
-    console.log('[clipSlice] reorderClips called:', {
-      activeId,
-      overId,
-      selectedIds: Array.from(selectedIds),
-      clipsLength: fullState.clips.length
-    })
-    
     set((state) => {
       const { clips } = state
       const oldIndex = clips.findIndex((item) => item.id === activeId)
       const newIndex = clips.findIndex((item) => item.id === overId)
-      
-      console.log('[clipSlice] Found indices:', { oldIndex, newIndex })
 
       // If multiple items are selected, move them as a group
       let newClips: ClipItem[]
@@ -339,7 +330,6 @@ export const createClipSlice: StateCreator<
     const updatedState = get()
     if ('timeline' in updatedState && (updatedState as any).timeline?.isSequentialMode) {
       const newOrder = updatedState.clips.map(clip => clip.id)
-      console.log('[clipSlice] Calling reorderTimelineClips with order:', newOrder)
       ;(updatedState as any).reorderTimelineClips?.(newOrder)
     }
   },
