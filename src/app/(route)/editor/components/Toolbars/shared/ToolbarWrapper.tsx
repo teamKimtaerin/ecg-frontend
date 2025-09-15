@@ -8,6 +8,7 @@ import {
 } from 'react-icons/ai'
 import { type ToolbarVariant } from '../../../constants/colors'
 import ExportModal from '../../Export/ExportModal'
+import ServerVideoExportModal from '../../Export/ServerVideoExportModal'
 import { ExportFormat } from '../../Export/ExportTypes'
 import ToolbarBase from './ToolbarBase'
 import ToolbarButton from './ToolbarButton'
@@ -34,19 +35,30 @@ export default function ToolbarWrapper({
   className = '',
 }: ToolbarWrapperProps) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isGpuExportModalOpen, setIsGpuExportModalOpen] = useState(false)
 
   const handleExportClick = () => {
     setIsExportModalOpen(true)
   }
 
   const handleExportConfirm = (format: ExportFormat) => {
-    // TODO: Implement actual export functionality based on format
-    console.log('Exporting in format:', format)
-    onExport?.()
+    if (format === 'gpu-render') {
+      // GPU 렌더링 모달 열기
+      setIsExportModalOpen(false)
+      setIsGpuExportModalOpen(true)
+    } else {
+      // TODO: Implement actual export functionality based on format
+      console.log('Exporting in format:', format)
+      onExport?.()
+    }
   }
 
   const handleCloseModal = () => {
     setIsExportModalOpen(false)
+  }
+
+  const handleCloseGpuModal = () => {
+    setIsGpuExportModalOpen(false)
   }
 
   const handleSave = () => {
@@ -111,6 +123,12 @@ export default function ToolbarWrapper({
         isOpen={isExportModalOpen}
         onClose={handleCloseModal}
         onExport={handleExportConfirm}
+      />
+
+      {/* GPU Export Modal */}
+      <ServerVideoExportModal
+        isOpen={isGpuExportModalOpen}
+        onClose={handleCloseGpuModal}
       />
     </ToolbarBase>
   )

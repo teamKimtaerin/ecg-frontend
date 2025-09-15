@@ -1,4 +1,5 @@
 export type ExportFormat =
+  | 'gpu-render'
   | 'mp4'
   | 'srt'
   | 'txt'

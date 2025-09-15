@@ -10,12 +10,12 @@ export default function ExportModal({
   onClose,
   onExport,
 }: ExportModalProps) {
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('mp4')
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('gpu-render')
 
   // 모달이 열릴 때 기본 선택값 설정
   useEffect(() => {
     if (isOpen) {
-      setSelectedFormat('mp4')
+      setSelectedFormat('gpu-render')
     }
   }, [isOpen])
 
@@ -52,12 +52,12 @@ export default function ExportModal({
 
   if (!isOpen) return null
 
-  // 기본 선택 옵션 (영상 파일 mp4)
-  const defaultOption = exportOptions.find((option) => option.id === 'mp4')!
+  // 기본 선택 옵션 (GPU 고속 렌더링)
+  const defaultOption = exportOptions.find((option) => option.id === 'gpu-render')!
   const DefaultIcon = getIconComponent(defaultOption.icon)
 
   // 나머지 옵션들
-  const otherOptions = exportOptions.filter((option) => option.id !== 'mp4')
+  const otherOptions = exportOptions.filter((option) => option.id !== 'gpu-render')
 
   return (
     <Portal>
@@ -77,14 +77,14 @@ export default function ExportModal({
 
           {/* 콘텐츠 */}
           <div className="p-4">
-            {/* 기본 선택 옵션 - 영상 파일 (mp4) */}
+            {/* 기본 선택 옵션 - GPU 고속 렌더링 */}
             <div
               className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 ${
-                selectedFormat === 'mp4'
-                  ? 'bg-gray-400 bg-opacity-20 border border-gray-400'
+                selectedFormat === 'gpu-render'
+                  ? 'bg-blue-500 bg-opacity-20 border border-blue-400'
                   : 'hover:bg-[#383842] hover:scale-105 hover:shadow-md'
               }`}
-              onClick={() => handleExport('mp4')}
+              onClick={() => handleExport('gpu-render')}
             >
               <div className="flex items-center flex-1">
                 <div className="w-6 h-6 mr-3 text-white flex items-center justify-center bg-gray-700 rounded p-1">
@@ -92,7 +92,7 @@ export default function ExportModal({
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-white text-sm">
-                    {defaultOption.label}({defaultOption.description})
+                    {defaultOption.label}
                   </span>
                   <span className="text-xs bg-gray-700 text-white px-2 py-1 rounded">
                     최근 사용
