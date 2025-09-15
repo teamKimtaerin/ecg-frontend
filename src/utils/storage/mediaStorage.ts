@@ -152,10 +152,7 @@ class MediaStorage {
     const db = await databaseManager.getDatabase()
 
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(
-        [PROJECT_MEDIA_STORE],
-        'readwrite'
-      )
+      const transaction = db.transaction([PROJECT_MEDIA_STORE], 'readwrite')
       const store = transaction.objectStore(PROJECT_MEDIA_STORE)
       const request = store.put(projectMediaInfo)
 
@@ -184,10 +181,7 @@ class MediaStorage {
     const db = await databaseManager.getDatabase()
 
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(
-        [PROJECT_MEDIA_STORE],
-        'readonly'
-      )
+      const transaction = db.transaction([PROJECT_MEDIA_STORE], 'readonly')
       const store = transaction.objectStore(PROJECT_MEDIA_STORE)
       const request = store.get(projectId)
 
@@ -254,9 +248,7 @@ class MediaStorage {
       URL.revokeObjectURL(url)
     })
     this.blobUrls.clear()
-    console.log(
-      `[${getTimestamp()}] mediaStorage.ts All Blob URLs released`
-    )
+    console.log(`[${getTimestamp()}] mediaStorage.ts All Blob URLs released`)
   }
 
   /**

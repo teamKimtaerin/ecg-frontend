@@ -370,7 +370,9 @@ class IndexedDBProjectStorage implements ProjectStorage {
       return null
     }
 
-    const projectWithClips = project as ProjectData & { originalClips?: ClipItem[] }
+    const projectWithClips = project as ProjectData & {
+      originalClips?: ClipItem[]
+    }
     return projectWithClips.originalClips || null
   }
 
@@ -404,7 +406,10 @@ class IndexedDBProjectStorage implements ProjectStorage {
   /**
    * 프로젝트 내보내기 (ProjectStorage 인터페이스 구현)
    */
-  async exportProject(id: string, format: 'srt' | 'vtt' | 'ass'): Promise<string> {
+  async exportProject(
+    id: string,
+    format: 'srt' | 'vtt' | 'ass'
+  ): Promise<string> {
     const project = await this.loadProject(id)
     if (!project) {
       throw new Error('Project not found')

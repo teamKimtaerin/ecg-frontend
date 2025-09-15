@@ -76,11 +76,19 @@ export class DatabaseManager {
 
           // 더 구체적인 에러 메시지 제공
           if (error?.name === 'VersionError') {
-            reject(new Error('Database version conflict. Please refresh the page.'))
+            reject(
+              new Error('Database version conflict. Please refresh the page.')
+            )
           } else if (error?.name === 'QuotaExceededError') {
-            reject(new Error('Storage quota exceeded. Please free up some space.'))
+            reject(
+              new Error('Storage quota exceeded. Please free up some space.')
+            )
           } else {
-            reject(new Error(`Failed to open IndexedDB: ${error?.message || 'Unknown error'}`))
+            reject(
+              new Error(
+                `Failed to open IndexedDB: ${error?.message || 'Unknown error'}`
+              )
+            )
           }
         }
 
@@ -100,7 +108,9 @@ export class DatabaseManager {
 
           // 연결 종료 핸들러
           this.db.onclose = () => {
-            console.log(`[${getTimestamp()}] DatabaseManager: Database connection closed`)
+            console.log(
+              `[${getTimestamp()}] DatabaseManager: Database connection closed`
+            )
             this.db = null
             this.initPromise = null
           }
@@ -124,7 +134,9 @@ export class DatabaseManager {
             })
             mediaStore.createIndex('projectId', 'projectId', { unique: false })
             mediaStore.createIndex('fileName', 'fileName', { unique: false })
-            console.log(`[${getTimestamp()}] DatabaseManager: Created ${STORES.MEDIA} store`)
+            console.log(
+              `[${getTimestamp()}] DatabaseManager: Created ${STORES.MEDIA} store`
+            )
           }
 
           // 프로젝트-미디어 연결 정보 저장소
@@ -132,7 +144,9 @@ export class DatabaseManager {
             db.createObjectStore(STORES.PROJECT_MEDIA, {
               keyPath: 'projectId',
             })
-            console.log(`[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECT_MEDIA} store`)
+            console.log(
+              `[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECT_MEDIA} store`
+            )
           }
 
           // 프로젝트 데이터 저장소
@@ -141,9 +155,15 @@ export class DatabaseManager {
               keyPath: 'id',
             })
             projectsStore.createIndex('name', 'name', { unique: false })
-            projectsStore.createIndex('updatedAt', 'updatedAt', { unique: false })
-            projectsStore.createIndex('createdAt', 'createdAt', { unique: false })
-            console.log(`[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECTS} store`)
+            projectsStore.createIndex('updatedAt', 'updatedAt', {
+              unique: false,
+            })
+            projectsStore.createIndex('createdAt', 'createdAt', {
+              unique: false,
+            })
+            console.log(
+              `[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECTS} store`
+            )
           }
 
           // 프로젝트 히스토리 저장소
@@ -151,9 +171,15 @@ export class DatabaseManager {
             const historyStore = db.createObjectStore(STORES.PROJECT_HISTORY, {
               keyPath: ['projectId', 'timestamp'],
             })
-            historyStore.createIndex('projectId', 'projectId', { unique: false })
-            historyStore.createIndex('timestamp', 'timestamp', { unique: false })
-            console.log(`[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECT_HISTORY} store`)
+            historyStore.createIndex('projectId', 'projectId', {
+              unique: false,
+            })
+            historyStore.createIndex('timestamp', 'timestamp', {
+              unique: false,
+            })
+            console.log(
+              `[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECT_HISTORY} store`
+            )
           }
 
           console.log(
@@ -210,7 +236,9 @@ export class DatabaseManager {
       this.db.close()
       this.db = null
       this.initPromise = null
-      console.log(`[${getTimestamp()}] DatabaseManager: Database connection closed`)
+      console.log(
+        `[${getTimestamp()}] DatabaseManager: Database connection closed`
+      )
     }
   }
 
@@ -230,7 +258,9 @@ export class DatabaseManager {
       }
 
       deleteReq.onerror = () => {
-        console.error(`[${getTimestamp()}] DatabaseManager: Failed to delete database`)
+        console.error(
+          `[${getTimestamp()}] DatabaseManager: Failed to delete database`
+        )
         reject(new Error('Failed to delete database'))
       }
     })
@@ -239,7 +269,10 @@ export class DatabaseManager {
   /**
    * 스토리지 사용량 확인
    */
-  static async getStorageInfo(): Promise<{ usage: number; quota: number } | null> {
+  static async getStorageInfo(): Promise<{
+    usage: number
+    quota: number
+  } | null> {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       try {
         const estimate = await navigator.storage.estimate()
@@ -248,7 +281,10 @@ export class DatabaseManager {
           quota: estimate.quota || 0,
         }
       } catch (error) {
-        console.error(`[${getTimestamp()}] DatabaseManager: Failed to get storage info`, error)
+        console.error(
+          `[${getTimestamp()}] DatabaseManager: Failed to get storage info`,
+          error
+        )
         return null
       }
     }

@@ -376,6 +376,7 @@ When working with the animation plugin system:
 ECG는 **20-40배 속도 개선**을 달성하는 GPU 기반 서버 렌더링 시스템을 구현했습니다.
 
 **성능 비교:**
+
 - **현재 방식 (MediaRecorder)**: 1분 영상 → 5-10분 처리
 - **GPU 렌더링**: 1분 영상 → **15-20초 처리** ⚡
 
@@ -384,6 +385,7 @@ ECG는 **20-40배 속도 개선**을 달성하는 GPU 기반 서버 렌더링 �
 ECG는 두 개의 주요 처리 단계로 구성됩니다:
 
 #### 1️⃣ Upload Phase (음성 분석)
+
 ```
 Frontend → API Server → S3 Storage
                 ↓
@@ -395,6 +397,7 @@ Frontend → API Server → S3 Storage
 ```
 
 **처리 과정:**
+
 - 비디오 파일을 S3에 업로드
 - ML Audio Server가 S3에서 비디오를 가져와 분석
 - 화자 분리, 음성 인식, 감정 분석 수행
@@ -402,6 +405,7 @@ Frontend → API Server → S3 Storage
 - Frontend는 polling으로 상태 확인 및 결과 수신
 
 #### 2️⃣ Export Phase (GPU 렌더링)
+
 ```
 Frontend → API Server → GPU Render Server
                 ↓
@@ -413,12 +417,14 @@ Frontend → API Server → GPU Render Server
 ```
 
 **처리 과정:**
+
 - 편집된 자막 시나리오를 GPU 서버로 전송
 - GPU 서버가 Playwright + FFmpeg로 렌더링 (20-40배 속도 개선)
 - 완성된 비디오를 S3에 업로드
 - Frontend는 File System Access API로 자동 저장
 
 #### Phase 연결 흐름
+
 ```
 Upload Phase 결과 (자막 데이터)
         ↓
@@ -439,11 +445,12 @@ Export Phase 입력 (편집된 시나리오)
    - 실시간 진행률 표시 및 예상 시간 계산
 
 2. **File System Access API 통합**
+
    ```typescript
    // 렌더링 시작 시 저장 위치 선택
    const handle = await window.showSaveFilePicker({
      suggestedName: `${videoName}_GPU_${timestamp}.mp4`,
-     types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }]
+     types: [{ description: 'MP4 Video', accept: { 'video/mp4': ['.mp4'] } }],
    })
    ```
 
@@ -466,15 +473,16 @@ Export Phase 입력 (편집된 시나리오)
 ### API 플로우
 
 #### 렌더링 요청
+
 ```typescript
 // 1. 저장 위치 선택
 const fileHandle = await selectSaveLocation()
 
 // 2. 렌더링 시작
 const response = await renderService.createRenderJob({
-  videoUrl: "https://s3.amazonaws.com/bucket/video.mp4",
+  videoUrl: 'https://s3.amazonaws.com/bucket/video.mp4',
   scenario: motionTextScenario,
-  options: { width: 1920, height: 1080, fps: 30 }
+  options: { width: 1920, height: 1080, fps: 30 },
 })
 
 // 3. 진행 상황 폴링 (5초 간격)
@@ -489,11 +497,13 @@ if (status.status === 'completed') {
 ### 사용자 경험 개선
 
 #### 이전 플로우 (비효율적)
+
 ```
 렌더링 시작 → 20-30초 대기 → 완료 → 다운로드 버튼 → 저장 위치 선택
 ```
 
 #### 현재 플로우 (최적화됨)
+
 ```
 GPU 렌더링 시작 → 저장 위치 먼저 선택 → 렌더링 진행 → 완료 시 자동 저장 ✨
 ```
@@ -506,7 +516,7 @@ enum RenderErrorCode {
   GPU_SERVER_ERROR = 'GPU_SERVER_ERROR',
   CONNECTION_ERROR = 'CONNECTION_ERROR',
   TIMEOUT_ERROR = 'TIMEOUT_ERROR',
-  ABORTED = 'ABORTED'
+  ABORTED = 'ABORTED',
 }
 
 // 사용자 친화적 메시지
@@ -520,12 +530,14 @@ if (error.includes('GPU')) {
 ### 개발 환경 설정
 
 #### 환경 변수
+
 ```bash
 # .env.local
 NEXT_PUBLIC_GPU_RENDER_API_URL=http://localhost:8000/api/render
 ```
 
 #### GPU 렌더링 테스트
+
 ```bash
 # 개발 서버 실행
 yarn dev
@@ -537,6 +549,7 @@ yarn dev
 ### 파일 구조
 
 #### GPU 렌더링 관련 파일들
+
 ```
 src/
 ├── services/api/
@@ -554,12 +567,14 @@ src/
 ### 성능 메트릭
 
 #### 측정 가능한 지표
+
 - **처리 시간**: 비디오 길이 대비 렌더링 시간
-- **성공률**: 완료된 작업 / 전체 요청 * 100
+- **성공률**: 완료된 작업 / 전체 요청 \* 100
 - **사용자 만족도**: 대기 시간 및 품질 평가
 - **자동 저장율**: File System Access API 사용률
 
 #### 모니터링 도구
+
 - **CloudWatch**: 백엔드 메트릭
 - **Sentry**: 프론트엔드 에러 추적
 - **Google Analytics**: 사용자 행동 분석

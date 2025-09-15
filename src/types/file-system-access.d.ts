@@ -11,7 +11,9 @@ interface FileSystemWritableFileStream extends WritableStream {
 
 interface FileSystemFileHandle {
   getFile(): Promise<File>
-  createWritable(options?: FileSystemCreateWritableOptions): Promise<FileSystemWritableFileStream>
+  createWritable(
+    options?: FileSystemCreateWritableOptions
+  ): Promise<FileSystemWritableFileStream>
 }
 
 interface FileSystemCreateWritableOptions {
@@ -35,5 +37,7 @@ interface SaveFilePickerOptions {
 }
 
 interface Window {
-  showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>
+  showSaveFilePicker?: (
+    options?: SaveFilePickerOptions
+  ) => Promise<FileSystemFileHandle>
 }

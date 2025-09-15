@@ -254,11 +254,10 @@ const Modal: React.FC<ModalProps> = ({
   const overlayClasses = cn(
     'fixed inset-0 flex p-4 items-center justify-center',
     'bg-black bg-opacity-50',
-    isblind && 'backdrop-blur-sm',   // ← 여기 조건부 적용
+    isblind && 'backdrop-blur-sm', // ← 여기 조건부 적용
     'transition-all duration-300 ease-out',
     isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
   )
-
 
   const modalClasses = cn(
     'relative outline-none bg-surface rounded-small shadow-lg',

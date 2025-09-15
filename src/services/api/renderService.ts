@@ -13,7 +13,8 @@ import {
 } from './types/render.types'
 import { useAuthStore } from '@/lib/store/authStore'
 
-const GPU_RENDER_API_BASE = process.env.NEXT_PUBLIC_GPU_RENDER_API_URL || '/api/render'
+const GPU_RENDER_API_BASE =
+  process.env.NEXT_PUBLIC_GPU_RENDER_API_URL || '/api/render'
 
 class RenderService {
   private abortControllers = new Map<string, AbortController>()
@@ -59,7 +60,8 @@ class RenderService {
       if (!response.ok) {
         // 백엔드 에러 응답 처리
         const errorData: BackendErrorResponse = await response.json()
-        const errorMessage = errorData.detail?.message || '렌더링 작업 생성 실패'
+        const errorMessage =
+          errorData.detail?.message || '렌더링 작업 생성 실패'
         const errorCode = errorData.detail?.code || 'UNKNOWN_ERROR'
 
         // 에러 타입에 따른 세부 처리
@@ -97,7 +99,8 @@ class RenderService {
 
       // 에러 코드 분류
       let errorCode = RenderErrorCode.CREATE_JOB_ERROR
-      let errorMessage = error instanceof Error ? error.message : '렌더링 작업 생성 실패'
+      let errorMessage =
+        error instanceof Error ? error.message : '렌더링 작업 생성 실패'
 
       if (error instanceof Error) {
         if (error.message.includes('GPU')) {
@@ -106,18 +109,34 @@ class RenderService {
           errorCode = RenderErrorCode.TIMEOUT_ERROR
         } else if (error.message.includes('network')) {
           errorCode = RenderErrorCode.CONNECTION_ERROR
-        } else if (error.message.includes('quota:') || error.message.includes('할당량')) {
+        } else if (
+          error.message.includes('quota:') ||
+          error.message.includes('할당량')
+        ) {
           errorCode = RenderErrorCode.RENDER_QUOTA_DAILY_EXCEEDED
-          errorMessage = error.message.replace('quota:', '') || '일일 렌더링 할당량을 초과했습니다. 내일 다시 시도해주세요.'
-        } else if (error.message.includes('rate:') || error.message.includes('속도 제한')) {
+          errorMessage =
+            error.message.replace('quota:', '') ||
+            '일일 렌더링 할당량을 초과했습니다. 내일 다시 시도해주세요.'
+        } else if (
+          error.message.includes('rate:') ||
+          error.message.includes('속도 제한')
+        ) {
           errorCode = RenderErrorCode.RENDER_RATE_LIMIT_EXCEEDED
-          errorMessage = error.message.replace('rate:', '') || '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
-        } else if (error.message.includes('invalid:') || error.message.includes('잘못된')) {
+          errorMessage =
+            error.message.replace('rate:', '') ||
+            '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+        } else if (
+          error.message.includes('invalid:') ||
+          error.message.includes('잘못된')
+        ) {
           errorCode = RenderErrorCode.RENDER_INVALID_INPUT
-          errorMessage = error.message.replace('invalid:', '') || '입력 데이터가 올바르지 않습니다. 비디오와 자막을 확인해주세요.'
+          errorMessage =
+            error.message.replace('invalid:', '') ||
+            '입력 데이터가 올바르지 않습니다. 비디오와 자막을 확인해주세요.'
         } else if (error.message.includes('인증 오류:')) {
           errorCode = RenderErrorCode.RENDER_AUTH_ERROR
-          errorMessage = error.message || '인증에 실패했습니다. 다시 로그인해주세요.'
+          errorMessage =
+            error.message || '인증에 실패했습니다. 다시 로그인해주세요.'
         }
       }
 
@@ -222,7 +241,6 @@ class RenderService {
       // 백엔드 취소 응답 처리
       const cancelData: BackendCancelResponse = await response.json()
       return cancelData.success
-
     } catch (error) {
       console.error('Failed to cancel job:', error)
       return false
@@ -284,10 +302,13 @@ class RenderService {
    */
   async getRenderHistory(limit: number = 10): Promise<RenderHistory[]> {
     try {
-      const response = await fetch(`${GPU_RENDER_API_BASE}/history?limit=${limit}`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      })
+      const response = await fetch(
+        `${GPU_RENDER_API_BASE}/history?limit=${limit}`,
+        {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+        }
+      )
 
       if (!response.ok) {
         throw new Error('이력 조회 실패')
@@ -303,7 +324,9 @@ class RenderService {
   /**
    * 예상 처리 시간 계산 (초)
    */
-  private calculateEstimatedTime(scenario: { cues?: Array<{ hintTime?: { end?: number } }> }): number {
+  private calculateEstimatedTime(scenario: {
+    cues?: Array<{ hintTime?: { end?: number } }>
+  }): number {
     try {
       // 시나리오의 큐 개수와 전체 시간으로 예상 시간 계산
       const cues = scenario.cues || []
@@ -332,7 +355,7 @@ class RenderService {
    * 지연 유틸리티
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
   }
 
   /**
@@ -347,12 +370,14 @@ class RenderService {
         // 저장 대화상자 표시
         const handle = await window.showSaveFilePicker({
           suggestedName,
-          types: [{
-            description: 'MP4 Video File',
-            accept: {
-              'video/mp4': ['.mp4']
-            }
-          }]
+          types: [
+            {
+              description: 'MP4 Video File',
+              accept: {
+                'video/mp4': ['.mp4'],
+              },
+            },
+          ],
         })
 
         // URL에서 파일 데이터 가져오기
@@ -376,7 +401,10 @@ class RenderService {
           console.log('User cancelled the save dialog')
           return
         }
-        console.error('File System Access API failed, falling back to traditional download:', error)
+        console.error(
+          'File System Access API failed, falling back to traditional download:',
+          error
+        )
         // 폴백으로 진행
       }
     }

@@ -47,16 +47,13 @@ export function buildScenarioFromClips(
   const fontFamily = options?.fontFamily ?? 'Arial, sans-serif'
 
   // 유효한 클립만 필터링 (삭제되지 않고, 텍스트가 있는 클립)
-  const validClips = clips.filter(clip => {
+  const validClips = clips.filter((clip) => {
     const text = clip.text || clip.subtitle || clip.fullText || ''
     const startTime = clip.startTime ?? 0
     const endTime = clip.endTime ?? 0
 
     return (
-      !clip.isDeleted &&
-      text &&
-      text.trim().length > 0 &&
-      endTime > startTime
+      !clip.isDeleted && text && text.trim().length > 0 && endTime > startTime
     )
   })
 
@@ -74,19 +71,19 @@ export function buildScenarioFromClips(
       track: 'editor',
       hintTime: {
         start: startTime,
-        end: endTime
+        end: endTime,
       },
       root: {
         e_type: 'group',
         layout: {
           position: {
             x: centerX / stageW,
-            y: centerY / stageH
+            y: centerY / stageH,
           },
           anchor: 'cc',
           size: {
             width: boxW / stageW,
-            height: boxH / stageH
+            height: boxH / stageH,
           },
         },
         children: [
@@ -130,8 +127,8 @@ export function buildScenarioFromClips(
       {
         id: 'editor',
         type: 'free',
-        layer: 1
-      }
+        layer: 1,
+      },
     ],
     cues,
   }
@@ -158,7 +155,10 @@ function getSpeakerColor(speaker?: string): string | null {
 /**
  * 클립에 적용할 애니메이션 플러그인 체인 생성
  */
-function getPluginChain(clip: ExtendedClipItem, defaultPlugin: string): Array<{
+function getPluginChain(
+  clip: ExtendedClipItem,
+  defaultPlugin: string
+): Array<{
   name: string
   params: Record<string, unknown>
   relStartPct: number
@@ -172,7 +172,7 @@ function getPluginChain(clip: ExtendedClipItem, defaultPlugin: string): Array<{
         params: clip.animation.params || {},
         relStartPct: 0,
         relEndPct: 1,
-      }
+      },
     ]
   }
 
@@ -183,7 +183,7 @@ function getPluginChain(clip: ExtendedClipItem, defaultPlugin: string): Array<{
       params: {},
       relStartPct: 0,
       relEndPct: 1,
-    }
+    },
   ]
 }
 
@@ -212,7 +212,7 @@ export function buildAdvancedScenario(
   if (options.enableMultiTrack) {
     const speakerTracks = new Map<string, string>()
 
-    clips.forEach(clip => {
+    clips.forEach((clip) => {
       if (clip.speaker && !speakerTracks.has(clip.speaker)) {
         const trackId = `speaker-${speakerTracks.size + 1}`
         speakerTracks.set(clip.speaker, trackId)

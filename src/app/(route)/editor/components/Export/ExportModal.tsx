@@ -10,7 +10,8 @@ export default function ExportModal({
   onClose,
   onExport,
 }: ExportModalProps) {
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('gpu-render')
+  const [selectedFormat, setSelectedFormat] =
+    useState<ExportFormat>('gpu-render')
 
   // 모달이 열릴 때 기본 선택값 설정
   useEffect(() => {
@@ -53,11 +54,15 @@ export default function ExportModal({
   if (!isOpen) return null
 
   // 기본 선택 옵션 (GPU 고속 렌더링)
-  const defaultOption = exportOptions.find((option) => option.id === 'gpu-render')!
+  const defaultOption = exportOptions.find(
+    (option) => option.id === 'gpu-render'
+  )!
   const DefaultIcon = getIconComponent(defaultOption.icon)
 
   // 나머지 옵션들
-  const otherOptions = exportOptions.filter((option) => option.id !== 'gpu-render')
+  const otherOptions = exportOptions.filter(
+    (option) => option.id !== 'gpu-render'
+  )
 
   return (
     <Portal>
