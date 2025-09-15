@@ -31,6 +31,8 @@ interface ToolbarsProps {
   onToggleTemplateSidebar?: () => void
   onSave?: () => void
   onSaveAs?: () => void
+  forceOpenExportModal?: boolean
+  onExportModalStateChange?: (isOpen: boolean) => void
 }
 
 /**
@@ -58,6 +60,8 @@ export default function Toolbars({
   onToggleTemplateSidebar,
   onSave,
   onSaveAs,
+  forceOpenExportModal,
+  onExportModalStateChange,
 }: ToolbarsProps) {
   // 공통 props
   const commonProps = {
@@ -88,6 +92,8 @@ export default function Toolbars({
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
+          forceOpenExportModal={forceOpenExportModal}
+          onExportModalStateChange={onExportModalStateChange}
         >
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
@@ -100,6 +106,8 @@ export default function Toolbars({
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
+          forceOpenExportModal={forceOpenExportModal}
+          onExportModalStateChange={onExportModalStateChange}
         >
           <EditToolbar
             {...commonProps}
@@ -118,6 +126,8 @@ export default function Toolbars({
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
+          forceOpenExportModal={forceOpenExportModal}
+          onExportModalStateChange={onExportModalStateChange}
         >
           <FormatToolbar {...commonProps} />
         </ToolbarWrapper>
@@ -130,6 +140,8 @@ export default function Toolbars({
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
+          forceOpenExportModal={forceOpenExportModal}
+          onExportModalStateChange={onExportModalStateChange}
         >
           <InsertToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>
@@ -142,6 +154,8 @@ export default function Toolbars({
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
+          forceOpenExportModal={forceOpenExportModal}
+          onExportModalStateChange={onExportModalStateChange}
         >
           <TemplateToolbar onToggleTemplateSidebar={onToggleTemplateSidebar} />
         </ToolbarWrapper>
@@ -154,6 +168,8 @@ export default function Toolbars({
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
+          forceOpenExportModal={forceOpenExportModal}
+          onExportModalStateChange={onExportModalStateChange}
         >
           <HomeToolbar {...commonProps} onNewClick={onNewClick} />
         </ToolbarWrapper>

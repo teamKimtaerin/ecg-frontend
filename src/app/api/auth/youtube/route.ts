@@ -12,7 +12,18 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const sessionId = searchParams.get('sessionId')
 
+    console.log('YouTube OAuth 요청 - sessionId:', sessionId)
+    console.log('환경변수 확인:', {
+      hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      hasNextAuthUrl: !!process.env.NEXTAUTH_URL
+    })
+
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      console.error('환경변수 누락:', {
+        GOOGLE_CLIENT_ID: !!process.env.GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET: !!process.env.GOOGLE_CLIENT_SECRET
+      })
       return NextResponse.json({
         success: false,
         error: 'Google OAuth 환경변수가 설정되지 않았습니다.'
@@ -33,6 +44,8 @@ export async function GET(request: NextRequest) {
       state: sessionId || 'default', // 세션 ID를 state로 전달
       prompt: 'consent' // 매번 동의 화면 표시 (refresh_token 확보)
     })
+
+    console.log('OAuth URL 생성 성공:', authUrl)
 
     return NextResponse.json({
       success: true,

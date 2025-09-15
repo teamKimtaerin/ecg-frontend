@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import ToolbarButton from './Toolbars/shared/ToolbarButton'
 import ToolbarDivider from './Toolbars/shared/ToolbarDivider'
 import ToolbarBase from './Toolbars/shared/ToolbarBase'
@@ -25,6 +25,8 @@ interface SimpleToolbarProps {
   onToggleTemplateSidebar: () => void
   onSave?: () => void
   onSaveAs?: () => void
+  forceOpenExportModal?: boolean
+  onExportModalStateChange?: (isOpen: boolean) => void
 }
 
 const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
@@ -39,12 +41,23 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   onToggleTemplateSidebar,
   onSave,
   onSaveAs,
+  forceOpenExportModal,
+  onExportModalStateChange,
 }) => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false)
 
+  // 강제 모달 오픈 처리
+  useEffect(() => {
+    if (forceOpenExportModal && !isExportModalOpen) {
+      setIsExportModalOpen(true)
+      onExportModalStateChange?.(true)
+    }
+  }, [forceOpenExportModal, isExportModalOpen, onExportModalStateChange])
+
   const handleExportClick = () => {
     setIsExportModalOpen(true)
+    onExportModalStateChange?.(true)
   }
 
   const handleExportConfirm = (format: ExportFormat) => {
@@ -54,7 +67,8 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
 
   const handleSocialShare = (platform: SocialPlatform) => {
     if (platform === 'youtube') {
-      setIsExportModalOpen(false) // 내보내기 모달 닫기
+      setIsExportModalOpen(false)
+    onExportModalStateChange?.(false) // 내보내기 모달 닫기
       setIsYouTubeModalOpen(true) // YouTube 설정 모달 열기
     }
   }
@@ -70,6 +84,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
 
   const handleCloseModal = () => {
     setIsExportModalOpen(false)
+    onExportModalStateChange?.(false)
   }
 
   const handleOpenProject = () => {

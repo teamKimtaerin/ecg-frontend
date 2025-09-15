@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   AiOutlineExport,
   AiOutlineFolderAdd,
@@ -19,6 +19,8 @@ interface ToolbarWrapperProps {
   onSave?: () => void
   onSaveAs?: () => void
   className?: string
+  forceOpenExportModal?: boolean
+  onExportModalStateChange?: (isOpen: boolean) => void
 }
 
 /**
@@ -32,11 +34,22 @@ export default function ToolbarWrapper({
   onSave,
   onSaveAs,
   className = '',
+  forceOpenExportModal = false,
+  onExportModalStateChange,
 }: ToolbarWrapperProps) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
 
+  // 강제 모달 오픈 처리
+  useEffect(() => {
+    if (forceOpenExportModal && !isExportModalOpen) {
+      setIsExportModalOpen(true)
+      onExportModalStateChange?.(true)
+    }
+  }, [forceOpenExportModal, isExportModalOpen, onExportModalStateChange])
+
   const handleExportClick = () => {
     setIsExportModalOpen(true)
+    onExportModalStateChange?.(true)
   }
 
   const handleExportConfirm = (format: ExportFormat) => {
@@ -47,6 +60,7 @@ export default function ToolbarWrapper({
 
   const handleCloseModal = () => {
     setIsExportModalOpen(false)
+    onExportModalStateChange?.(false)
   }
 
   const handleSave = () => {

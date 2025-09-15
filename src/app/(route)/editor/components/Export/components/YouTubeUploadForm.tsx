@@ -22,20 +22,41 @@ export default function YouTubeUploadForm({
 }: YouTubeUploadFormProps) {
   const [uploadReady, setUploadReady] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [channelInfo, setChannelInfo] = useState<{
+    id: string
+    title: string
+    thumbnailUrl?: string
+  } | null>(null)
   const [statusError, setStatusError] = useState<{
     error: string
     type: 'login' | 'browser' | 'network' | 'unknown'
   } | null>(null)
 
-  const handleAuthChange = (authenticated: boolean) => {
+  const handleAuthChange = (authenticated: boolean, userInfo?: any) => {
     setIsAuthenticated(authenticated)
-    // 인증 상태와 업로드 준비 상태를 결합
-    const ready = authenticated && uploadReady
-    onReadyStateChange?.(ready)
+
+    // 채널 정보 업데이트
+    if (authenticated && userInfo?.channelInfo) {
+      setChannelInfo(userInfo.channelInfo)
+      // 실제 채널 이름으로 데이터 업데이트
+      onDataChange('channel', userInfo.channelInfo.title)
+    } else {
+      setChannelInfo(null)
+    }
+
+    // 내보내기 준비 상태 업데이트
+    updateReadyState(authenticated)
 
     if (authenticated) {
       setStatusError(null)
     }
+  }
+
+  // 내보내기 준비 상태 확인 함수
+  const updateReadyState = (authState: boolean = isAuthenticated) => {
+    // 인증된 상태이고 제목이 있으면 준비 완료
+    const ready = authState && data.title.trim().length > 0
+    onReadyStateChange?.(ready)
   }
 
   const handleStatusChange = (status: {
@@ -45,9 +66,6 @@ export default function YouTubeUploadForm({
     message: string
   }) => {
     setUploadReady(status.isReady)
-    // 인증 상태와 업로드 준비 상태를 결합
-    const ready = isAuthenticated && status.isReady
-    onReadyStateChange?.(ready)
 
     // 에러 상태 설정 (인증되지 않은 경우 제외)
     if (!status.isReady && isAuthenticated) {
@@ -71,6 +89,11 @@ export default function YouTubeUploadForm({
       setStatusError(null)
     }
   }
+
+  // 제목이 변경될 때마다 준비 상태 업데이트
+  React.useEffect(() => {
+    updateReadyState()
+  }, [data.title, isAuthenticated])
 
   const handleRetryStatus = async () => {
     // 상태 재확인 트리거 (YouTubeStatusChecker에서 처리)
@@ -113,14 +136,24 @@ export default function YouTubeUploadForm({
       <div className="mb-3">
         <label className="text-xs font-medium text-black mb-1 block">YouTube 채널</label>
         <div className="relative">
-          <select
-            value={data.channel}
-            onChange={(e) => onDataChange('channel', e.target.value)}
-            className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white appearance-none cursor-pointer"
-          >
-            <option value="테스트테스트">🎬 테스트테스트</option>
-          </select>
-          <FaChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
+          {isAuthenticated && channelInfo ? (
+            <div className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-50 text-black flex items-center gap-2">
+              <span>🎬</span>
+              <span>{channelInfo.title}</span>
+            </div>
+          ) : (
+            <select
+              value={data.channel}
+              onChange={(e) => onDataChange('channel', e.target.value)}
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white appearance-none cursor-pointer"
+              disabled={!isAuthenticated}
+            >
+              <option value="">계정 연동 후 선택 가능</option>
+            </select>
+          )}
+          {!isAuthenticated && (
+            <FaChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 pointer-events-none" />
+          )}
         </div>
       </div>
 

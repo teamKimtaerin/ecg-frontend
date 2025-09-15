@@ -46,22 +46,32 @@ export async function GET(request: NextRequest) {
       { expiresIn: '1h' }
     )
 
-    // 브라우저 쿠키에 토큰 저장
-    const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL}/editor?auth=success`)
+    // 브라우저 쿠키에 토큰 저장 - YouTube 업로드 모달로 복귀하도록 파라미터 추가
+    const response = NextResponse.redirect(`${process.env.NEXTAUTH_URL}/editor?auth=success&returnTo=youtube-upload`)
+
+    // 쿠키 설정 전에 로그 추가
+    console.log('쿠키 설정 시도:', {
+      tokenLength: accessToken.length,
+      isProduction: process.env.NODE_ENV === 'production',
+      path: '/'
+    })
 
     response.cookies.set('youtube_auth_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false, // 클라이언트에서 접근 가능하도록 수정
+      secure: false, // localhost에서는 false로 설정
       sameSite: 'lax',
       maxAge: 3600, // 1시간
       path: '/'
     })
 
+    console.log('쿠키 설정 완료')
+
     console.log('YouTube OAuth 인증 완료:', {
       sessionId: state,
       hasAccessToken: !!tokens.access_token,
       hasRefreshToken: !!tokens.refresh_token,
-      expiresAt: tokens.expiry_date
+      expiresAt: tokens.expiry_date,
+      jwtTokenLength: accessToken.length
     })
 
     return response

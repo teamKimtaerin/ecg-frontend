@@ -87,7 +87,7 @@ export default function YouTubeUploadModal({
     if (status === 'uploading' && sessionId) {
       pollInterval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/youtube/upload/status?sessionId=${sessionId}`)
+          const response = await fetch(`/api/youtube/upload?sessionId=${sessionId}`)
           if (response.ok) {
             const statusData = await response.json()
             setCurrentStatus(statusData.progress)
@@ -166,7 +166,7 @@ export default function YouTubeUploadModal({
           title: data.title,
           description: data.description,
           privacy: data.privacy,
-          videoPath: 'public/friends.mp4' // 샘플 비디오 경로
+          videoPath: 'friends.mp4' // friends.mp4 파일 (public 폴더 내)
         }),
       })
 

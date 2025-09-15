@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { FaGoogle, FaSpinner, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa'
 
 interface YouTubeAuthButtonProps {
-  onAuthChange?: (isAuthenticated: boolean) => void
+  onAuthChange?: (isAuthenticated: boolean, userInfo?: any) => void
   sessionId?: string
 }
 
@@ -15,6 +15,12 @@ interface AuthStatus {
   userInfo?: {
     email?: string
     name?: string
+    channelId?: string
+  }
+  channelInfo?: {
+    id: string
+    title: string
+    thumbnailUrl?: string
   }
 }
 
@@ -29,18 +35,25 @@ export default function YouTubeAuthButton({
 
   // 페이지 로드 시 인증 상태 확인
   useEffect(() => {
+    console.log('[AUTH_BUTTON] useEffect 실행 - 초기 인증 상태 확인')
     checkAuthStatus()
 
     // URL 파라미터에서 인증 결과 확인
     const urlParams = new URLSearchParams(window.location.search)
     const authResult = urlParams.get('auth')
+    console.log('[AUTH_BUTTON] URL 파라미터 인증 결과:', authResult)
 
     if (authResult === 'success') {
-      setAuthStatus(prev => ({ ...prev, isAuthenticated: true, isLoading: false }))
-      onAuthChange?.(true)
+      console.log('[AUTH_BUTTON] OAuth 성공 - 채널 정보 재확인 예약')
+      // 인증 성공 시 채널 정보를 다시 확인
+      setTimeout(() => {
+        console.log('[AUTH_BUTTON] 지연된 인증 상태 재확인')
+        checkAuthStatus()
+      }, 1000)
       // URL 파라미터 제거
       window.history.replaceState({}, '', window.location.pathname)
     } else if (authResult === 'error' || authResult === 'cancelled') {
+      console.log('[AUTH_BUTTON] OAuth 실패/취소:', authResult)
       const message = urlParams.get('message') || '인증 실패'
       setAuthStatus(prev => ({
         ...prev,
@@ -55,34 +68,49 @@ export default function YouTubeAuthButton({
   }, [onAuthChange])
 
   const checkAuthStatus = async () => {
+    console.log('[AUTH_BUTTON] 인증 상태 확인 시작')
     try {
       // 쿠키에 토큰이 있는지 확인
       const hasToken = document.cookie.includes('youtube_auth_token')
+      console.log('[AUTH_BUTTON] 쿠키 토큰 존재 여부:', hasToken)
+      console.log('[AUTH_BUTTON] 전체 쿠키:', document.cookie)
 
       if (hasToken) {
+        console.log('[AUTH_BUTTON] /api/auth/youtube/verify API 호출 시작')
         // 토큰이 유효한지 API로 확인
-        const response = await fetch('/api/auth/youtube/verify', {
+        const response = await fetch('/api/auth/youtube/verify/', {
           method: 'GET',
           credentials: 'include'
         })
 
+        console.log('[AUTH_BUTTON] API 응답 상태:', response.status, response.statusText)
+
         if (response.ok) {
           const data = await response.json()
-          console.log('API 응답:', data)
+          console.log('[AUTH_BUTTON] API 응답 데이터:', data)
 
           // success가 true이고 isAuthenticated가 true인 경우 성공으로 처리
           if (data.success && data.isAuthenticated) {
+            console.log('[AUTH_BUTTON] 인증 성공 - UI 업데이트')
             setAuthStatus({
               isAuthenticated: true,
               isLoading: false,
-              userInfo: data.userInfo
+              userInfo: data.userInfo,
+              channelInfo: data.channelInfo
             })
-            onAuthChange?.(true)
+            onAuthChange?.(true, data)
             return
+          } else {
+            console.log('[AUTH_BUTTON] API 응답에서 인증 실패:', data)
           }
+        } else {
+          console.log('[AUTH_BUTTON] API 응답 오류:', response.status)
         }
+      } else {
+        console.log('[AUTH_BUTTON] 쿠키에 토큰 없음')
       }
 
+      console.log('[AUTH_BUTTON] 인증되지 않은 상태로 설정')
       setAuthStatus({
         isAuthenticated: false,
         isLoading: false
@@ -90,7 +118,7 @@ export default function YouTubeAuthButton({
       onAuthChange?.(false)
 
     } catch (error) {
-      console.error('인증 상태 확인 오류:', error)
+      console.error('[AUTH_BUTTON] 인증 상태 확인 오류:', error)
       setAuthStatus({
         isAuthenticated: false,
         isLoading: false,
@@ -104,9 +132,50 @@ export default function YouTubeAuthButton({
     try {
       setAuthStatus(prev => ({ ...prev, isLoading: true, error: undefined }))
 
+      // sessionId를 URL 파라미터로 안전하게 인코딩
+      const encodedSessionId = encodeURIComponent(sessionId || 'default')
+      const url = `/api/auth/youtube?sessionId=${encodedSessionId}`
+
+      console.log('OAuth 인증 URL 요청:', url)
+      console.log('현재 윈도우 위치:', window.location.href)
+      console.log('완전한 요청 URL:', new URL(url, window.location.origin).href)
+
       // OAuth 인증 URL 요청
-      const response = await fetch(`/api/auth/youtube?sessionId=${sessionId || 'default'}`)
-      const data = await response.json()
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      console.log('API 응답 상태:', response.status, response.statusText)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const contentType = response.headers.get('content-type')
+      console.log('응답 Content-Type:', contentType)
+
+      // 응답 내용을 먼저 텍스트로 읽어서 확인
+      const responseText = await response.text()
+      console.log('응답 내용 (처음 200자):', responseText.substring(0, 200))
+
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('응답이 JSON이 아님:', responseText)
+        throw new Error(`서버 응답 형식 오류 - Content-Type: ${contentType}`)
+      }
+
+      // JSON 파싱 시도
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError)
+        console.error('응답 전체 내용:', responseText)
+        throw new Error('서버 응답 JSON 파싱 실패')
+      }
+      console.log('OAuth 응답 데이터:', data)
 
       if (data.success && data.authUrl) {
         // 새 창에서 OAuth 인증 실행
@@ -120,7 +189,7 @@ export default function YouTubeAuthButton({
       setAuthStatus(prev => ({
         ...prev,
         isLoading: false,
-        error: String(error)
+        error: error instanceof Error ? error.message : String(error)
       }))
     }
   }

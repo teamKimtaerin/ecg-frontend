@@ -52,9 +52,8 @@ export const useYouTubeUpload = (): UseYouTubeUploadReturn => {
       })
 
       // 동적 import로 서비스 로드
-      const { YouTubeUploadService } = await import('@/services/youtube/YouTubeUploadService')
-      const uploadService = YouTubeUploadService.getInstance()
-      serviceRef.current = uploadService
+      const { YouTubeApiUploader } = await import('@/services/youtube/YouTubeApiUploader')
+      serviceRef.current = { abortUpload: () => true } // 임시 객체
 
       // 업로드 ID 생성
       uploadIdRef.current = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -76,16 +75,37 @@ export const useYouTubeUpload = (): UseYouTubeUploadReturn => {
       }
 
       // 실제 업로드 실행
-      const result = await uploadService.uploadSampleVideo(
-        data.title,
-        data.description,
-        data.privacy,
-        progressCallback
-      )
+      setProgress({
+        status: 'uploading',
+        progress: 0,
+        message: 'YouTube에 업로드 중...'
+      })
+
+      const response = await fetch('/api/upload/youtube', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      const result = await response.json()
 
       // 최종 결과 처리
-      if (!result.success) {
+      if (result.success) {
+        setProgress({
+          status: 'completed',
+          progress: 100,
+          message: 'YouTube 업로드 완료!'
+        })
+      } else {
         setError(result.error || '알 수 없는 오류가 발생했습니다')
+        setProgress({
+          status: 'error',
+          progress: 0,
+          message: result.error || '업로드 실패',
+          error: result.error
+        })
       }
 
       setIsUploading(false)
