@@ -1246,10 +1246,70 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     const previousSegment = this.currentActiveSegment
     this.currentActiveSegment = newSegment
     
+    // 세그먼트 전환 시 비디오 위치 점프 처리
+    if (newSegment && previousSegment && newSegment.id !== previousSegment.id) {
+      this.performSegmentTransition(previousSegment, newSegment)
+    } else if (newSegment && !previousSegment) {
+      // 첫 번째 세그먼트 진입
+      this.jumpToSegmentStart(newSegment)
+    }
+    
     // 디버그 로깅 빈도 감소
     if (this.config.debugMode && this.frameCount % 10 === 0) {
       log('VirtualPlayerController', 
         `Segment: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'}`)
+    }
+  }
+
+  /**
+   * 세그먼트 전환 처리 (이전 세그먼트에서 새 세그먼트로 점프)
+   */
+  private performSegmentTransition(previousSegment: VirtualSegment, newSegment: VirtualSegment): void {
+    if (!this.video) return
+
+    // 가상 시간에서 새 세그먼트 내 상대 위치 계산
+    const virtualProgress = (this.currentVirtualTime - newSegment.virtualStartTime) / 
+                          (newSegment.virtualEndTime - newSegment.virtualStartTime)
+    
+    // 새 세그먼트의 실제 시간 위치 계산
+    const targetRealTime = newSegment.realStartTime + 
+                          (newSegment.realEndTime - newSegment.realStartTime) * virtualProgress
+
+    // 비디오 위치 점프
+    this.video.currentTime = targetRealTime
+    this.lastVideoSeekTime = performance.now()
+    this.lastVideoUpdateTime = performance.now()
+
+    if (this.config.debugMode) {
+      log('VirtualPlayerController', 
+        `Segment transition: ${previousSegment.id} → ${newSegment.id}, ` +
+        `jumped to ${targetRealTime.toFixed(3)}s (progress: ${(virtualProgress * 100).toFixed(1)}%)`)
+    }
+  }
+
+  /**
+   * 세그먼트 시작점으로 점프
+   */
+  private jumpToSegmentStart(segment: VirtualSegment): void {
+    if (!this.video) return
+
+    // 가상 시간에서 세그먼트 내 상대 위치 계산
+    const virtualProgress = Math.max(0, 
+      (this.currentVirtualTime - segment.virtualStartTime) / 
+      (segment.virtualEndTime - segment.virtualStartTime)
+    )
+    
+    // 세그먼트의 실제 시간 위치 계산
+    const targetRealTime = segment.realStartTime + 
+                          (segment.realEndTime - segment.realStartTime) * virtualProgress
+
+    this.video.currentTime = targetRealTime
+    this.lastVideoSeekTime = performance.now()
+    this.lastVideoUpdateTime = performance.now()
+
+    if (this.config.debugMode) {
+      log('VirtualPlayerController', 
+        `Jumped to segment ${segment.id} at ${targetRealTime.toFixed(3)}s (progress: ${(virtualProgress * 100).toFixed(1)}%)`)
     }
   }
 
