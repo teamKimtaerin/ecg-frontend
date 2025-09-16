@@ -66,38 +66,18 @@ export class VirtualSegmentController {
   }
 
   /**
-   * 현재 실시간 위치에서 세그먼트 처리
-   * @param realTime 현재 실제 비디오 시간
-   * @returns 세그먼트 이동이 필요한지 여부와 이동할 위치
+   * 현재 실시간 위치에서 세그먼트 정보 반환 (자동 점프 로직 제거)
+   * @param _realTime 현재 실제 비디오 시간 (더 이상 사용되지 않음, 호환성을 위해 유지)
+   * @returns 항상 needsTransition: false 반환 (가상 시간 기반 제어로 변경됨)
    */
-  processCurrentTime(realTime: number): {
+  processCurrentTime(_realTime: number): {
     needsTransition: boolean
     targetTime?: number
     isPlaybackComplete?: boolean
   } {
-    if (!this.timeline) {
-      return { needsTransition: false }
-    }
-
-    // 디바운싱 중이면 처리하지 않음
-    if (this.isInDebounceState()) {
-      return { needsTransition: false }
-    }
-
-    const activeSegment = this.findActiveSegment(realTime)
-    
-    // 현재 세그먼트가 변경되었는지 확인
-    if (activeSegment !== this.currentSegment) {
-      return this.handleSegmentChange(realTime, activeSegment)
-    }
-
-    // 현재 세그먼트 내에서 경계 체크
-    if (activeSegment) {
-      return this.checkSegmentBoundary(realTime, activeSegment)
-    }
-
-    // 유효한 세그먼트에 있지 않으면 다음 세그먼트로 이동
-    return this.handleInvalidPosition(realTime)
+    // 새로운 연속적 가상 시간 모델에서는 VirtualSegmentController가 
+    // 자동 점프를 하지 않고 VirtualPlayerController가 모든 제어를 담당
+    return { needsTransition: false }
   }
 
   /**

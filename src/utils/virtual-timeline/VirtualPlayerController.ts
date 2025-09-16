@@ -16,7 +16,8 @@ import {
   SeekCallback,
   TimeUpdateCallback,
   VirtualTimeline,
-  VirtualTimelineConfig
+  VirtualTimelineConfig,
+  VirtualSegment
 } from './types'
 
 // MotionText Renderer 연동을 위한 콜백 타입
@@ -57,15 +58,21 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private playbackRate: number = 1.0
   private lastFrameTime: number = 0
   private frameCount: number = 0
-  private lastSegmentEndTime: number = -1 // 마지막으로 처리한 세그먼트 끝 시간
 
   // RVFC handle for cleanup
   private rvfcHandle: number | null = null
 
   // Frame processing debouncing
   private frameProcessingDebounceMs: number = 16 // ~60fps limit
-  private lastRealTimeProcessed: number = -1
-  private frameProcessingThreshold: number = 0.001 // 1ms threshold for time changes
+  
+  // Continuous virtual time progression
+  private virtualTimeStartTimestamp: number = 0 // 가상 시간 시작 기준점
+  private virtualTimePausedAt: number = 0 // 일시정지된 가상 시간
+  private isVirtualTimeRunning: boolean = false // 가상 시간 진행 상태
+  
+  // Current active segment tracking
+  private currentActiveSegment: VirtualSegment | null = null
+  private lastVirtualTimeProcessed: number = -1
 
   constructor(
     timelineMapper: ECGTimelineMapper,
@@ -130,11 +137,9 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       throw new Error('Video not attached')
     }
 
-    // Virtual Timeline 재생 시 첫 번째 유효한 세그먼트부터 시작
-    this.ensureValidStartPosition()
-
     try {
-      await this.video.play()
+      // 가상 시간 진행 시작
+      this.startVirtualTimeProgression()
       this.isPlaying = true
       this.notifyPlayCallbacks()
       log('VirtualPlayerController', 'Virtual Timeline playback started')
@@ -147,6 +152,8 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   pause(): void {
     if (!this.video) return
 
+    // 가상 시간 진행 일시정지
+    this.pauseVirtualTimeProgression()
     this.video.pause()
     this.isPlaying = false
     this.notifyPauseCallbacks()
@@ -156,12 +163,13 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   stop(): void {
     if (!this.video) return
 
+    // 가상 시간 진행 중지 및 초기화
+    this.stopVirtualTimeProgression()
     this.video.pause()
-    this.video.currentTime = 0
     this.isPlaying = false
     this.currentVirtualTime = 0
-    this.lastSegmentEndTime = -1 // 상태 초기화
-    this.lastRealTimeProcessed = -1 // 디바운싱 상태 초기화
+    this.currentActiveSegment = null
+    this.lastVirtualTimeProcessed = -1
     this.notifyStopCallbacks()
     log('VirtualPlayerController', 'Playback stopped')
   }
@@ -169,24 +177,23 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   seek(virtualTime: number): void {
     if (!this.video) return
 
-    const mapping = this.timelineMapper.toReal(virtualTime)
-    if (!mapping.isValid) {
-      log('VirtualPlayerController', `Invalid seek time: ${virtualTime}`, mapping.error)
-      
-      // 유효하지 않은 Virtual Time으로 seek하려는 경우, 가장 가까운 유효한 시간으로 이동
-      const nearestValidTime = this.findNearestValidVirtualTime(virtualTime)
-      if (nearestValidTime !== null) {
-        this.seek(nearestValidTime)
-      }
-      return
+    // 가상 시간 직접 설정
+    this.currentVirtualTime = Math.max(0, Math.min(virtualTime, this.getDuration()))
+    
+    // 가상 시간 진행 상태 업데이트 (seek 시 현재 위치 기준으로 재설정)
+    if (this.isVirtualTimeRunning) {
+      this.virtualTimePausedAt = this.currentVirtualTime
+      this.virtualTimeStartTimestamp = performance.now()
     }
-
-    this.video.currentTime = mapping.realTime
-    this.currentVirtualTime = virtualTime
-    this.lastSegmentEndTime = -1 // seek 시 상태 초기화
-    this.lastRealTimeProcessed = mapping.realTime // 디바운싱 상태 초기화
-    this.notifySeekCallbacks(virtualTime)
-    log('VirtualPlayerController', `Seeked to virtual: ${virtualTime}s, real: ${mapping.realTime}s`)
+    
+    // 현재 가상 시간에 해당하는 세그먼트 찾기 및 비디오 위치 설정
+    this.updateVideoPositionFromVirtualTime()
+    
+    this.notifySeekCallbacks(this.currentVirtualTime)
+    this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
+    this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
+    
+    log('VirtualPlayerController', `Seeked to virtual time: ${this.currentVirtualTime.toFixed(3)}s`)
   }
 
   getCurrentTime(): number {
@@ -293,7 +300,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     })
 
     // 상태 초기화 (새로운 타임라인이므로)
-    this.lastSegmentEndTime = -1
+    this.lastVirtualTimeProcessed = -1
   }
 
   /**
@@ -393,16 +400,6 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private handleVideoFrame(now: DOMHighResTimeStamp, metadata: RVFCMetadata): void {
     if (!this.video) return
 
-    const realTime = metadata.mediaTime
-    
-    // Early debouncing: Skip if time hasn't changed significantly
-    if (this.lastRealTimeProcessed >= 0) {
-      const timeDelta = Math.abs(realTime - this.lastRealTimeProcessed)
-      if (timeDelta < this.frameProcessingThreshold) {
-        return // Skip processing for minimal time changes
-      }
-    }
-
     // Frame rate limiting debouncing
     if (this.config.enableFramePrecision) {
       const timeSinceLastFrame = now - this.lastFrameTime
@@ -411,67 +408,53 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       }
     }
     
-    // VirtualSegmentController를 통한 세그먼트 처리
-    const segmentResult = this.segmentController.processCurrentTime(realTime)
+    // 연속적인 가상 시간 진행 업데이트
+    this.updateContinuousVirtualTime(now)
     
-    if (segmentResult.isPlaybackComplete) {
-      // 재생 완료 - 더 이상 프레임 처리하지 않음
-      this.lastRealTimeProcessed = realTime
+    // 가상 시간이 총 길이를 초과하면 재생 완료
+    const totalDuration = this.getDuration()
+    if (this.currentVirtualTime >= totalDuration) {
+      this.pauseAtEnd()
       return
     }
     
-    if (segmentResult.needsTransition && segmentResult.targetTime !== undefined) {
-      // 세그먼트 이동 필요
-      this.video.currentTime = segmentResult.targetTime
-      
-      // 이동 후 Virtual Time 업데이트
-      const mapping = this.timelineMapper.toVirtual(segmentResult.targetTime)
-      if (mapping.isValid) {
-        this.currentVirtualTime = mapping.virtualTime
-        this.notifySeekCallbacks(mapping.virtualTime)
-        this.notifyTimeUpdateCallbacks(mapping.virtualTime)
-        this.notifyMotionTextSeekCallbacks(mapping.virtualTime)
-      }
-      
-      // 이동 후 상태 업데이트 및 프레임 처리 중단
-      this.lastRealTimeProcessed = segmentResult.targetTime
-      this.lastFrameTime = now
-      return
+    // 현재 가상 시간에서 활성 세그먼트 찾기
+    const activeSegment = this.findActiveSegmentAtVirtualTime(this.currentVirtualTime)
+    
+    // 세그먼트 변경 감지
+    if (activeSegment !== this.currentActiveSegment) {
+      this.handleSegmentChange(activeSegment)
     }
+    
+    // 세그먼트에 따른 비디오 위치 업데이트
+    this.updateVideoPositionFromVirtualTime()
 
-    // 정상적인 프레임 처리
-    const mapping = this.timelineMapper.toVirtual(realTime)
-    if (!mapping.isValid) {
-      // 매핑 실패시 - 이미 세그먼트 컨트롤러에서 처리했으므로 무시
-      this.lastRealTimeProcessed = realTime
-      return
-    }
-
-    this.currentVirtualTime = mapping.virtualTime
-
-    // Create virtual frame data
+    // Create virtual frame data with current active segments
     const frameData = this.timelineMapper.createVirtualFrameData(
-      mapping.virtualTime,
-      realTime,
+      this.currentVirtualTime,
+      this.video.currentTime,
       metadata.expectedDisplayTime
     )
 
     // Notify all frame callbacks
     this.notifyFrameCallbacks(frameData)
 
-    // Update time callbacks (debounced)
-    this.notifyTimeUpdateCallbacks(mapping.virtualTime)
+    // Update time callbacks
+    this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
 
-    // MotionText Renderer에 Virtual Time 전달 (debounced)
-    this.notifyMotionTextSeekCallbacks(mapping.virtualTime)
+    // MotionText Renderer에 Virtual Time 전달
+    this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
 
     // Update frame processing state
     this.lastFrameTime = now
-    this.lastRealTimeProcessed = realTime
+    this.lastVirtualTimeProcessed = this.currentVirtualTime
     this.frameCount++
 
     if (this.config.debugMode && this.frameCount % 30 === 0) {
-      log('VirtualPlayerController', `Frame ${this.frameCount}: virtual=${mapping.virtualTime.toFixed(3)}s, real=${realTime.toFixed(3)}s, delta=${(realTime - this.lastRealTimeProcessed).toFixed(4)}s`)
+      log('VirtualPlayerController', 
+        `Frame ${this.frameCount}: virtual=${this.currentVirtualTime.toFixed(3)}s, ` +
+        `segment=${activeSegment?.id || 'none'}, ` +
+        `video=${this.video.currentTime.toFixed(3)}s`)
     }
   }
 
@@ -580,51 +563,36 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
 
 
   /**
-   * Virtual Timeline 재생 완료 시 정지 (개선된 완료 처리)
+   * Virtual Timeline 재생 완료 시 정지 (연속적 가상 시간 모델용)
    */
   private pauseAtEnd(): void {
     if (!this.video) return
     
-    // 재생 상태 즉시 변경하여 추가 프레임 처리 방지
+    // 가상 시간 진행 중지
+    this.pauseVirtualTimeProgression()
+    
+    // 재생 상태 변경
     this.isPlaying = false
     this.video.pause()
     
     // Virtual Timeline의 총 재생 시간으로 설정
-    const timeline = this.timelineMapper.timelineManager.getTimeline()
-    this.currentVirtualTime = timeline.duration
+    const totalDuration = this.getDuration()
+    this.currentVirtualTime = totalDuration
     
-    // 디바운싱 상태 초기화 (완료 후 새로운 재생을 위해)
-    this.lastRealTimeProcessed = -1
-    this.lastSegmentEndTime = -1
-    
-    // 최종 세그먼트의 실제 끝 시간으로 비디오 위치 설정
-    const lastActiveSegment = timeline.segments
-      .filter(segment => segment.isEnabled)
-      .sort((a, b) => b.realEndTime - a.realEndTime)[0]
-    
-    if (lastActiveSegment) {
-      this.video.currentTime = lastActiveSegment.realEndTime
-      
-      if (this.config.debugMode) {
-        log('VirtualPlayerController', 
-          `Set video to final position: ${lastActiveSegment.realEndTime.toFixed(3)}s (segment: ${lastActiveSegment.id})`)
-      }
-    }
+    // 활성 세그먼트 초기화
+    this.currentActiveSegment = null
     
     // 모든 콜백에 재생 완료 알림
     this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
     this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
-    this.notifyPauseCallbacks() // pause 콜백 먼저 호출
-    
-    // RVFC 처리 중단 없이 정상적인 상태 유지 (다음 재생을 위해)
+    this.notifyPauseCallbacks()
     
     if (this.config.debugMode) {
       log('VirtualPlayerController', 
-        `Virtual Timeline playback completed successfully: virtual=${this.currentVirtualTime.toFixed(3)}s, ` +
-        `segments processed: ${timeline.segments.filter(s => s.isEnabled).length}`)
+        `Virtual Timeline playback completed: virtual=${this.currentVirtualTime.toFixed(3)}s/${totalDuration.toFixed(3)}s`)
     }
     
-    // Virtual Timeline 완료 이벤트 콜백 호출 (별도 이벤트로)
+    // Virtual Timeline 완료 이벤트 콜백 호출
     this.notifyVirtualTimelineComplete()
   }
   
@@ -759,6 +727,139 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   /**
+   * 가상 시간 진행 시작
+   */
+  private startVirtualTimeProgression(): void {
+    this.isVirtualTimeRunning = true
+    this.virtualTimeStartTimestamp = performance.now()
+    this.virtualTimePausedAt = this.currentVirtualTime
+    
+    if (this.config.debugMode) {
+      log('VirtualPlayerController', `Started virtual time progression from ${this.currentVirtualTime.toFixed(3)}s`)
+    }
+  }
+
+  /**
+   * 가상 시간 진행 일시정지
+   */
+  private pauseVirtualTimeProgression(): void {
+    if (this.isVirtualTimeRunning) {
+      this.virtualTimePausedAt = this.currentVirtualTime
+      this.isVirtualTimeRunning = false
+      
+      if (this.config.debugMode) {
+        log('VirtualPlayerController', `Paused virtual time progression at ${this.currentVirtualTime.toFixed(3)}s`)
+      }
+    }
+  }
+
+  /**
+   * 가상 시간 진행 중지 및 초기화
+   */
+  private stopVirtualTimeProgression(): void {
+    this.isVirtualTimeRunning = false
+    this.virtualTimeStartTimestamp = 0
+    this.virtualTimePausedAt = 0
+    
+    if (this.config.debugMode) {
+      log('VirtualPlayerController', 'Stopped virtual time progression')
+    }
+  }
+
+  /**
+   * 연속적인 가상 시간 업데이트
+   */
+  private updateContinuousVirtualTime(now: DOMHighResTimeStamp): void {
+    if (!this.isVirtualTimeRunning || !this.isPlaying) {
+      return
+    }
+
+    // 현재 시각에서 시작 시점 차이를 계산하여 가상 시간 진행
+    const elapsedMs = now - this.virtualTimeStartTimestamp
+    const elapsedSeconds = elapsedMs / 1000
+    
+    // 재생 속도 적용하여 가상 시간 계산
+    this.currentVirtualTime = this.virtualTimePausedAt + (elapsedSeconds * this.playbackRate)
+    
+    // 총 길이를 초과하지 않도록 제한
+    const totalDuration = this.getDuration()
+    this.currentVirtualTime = Math.min(this.currentVirtualTime, totalDuration)
+  }
+
+  /**
+   * 가상 시간 기준으로 활성 세그먼트 찾기
+   */
+  private findActiveSegmentAtVirtualTime(virtualTime: number): VirtualSegment | null {
+    const timeline = this.timelineMapper.timelineManager.getTimeline()
+    
+    return timeline.segments.find(segment => 
+      segment.isEnabled &&
+      virtualTime >= segment.virtualStartTime &&
+      virtualTime < segment.virtualEndTime
+    ) || null
+  }
+
+  /**
+   * 세그먼트 변경 처리
+   */
+  private handleSegmentChange(newSegment: VirtualSegment | null): void {
+    const previousSegment = this.currentActiveSegment
+    this.currentActiveSegment = newSegment
+    
+    if (this.config.debugMode) {
+      log('VirtualPlayerController', 
+        `Segment changed: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'} ` +
+        `at virtual time ${this.currentVirtualTime.toFixed(3)}s`)
+    }
+    
+    // 세그먼트 전환 시 필요한 추가 로직이 있다면 여기에 구현
+    // 예: 세그먼트 전환 콜백 호출, 애니메이션 효과 등
+  }
+
+  /**
+   * 현재 가상 시간에 따른 비디오 위치 업데이트
+   */
+  private updateVideoPositionFromVirtualTime(): void {
+    if (!this.video) return
+    
+    const activeSegment = this.currentActiveSegment
+    
+    if (activeSegment) {
+      // 활성 세그먼트가 있을 때: 해당 세그먼트의 실제 시간으로 비디오 재생
+      const segmentProgress = (this.currentVirtualTime - activeSegment.virtualStartTime) / 
+                            (activeSegment.virtualEndTime - activeSegment.virtualStartTime)
+      
+      const targetRealTime = activeSegment.realStartTime + 
+                           (activeSegment.realEndTime - activeSegment.realStartTime) * segmentProgress
+      
+      // 비디오 위치가 크게 다를 때만 seek (작은 차이는 자연스러운 재생 유지)
+      const timeDifference = Math.abs(this.video.currentTime - targetRealTime)
+      if (timeDifference > 0.1) { // 100ms 이상 차이날 때만 seek
+        this.video.currentTime = targetRealTime
+      }
+      
+      // 비디오가 일시정지 상태라면 재생
+      if (this.video.paused && this.isPlaying) {
+        this.video.play().catch(error => {
+          if (this.config.debugMode) {
+            log('VirtualPlayerController', 'Video play failed during segment playback:', error)
+          }
+        })
+      }
+    } else {
+      // 활성 세그먼트가 없을 때: 비디오 일시정지 (가상 시간은 계속 진행)
+      if (!this.video.paused) {
+        this.video.pause()
+        
+        if (this.config.debugMode) {
+          log('VirtualPlayerController', 
+            `Paused video at virtual time ${this.currentVirtualTime.toFixed(3)}s (no active segment)`)
+        }
+      }
+    }
+  }
+
+  /**
    * 디버그 정보
    */
   getDebugInfo(): object {
@@ -768,9 +869,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       isPlaying: this.isPlaying,
       playbackRate: this.playbackRate,
       frameCount: this.frameCount,
-      lastRealTimeProcessed: this.lastRealTimeProcessed,
+      isVirtualTimeRunning: this.isVirtualTimeRunning,
+      virtualTimePausedAt: this.virtualTimePausedAt,
+      currentActiveSegment: this.currentActiveSegment?.id || null,
+      lastVirtualTimeProcessed: this.lastVirtualTimeProcessed,
       frameProcessingDebounceMs: this.frameProcessingDebounceMs,
-      frameProcessingThreshold: this.frameProcessingThreshold,
       callbackCounts: {
         frame: this.frameCallbacks.size,
         play: this.playCallbacks.size,
