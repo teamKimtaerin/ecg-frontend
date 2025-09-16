@@ -2,38 +2,38 @@ import { ClipStyleState } from '../types'
 
 export function useClipStyles({
   isSelected,
-  isChecked = false,
-  isMultiSelected = false,
-  // isHovered, // TODO: Implement hover-specific styles
+  isChecked,
+  isMultiSelected,
   isDragging = false,
 }: ClipStyleState) {
   const getContainerClassName = () => {
-    const baseClasses = 'rounded-lg cursor-pointer shadow-sm hover:shadow-md'
+    const baseClasses = 'rounded-lg transition-all cursor-pointer'
 
-    let borderClasses = 'border border-gray-200' // 기본 테두리
-    const stateClasses = ['bg-white'] // 기본 배경색 (흰색)
+    const stateClasses = ['bg-[#2E2E38]'] // 기본 배경색 (어두운 회색)
 
-    if (isChecked || isMultiSelected) {
-      // 체크박스 선택된 상태 - 검은색 테두리
-      borderClasses = 'border-2 border-black'
-      stateClasses.push('bg-gray-50')
+    if (isMultiSelected || isChecked) {
+      // 체크박스 선택된 상태 (밝은 회색 테두리)
+      stateClasses.push('ring-2 ring-[#E6E6E6] bg-[#E6E6E6]/10')
     }
 
     if (isSelected) {
-      // 클릭/포커스 상태 - 전체 클립 아이템에 강한 검은색 테두리
-      borderClasses = 'border-2 border-black'
-      stateClasses.push('bg-gray-50')
-    } else if (!isDragging && !isChecked && !isMultiSelected) {
-      stateClasses.push('hover:bg-gray-50 hover:border-gray-300')
+      // 포커스 상태 (밝은 회색 테두리, 체크박스와 독립적)
+      if (isMultiSelected || isChecked) {
+        stateClasses.push('ring-4 ring-[#E6E6E6]') // 체크와 포커스가 함께 있을 때
+      } else {
+        stateClasses.push('ring-2 ring-[#E6E6E6] bg-[#E6E6E6]/5') // 포커스만 있을 때
+      }
+    } else if (!isDragging && !(isMultiSelected || isChecked)) {
+      stateClasses.push('hover:bg-[#383842]')
     }
 
-    return `${baseClasses} ${borderClasses} ${stateClasses.join(' ')}`
+    return `${baseClasses} ${stateClasses.join(' ')}`
   }
 
   const getSidebarClassName = () => {
     const baseClasses =
-      'w-16 flex flex-col items-center justify-between bg-gray-100 rounded-l-lg border-r border-gray-200 relative min-h-[64px] py-2 gap-2'
-    const hoverClasses = 'hover:bg-gray-200 hover:shadow-sm'
+      'w-16 flex flex-col items-center justify-between bg-[#4D4D59] rounded-l-lg border-r border-[#383842] relative transition-all min-h-[64px] py-2 gap-2'
+    const hoverClasses = 'hover:bg-[#5D5D69] hover:shadow-sm'
 
     return `${baseClasses} ${hoverClasses}`
   }

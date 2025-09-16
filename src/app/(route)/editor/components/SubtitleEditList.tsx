@@ -11,7 +11,6 @@ interface SubtitleEditListProps {
   selectedClipIds: Set<string>
   activeClipId?: string | null
   speakers?: string[]
-  speakerColors?: Record<string, string>
   onClipSelect: (clipId: string) => void
   onClipCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
@@ -28,7 +27,6 @@ export default function SubtitleEditList({
   selectedClipIds,
   activeClipId,
   speakers = [],
-  speakerColors,
   onClipSelect,
   onClipCheck,
   onWordEdit,
@@ -55,14 +53,14 @@ export default function SubtitleEditList({
 
   return (
     <div
-      className="w-[800px] bg-gray-50 p-4 cursor-pointer"
+      className="w-[800px] bg-gray-900 p-4 cursor-pointer"
       onClick={handleEmptySpaceClick}
     >
       <SortableContext
         items={clips.map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-4">
+        <div className="space-y-3">
           {clips.map((clip, index) => (
             <React.Fragment key={clip.id}>
               {/* 드롭 인디케이터 - 현재 위치 위에 표시 */}
@@ -82,9 +80,8 @@ export default function SubtitleEditList({
                 isSelected={activeClipId === clip.id} // 포커스 상태
                 isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
                 isMultiSelected={selectedClipIds.has(clip.id)}
-                enableDragAndDrop={true} // 모든 클립 드래그 가능
+                enableDragAndDrop={selectedClipIds.has(clip.id)} // 체크된 클립만 드래그 가능
                 speakers={speakers}
-                speakerColors={speakerColors}
                 onSelect={onClipSelect}
                 onCheck={onClipCheck}
                 onWordEdit={onWordEdit}

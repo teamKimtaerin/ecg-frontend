@@ -8,17 +8,8 @@ import SignupHeader from './components/SignupHeader'
 import SignupButton from './components/SignupButton'
 import LoginLink from './components/LoginLink'
 import FormDivider from './components/FormDivider'
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import WelcomeModal from '@/components/WelcomeModal'
-
-const TERMS_AGREEMENT_KEY = 'coup-terms-agreed'
 
 export default function SignupPage() {
-  const router = useRouter()
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
-  const [hasAgreedTerms, setHasAgreedTerms] = useState(false)
-
   const {
     formData,
     errors,
@@ -30,19 +21,6 @@ export default function SignupPage() {
     setShowConfirmPassword,
     handleSubmit,
   } = useSignupForm()
-
-  // 페이지 로드 시 약관 동의 상태 확인 및 모달 표시
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const agreed = localStorage.getItem(TERMS_AGREEMENT_KEY)
-      if (agreed === 'true') {
-        setHasAgreedTerms(true)
-      } else {
-        // 약관에 동의하지 않은 사용자는 모달 표시
-        setShowWelcomeModal(true)
-      }
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-6">
@@ -66,61 +44,31 @@ export default function SignupPage() {
 
           <ErrorMessage message={errors.general} />
 
-          {hasAgreedTerms ? (
-            <>
-              <GoogleSignupButton disabled={isLoading} />
+          <GoogleSignupButton disabled={isLoading} />
 
-              <FormDivider text="혹은 이메일로 회원가입" />
+          <FormDivider text="혹은 이메일로 회원가입" />
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <SignupFormFields
-                  formData={formData}
-                  errors={errors}
-                  showPassword={showPassword}
-                  showConfirmPassword={showConfirmPassword}
-                  onInputChange={handleInputChange}
-                  onTogglePassword={() => setShowPassword(!showPassword)}
-                  onToggleConfirmPassword={() =>
-                    setShowConfirmPassword(!showConfirmPassword)
-                  }
-                />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <SignupFormFields
+              formData={formData}
+              errors={errors}
+              showPassword={showPassword}
+              showConfirmPassword={showConfirmPassword}
+              onInputChange={handleInputChange}
+              onTogglePassword={() => setShowPassword(!showPassword)}
+              onToggleConfirmPassword={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
+            />
 
-                <SignupButton isLoading={isLoading} />
-              </form>
+            <SignupButton isLoading={isLoading} />
+          </form>
 
-              <LoginLink
-                onLoginRedirect={() => (window.location.href = '/auth')}
-              />
-            </>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-600 mb-4">
-                회원가입을 진행하려면 먼저 이용약관에 동의해주세요.
-              </p>
-              <button
-                onClick={() => setShowWelcomeModal(true)}
-                className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                약관 확인하기
-              </button>
-            </div>
-          )}
+          <LoginLink
+            onLoginRedirect={() => (window.location.href = '/auth?mode=login')}
+          />
         </div>
       </div>
-
-      <WelcomeModal
-        isOpen={showWelcomeModal}
-        onClose={() => setShowWelcomeModal(false)}
-        onAgreeAndStart={() => {
-          localStorage.setItem(TERMS_AGREEMENT_KEY, 'true')
-          setHasAgreedTerms(true)
-          setShowWelcomeModal(false)
-        }}
-        onGoBack={() => {
-          setShowWelcomeModal(false)
-          router.push('/')
-        }}
-      />
     </div>
   )
 }

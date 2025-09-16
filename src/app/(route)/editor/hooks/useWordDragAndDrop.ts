@@ -77,23 +77,25 @@ export function useWordDragAndDrop(clipId: string) {
         const overWordId = overData.wordId as string
         const overClipId = overData.clipId as string
 
-        // Allow dropping within any clip (cross-clip support)
-        // Calculate drop position based on cursor location
-        const activeRect = active.rect.current.translated
-        const overRect = over.rect
+        // Only allow dropping within the same clip
+        if (overClipId === clipId) {
+          // Calculate drop position based on cursor location
+          const activeRect = active.rect.current.translated
+          const overRect = over.rect
 
-        if (activeRect && overRect) {
-          const position =
-            activeRect.left < overRect.left + overRect.width / 2
-              ? 'before'
-              : 'after'
-          setDropTarget(overWordId, position)
+          if (activeRect && overRect) {
+            const position =
+              activeRect.left < overRect.left + overRect.width / 2
+                ? 'before'
+                : 'after'
+            setDropTarget(overWordId, position)
+          }
         }
       } else {
         setDropTarget(null, null)
       }
     },
-    [setDropTarget]
+    [clipId, setDropTarget]
   )
 
   const handleWordDragEnd = useCallback(
@@ -116,43 +118,17 @@ export function useWordDragAndDrop(clipId: string) {
         const sourceClipId = activeData.clipId as string
         const targetClipId = overData.clipId as string
 
-        // Handle both within-clip reordering and cross-clip movement
-        if (sourceClipId === targetClipId) {
-          // Same clip: reorder words
+        // Only reorder if within same clip
+        if (sourceClipId === targetClipId && sourceClipId === clipId) {
+          // This will trigger the actual reordering in the store
           const { reorderWordsInClip } = useEditorStore.getState()
           if (reorderWordsInClip) {
-            reorderWordsInClip(sourceClipId, sourceWordId, targetWordId)
-          }
-        } else {
-          // Different clips: move word between clips
-          const { moveWordBetweenClips } = useEditorStore.getState()
-          if (moveWordBetweenClips) {
-            // Find target position based on the target word
-            const targetClip = useEditorStore
-              .getState()
-              .clips.find((clip) => clip.id === targetClipId)
-            if (targetClip) {
-              const targetWordIndex = targetClip.words.findIndex(
-                (word) => word.id === targetWordId
-              )
-              // Insert position depends on drop position (before or after)
-              const { dropPosition } = useEditorStore.getState()
-              const insertPosition =
-                dropPosition === 'before'
-                  ? targetWordIndex
-                  : targetWordIndex + 1
-              moveWordBetweenClips(
-                sourceClipId,
-                targetClipId,
-                sourceWordId,
-                insertPosition
-              )
-            }
+            reorderWordsInClip(clipId, sourceWordId, targetWordId)
           }
         }
       }
     },
-    [endWordDrag]
+    [clipId, endWordDrag]
   )
 
   const handleWordDragCancel = useCallback(() => {

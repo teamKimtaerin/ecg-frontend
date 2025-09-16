@@ -7,8 +7,7 @@ import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
 import { EDITOR_COLORS } from '../../constants/colors'
 
-// 기본 서식 그룹 컴포넌트 (향후 사용 예정)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// 기본 서식 그룹 컴포넌트
 function TextFormattingGroup() {
   const [selectedFont, setSelectedFont] = useState('굴림고딕 볼드')
   const [fontSize, setFontSize] = useState('100')
@@ -91,12 +90,12 @@ function TextFormattingGroup() {
           type="text"
           value={fontSize}
           onChange={(e) => setFontSize(e.target.value)}
-          className="w-16 h-8 px-2 pr-6 text-sm bg-white border border-gray-300 rounded text-gray-700 focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-gray-400 hover:border-gray-400"
+          className="w-16 h-8 px-2 pr-6 text-sm bg-slate-700/90 border-2 border-slate-500/70 rounded-default text-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-slate-400 hover:border-slate-400 hover:bg-slate-600/90"
           onClick={(e) => e.stopPropagation()}
         />
         <button
           ref={sizeButtonRef}
-          className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-100 rounded"
+          className="absolute right-1 top-1/2 -translate-y-1/2 p-0.5 hover:bg-slate-600/70 rounded"
           onClick={(e) => {
             e.stopPropagation()
             if (activeDropdown !== 'size') {
@@ -116,7 +115,7 @@ function TextFormattingGroup() {
           }}
         >
           <svg
-            className="w-3 h-3 text-gray-500"
+            className="w-3 h-3 text-slate-300"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -147,7 +146,7 @@ function TextFormattingGroup() {
                 (size) => (
                   <button
                     key={size}
-                    className={`w-full px-3 py-1.5 text-sm text-gray-700 ${EDITOR_COLORS.dropdown.hover} text-left transition-colors`}
+                    className={`w-full px-3 py-1.5 text-sm text-white ${EDITOR_COLORS.dropdown.hover} text-left transition-colors`}
                     onClick={(e) => {
                       e.stopPropagation()
                       setFontSize(size)
@@ -167,7 +166,7 @@ function TextFormattingGroup() {
       <div className="relative">
         <button
           ref={colorButtonRef}
-          className="w-8 h-8 border border-gray-300 rounded bg-white hover:bg-gray-50 transition-colors flex flex-col items-center justify-center p-1"
+          className="w-8 h-8 border border-slate-500/70 rounded bg-slate-700/90 hover:bg-slate-600/90 transition-colors flex flex-col items-center justify-center p-1"
           onClick={(e) => {
             e.stopPropagation()
             if (activeDropdown !== 'color' && colorButtonRef.current) {
@@ -182,7 +181,7 @@ function TextFormattingGroup() {
             }
           }}
         >
-          <span className="text-xs font-bold text-gray-700">A</span>
+          <span className="text-xs font-bold text-white">A</span>
           <div
             className="w-5 h-1 mt-0.5 rounded-sm"
             style={{ backgroundColor: selectedColor }}
@@ -194,7 +193,7 @@ function TextFormattingGroup() {
           typeof document !== 'undefined' &&
           createPortal(
             <div
-              className="fixed bg-white border border-gray-300 rounded-lg p-5 shadow-xl backdrop-blur-sm"
+              className="fixed bg-slate-800/95 border border-slate-600 rounded-lg p-5 shadow-2xl backdrop-blur-sm"
               style={{
                 top: colorDropdownPosition.top,
                 left: colorDropdownPosition.left,
@@ -211,8 +210,8 @@ function TextFormattingGroup() {
                       backgroundColor: color,
                       borderColor:
                         selectedColor === color
-                          ? '#000000'
-                          : 'rgba(0, 0, 0, 0.2)',
+                          ? '#60A5FA'
+                          : 'rgba(255, 255, 255, 0.2)',
                     }}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -421,6 +420,14 @@ export default function HomeToolbar({
         onClick={onSplitClip}
         shortcut="Enter"
       />
+
+      <ToolbarDivider />
+
+      {/* 기본 서식 그룹 */}
+      <div className="flex items-center space-x-2 px-3 py-2 bg-slate-700/30 rounded-lg">
+        <span className="text-xs text-slate-400 mr-2">기본 서식</span>
+        <TextFormattingGroup />
+      </div>
     </>
   )
 }

@@ -32,18 +32,15 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
           </button>
         </section>
 
-        {/* Assets interface - placeholder for future GIF */}
+        {/* Assets interface - embedded asset store */}
         <div className="bg-white rounded-3xl p-8 mx-auto max-w-5xl mb-12 border border-gray-200 shadow-lg">
-          <div className="aspect-[5/3] bg-gray-100 rounded-3xl shadow-sm overflow-hidden border border-gray-300 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-gray-500 text-2xl">🎬</span>
-              </div>
-              <p className="text-gray-500 text-lg font-medium">
-                에셋 스토어 GIF
-              </p>
-              <p className="text-gray-400 text-sm mt-2">나중에 추가될 예정</p>
-            </div>
+          <div className="aspect-[5/3] bg-white rounded-3xl shadow-sm overflow-hidden border border-gray-300">
+            <iframe
+              src="/asset-store"
+              className="w-full h-full"
+              style={{ border: 'none', borderRadius: '1.5rem' }}
+              title="Asset Store Preview"
+            />
           </div>
         </div>
       </div>

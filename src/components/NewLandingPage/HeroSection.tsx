@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
 import TypingText from './TypingText'
 
 export interface HeroSectionProps {
@@ -60,12 +59,9 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onQuickStartClick }) => {
         {/* Video Placeholder */}
         <div className="mt-16 mx-auto max-w-4xl">
           <div className="aspect-video bg-gray-200 border border-gray-300 rounded-2xl shadow-lg overflow-hidden">
-            <Image
+            <img
               src="/demo-video.gif"
               alt="영상 미리보기"
-              width={800}
-              height={450}
-              priority
               className="w-full h-full object-cover"
             />
           </div>

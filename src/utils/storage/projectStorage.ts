@@ -4,7 +4,6 @@ import {
   ProjectStorage,
   ProjectSettings,
 } from '@/app/(route)/editor/types/project'
-import { ClipItem } from '@/app/(route)/editor/types'
 import { indexedDBProjectStorage } from './indexedDBProjectStorage'
 import { migrationManager } from './migrationManager'
 
@@ -301,13 +300,13 @@ class MigratedProjectStorage implements ProjectStorage {
   // 원본 클립 데이터 관리
   async saveOriginalClips(
     projectId: string,
-    originalClips: ClipItem[]
+    originalClips: unknown[]
   ): Promise<void> {
     await this.ensureInitialized()
     return indexedDBProjectStorage.saveOriginalClips(projectId, originalClips)
   }
 
-  async loadOriginalClips(projectId: string): Promise<ClipItem[] | null> {
+  async loadOriginalClips(projectId: string): Promise<unknown[] | null> {
     await this.ensureInitialized()
     return indexedDBProjectStorage.loadOriginalClips(projectId)
   }

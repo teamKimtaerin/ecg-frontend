@@ -50,7 +50,7 @@ const NumberControl: React.FC<ControlProps> = ({
           step={step}
           value={numValue}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="flex-1 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+          className="flex-1 h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer"
         />
         <input
           type="number"
@@ -60,8 +60,8 @@ const NumberControl: React.FC<ControlProps> = ({
           value={numValue}
           onChange={(e) => onChange(Number(e.target.value))}
           className={clsx(
-            'w-16 px-2 py-1 text-sm bg-white border border-gray-300',
-            'rounded text-black focus:outline-none focus:border-gray-500',
+            'w-16 px-2 py-1 text-sm bg-gray-700 border border-gray-600',
+            'rounded text-white focus:outline-none focus:border-blue-500',
             TRANSITIONS.colors
           )}
         />
@@ -87,8 +87,8 @@ const BooleanControl: React.FC<ControlProps> = ({ value, onChange }) => {
         />
         <div
           className={clsx(
-            'block bg-gray-300 w-14 h-8 rounded-full transition-colors',
-            boolValue && 'bg-gray-500'
+            'block bg-gray-600 w-14 h-8 rounded-full transition-colors',
+            boolValue && 'bg-blue-500'
           )}
         >
           <div
@@ -99,7 +99,7 @@ const BooleanControl: React.FC<ControlProps> = ({ value, onChange }) => {
           />
         </div>
       </div>
-      <span className="ml-3 text-sm text-gray-700">
+      <span className="ml-3 text-sm text-gray-300">
         {boolValue ? '활성화' : '비활성화'}
       </span>
     </label>
@@ -124,8 +124,8 @@ const StringControl: React.FC<ControlProps> = ({
       onChange={(e) => onChange(e.target.value)}
       placeholder={property.description}
       className={clsx(
-        'w-full px-3 py-2 bg-white border border-gray-300 rounded',
-        'text-black placeholder-gray-500',
+        'w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded',
+        'text-white placeholder-gray-400',
         'focus:outline-none focus:border-blue-500',
         TRANSITIONS.colors
       )}
@@ -150,13 +150,13 @@ const SelectControl: React.FC<ControlProps> = ({
       value={selectValue}
       onChange={(e) => onChange(e.target.value)}
       className={clsx(
-        'w-full px-3 py-2 bg-white border border-gray-300 rounded',
-        'text-black focus:outline-none focus:border-gray-500',
+        'w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded',
+        'text-white focus:outline-none focus:border-blue-500',
         TRANSITIONS.colors
       )}
     >
       {options.map((option) => (
-        <option key={option} value={option} className="bg-white text-black">
+        <option key={option} value={option} className="bg-gray-700">
           {option}
         </option>
       ))}
@@ -208,7 +208,7 @@ export const PluginParameterControls: React.FC<
 
   if (!manifest || !manifest.schema) {
     return (
-      <div className={clsx('p-4 text-center text-gray-600', className)}>
+      <div className={clsx('p-4 text-center text-gray-400', className)}>
         플러그인 설정을 불러오는 중...
       </div>
     )
@@ -218,7 +218,7 @@ export const PluginParameterControls: React.FC<
 
   if (schemaEntries.length === 0) {
     return (
-      <div className={clsx('p-4 text-center text-gray-600', className)}>
+      <div className={clsx('p-4 text-center text-gray-400', className)}>
         설정 가능한 파라미터가 없습니다.
       </div>
     )
@@ -226,11 +226,11 @@ export const PluginParameterControls: React.FC<
 
   return (
     <div className={clsx('space-y-6', className)}>
-      <div className="border-b border-gray-300 pb-3">
-        <h3 className="text-lg font-semibold text-black mb-1">
+      <div className="border-b border-gray-700 pb-3">
+        <h3 className="text-lg font-semibold text-white mb-1">
           {manifest.name} 설정
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-400">
           아래 설정을 조정하여 애니메이션을 커스터마이징하세요
         </p>
       </div>
@@ -240,16 +240,16 @@ export const PluginParameterControls: React.FC<
           <div key={key} className="space-y-2">
             {/* 라벨과 설명 */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-black">
+              <label className="text-sm font-medium text-white">
                 {property.label}
               </label>
               {property.description && (
-                <p className="text-xs text-gray-600">{property.description}</p>
+                <p className="text-xs text-gray-400">{property.description}</p>
               )}
             </div>
 
             {/* 컨트롤 */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-300">
+            <div className="bg-gray-800 rounded-lg p-3 border border-gray-700">
               {renderControl(key, property)}
             </div>
           </div>
@@ -258,11 +258,11 @@ export const PluginParameterControls: React.FC<
 
       {/* 현재 값 표시 (디버그용) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mt-6 p-3 bg-gray-100 rounded border border-gray-300">
-          <h4 className="text-xs font-mono text-gray-600 mb-2">
+        <div className="mt-6 p-3 bg-gray-900 rounded border border-gray-700">
+          <h4 className="text-xs font-mono text-gray-400 mb-2">
             Current Values:
           </h4>
-          <pre className="text-xs text-gray-700 overflow-auto">
+          <pre className="text-xs text-gray-500 overflow-auto">
             {JSON.stringify(parameters, null, 2)}
           </pre>
         </div>

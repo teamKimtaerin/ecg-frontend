@@ -24,6 +24,6 @@ export default function ToolbarBase({
   const baseClasses = getToolbarClasses(variant)
 
   return (
-    <div className={`${baseClasses} px-6 py-1 ${className}`}>{children}</div>
+    <div className={`${baseClasses} px-6 py-4 ${className}`}>{children}</div>
   )
 }

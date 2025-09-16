@@ -4,31 +4,23 @@ import { clsx } from 'clsx'
 import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
 import React from 'react'
 
-// Category 타입 정의
-interface CategoryItem {
-  id: string
-  label: string
-  count: number
-}
-
 // Asset 사이드바 Props 타입
 interface AssetSidebarProps extends BaseComponentProps {
   selectedCategory?: string
   onCategoryChange?: (category: string) => void
-  categories?: CategoryItem[]
+  categories?: string[]
   favoriteCount?: number
   onFavoriteClick?: () => void
   onUploadClick?: () => void
-  contentType?: 'effects' | 'templates'
 }
 
 // Asset 사이드바 컴포넌트
 export const AssetSidebar: React.FC<AssetSidebarProps> = ({
-  selectedCategory = 'All',
-  onCategoryChange,
-  categories = [],
+  // Remove unused props
+  favoriteCount = 0,
+  onFavoriteClick,
+  onUploadClick,
   className,
-  contentType = 'effects',
 }) => {
   // 사이드바 클래스
   const sidebarClasses = clsx(
@@ -43,78 +35,66 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
     className
   )
 
-  // 카테고리 버튼 클래스
-  const getCategoryButtonClasses = (isActive: boolean) =>
-    clsx(
-      'w-full',
-      'text-left',
-      'px-4',
-      'py-2.5',
-      'rounded-md',
-      'font-medium',
-      'text-sm',
-      'flex',
-      'items-center',
-      'justify-between',
-      'mb-2',
-      'cursor-pointer',
-      TRANSITIONS.colors,
-      isActive
-        ? ['bg-black', 'text-white']
-        : [
-            'bg-gray-50',
-            'text-gray-700',
-            'hover:bg-gray-100',
-            'hover:text-black',
-          ]
-    )
+  // 즐겨찾기 버튼 클래스
+  const favoriteButtonClasses = clsx(
+    'w-full',
+    'text-left',
+    'px-4',
+    'py-2.5',
+    'rounded-md',
+    'font-medium',
+    'text-sm',
+    'flex',
+    'items-center',
+    'justify-between',
+    'bg-black',
+    'text-white',
+    'hover:bg-gray-800',
+    TRANSITIONS.colors
+  )
+
+  // 업로드 버튼 클래스
+  const uploadButtonClasses = clsx(
+    'w-full',
+    'px-4',
+    'py-3',
+    'bg-black',
+    'text-white',
+    'rounded-md',
+    'font-medium',
+    'text-sm',
+    'text-center',
+    'hover:bg-gray-800',
+    TRANSITIONS.colors
+  )
 
   return (
     <aside className={sidebarClasses}>
-      {/* 에셋 스토어 제목 */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-black">에셋 스토어</h1>
-      </div>
-
-      {/* Categories 섹션 */}
+      {/* Favorites 섹션 */}
       <div className="mb-6">
         <h3 className="text-black text-base font-semibold mb-5 tracking-wide">
-          {contentType === 'effects' ? '이펙트 카테고리' : '템플릿 카테고리'}
+          Favorites
         </h3>
-        <div className="space-y-1">
-          {categories.map((category, index) => (
-            <button
-              key={category.id}
-              onClick={() => onCategoryChange?.(category.id)}
-              className={getCategoryButtonClasses(
-                selectedCategory === category.id
-              )}
-              style={{
-                animationDelay: `${index * 100}ms`,
-                opacity: 0,
-                animation: `slideInLeft 0.4s ease-out ${index * 100}ms forwards`,
-              }}
-            >
-              <span>{category.label}</span>
-              <span className="text-xs opacity-70 bg-white/20 px-2 py-0.5 rounded-full">
-                {category.count}
-              </span>
-            </button>
-          ))}
-        </div>
+        <button onClick={onFavoriteClick} className={favoriteButtonClasses}>
+          <span className="flex items-center">
+            <span className="text-lg mr-2">⭐</span>
+            Box
+          </span>
+          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+            {favoriteCount}
+          </span>
+        </button>
+      </div>
 
-        <style jsx>{`
-          @keyframes slideInLeft {
-            from {
-              opacity: 0;
-              transform: translateX(-20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-        `}</style>
+      {/* Upload 섹션 */}
+      <div className="mb-6">
+        <h3 className="text-black text-base font-semibold mb-5 tracking-wide">
+          Upload
+        </h3>
+        <button onClick={onUploadClick} className={uploadButtonClasses}>
+          <span className="mr-2">+</span>
+          Upload Asset
+        </button>
       </div>
     </aside>
   )

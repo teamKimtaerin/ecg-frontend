@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Button from '@/components/ui/Button'
 
-import type { RendererConfigV2 as RendererConfig } from '@/app/shared/motiontext'
+import type { RendererConfig } from '@/app/shared/motiontext'
 
 interface ScenarioJsonEditorProps {
   initialScenario: RendererConfig

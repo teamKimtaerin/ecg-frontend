@@ -174,7 +174,7 @@ export default function ColorPicker({
         <div className="flex items-center gap-2">
           {/* Format Dropdown */}
           <button
-            className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-gray-300 hover:bg-gray-700 cursor-pointer"
+            className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded text-sm text-gray-300 hover:bg-gray-700"
             onClick={() => {
               const formats: ('HEX' | 'RGB' | 'HSL')[] = ['HEX', 'RGB', 'HSL']
               const currentIndex = formats.indexOf(colorFormat)

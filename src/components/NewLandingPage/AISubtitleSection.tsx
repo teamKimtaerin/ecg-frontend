@@ -1,31 +1,25 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 
 const AISubtitleSection: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0)
   const [extractedText, setExtractedText] = useState('')
   const [waveformProgress, setWaveformProgress] = useState(0)
 
-  const steps = useMemo(
-    () => [
-      { id: 'analyzing', text: 'AI가 음성을 분석 중...', duration: 2000 },
-      { id: 'extracting', text: '자막을 추출하고 있습니다...', duration: 3000 },
-      { id: 'processing', text: '텍스트를 처리 중...', duration: 2000 },
-      { id: 'complete', text: '자막 추출 완료!', duration: 2000 },
-    ],
-    []
-  )
+  const steps = [
+    { id: 'analyzing', text: 'AI가 음성을 분석 중...', duration: 2000 },
+    { id: 'extracting', text: '자막을 추출하고 있습니다...', duration: 3000 },
+    { id: 'processing', text: '텍스트를 처리 중...', duration: 2000 },
+    { id: 'complete', text: '자막 추출 완료!', duration: 2000 },
+  ]
 
-  const subtitleTexts = useMemo(
-    () => [
-      '안녕하세요, 오늘은',
-      '좋은 날씨네요.',
-      '함께 영상을 만들어보아요.',
-      '자막이 자동으로 생성됩니다.',
-    ],
-    []
-  )
+  const subtitleTexts = [
+    '안녕하세요, 오늘은',
+    '좋은 날씨네요.',
+    '함께 영상을 만들어보아요.',
+    '자막이 자동으로 생성됩니다.',
+  ]
 
   // Animation cycle
   useEffect(() => {
@@ -64,7 +58,7 @@ const AISubtitleSection: React.FC = () => {
       clearInterval(interval)
       clearInterval(progressInterval)
     }
-  }, [steps, subtitleTexts])
+  }, [])
   return (
     <>
       {/* Section 1: AI 음성인식으로 만드는 자동 자막 */}

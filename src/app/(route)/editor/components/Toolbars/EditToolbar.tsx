@@ -1,11 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
 import ClipSelectionDropdown from './shared/ClipSelectionDropdown'
+import Switch from '@/components/ui/Switch'
 import { ClipItem } from '../../types'
-import { type ToolbarVariant } from '../../constants/colors'
+import { showToast } from '@/utils/ui/toast'
 
 interface EditToolbarProps {
   clips: ClipItem[]
@@ -22,7 +23,6 @@ interface EditToolbarProps {
   onMergeClips: () => void
   onSplitClip?: () => void
   onRestore?: () => void
-  variant?: ToolbarVariant
 }
 
 /**
@@ -44,8 +44,21 @@ export default function EditToolbar({
   onMergeClips,
   onSplitClip,
   onRestore,
-  variant = 'base',
 }: EditToolbarProps) {
+  const [isVideoLocked, setIsVideoLocked] = useState(false)
+
+  const handleVideoLockChange = (locked: boolean) => {
+    setIsVideoLocked(locked)
+    // TODO: Implement actual video lock functionality
+    // - Disable video controls when locked
+    // - Prevent video section from being resized
+    // - Lock video playback controls
+    showToast(
+      locked ? '영상이 잠겼습니다' : '영상 잠금이 해제되었습니다',
+      'success'
+    )
+  }
+
   return (
     <>
       {/* 클립 선택 드롭다운 */}
@@ -74,7 +87,6 @@ export default function EditToolbar({
         onClick={onUndo}
         disabled={!canUndo}
         shortcut="Ctrl+Z"
-        variant={variant}
       />
 
       {/* 다시실행 */}
@@ -93,7 +105,6 @@ export default function EditToolbar({
         onClick={onRedo}
         disabled={!canRedo}
         shortcut="Ctrl+Y"
-        variant={variant}
       />
 
       <ToolbarDivider />
@@ -114,7 +125,6 @@ export default function EditToolbar({
         onClick={onCut}
         shortcut="Ctrl+X"
         disabled={selectedClipIds.size === 0}
-        variant={variant}
       />
 
       {/* 복사하기 */}
@@ -133,7 +143,6 @@ export default function EditToolbar({
         onClick={onCopy}
         shortcut="Ctrl+C"
         disabled={selectedClipIds.size === 0}
-        variant={variant}
       />
 
       {/* 붙여넣기 */}
@@ -151,7 +160,6 @@ export default function EditToolbar({
         label="붙여넣기"
         onClick={onPaste}
         shortcut="Ctrl+V"
-        variant={variant}
       />
 
       <ToolbarDivider />
@@ -172,7 +180,6 @@ export default function EditToolbar({
         onClick={onMergeClips}
         shortcut="Ctrl+E"
         disabled={selectedClipIds.size < 2}
-        variant={variant}
       />
 
       {/* 클립 나누기 */}
@@ -195,10 +202,19 @@ export default function EditToolbar({
         onClick={onSplitClip}
         shortcut="Enter"
         disabled={!activeClipId}
-        variant={variant}
       />
 
       <ToolbarDivider />
+
+      {/* 영상 잠그기 스위치 - 레이블이 아래에 위치하도록 */}
+      <div className="flex flex-col items-center justify-center px-2">
+        <Switch
+          isSelected={isVideoLocked}
+          onChange={handleVideoLockChange}
+          size="small"
+        />
+        <span className="text-xs text-slate-400 mt-1">영상 잠그기</span>
+      </div>
 
       {/* 원본 복원 버튼 */}
       <ToolbarButton
@@ -214,7 +230,6 @@ export default function EditToolbar({
         }
         label="원본 복원"
         onClick={onRestore}
-        variant={variant}
       />
     </>
   )

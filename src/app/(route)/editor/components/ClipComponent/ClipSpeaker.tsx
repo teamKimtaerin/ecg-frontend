@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronDownIcon } from '@/components/icons'
+import { EDITOR_COLORS } from '../../constants/colors'
 import { showToast } from '@/utils/ui/toast'
-import { getSpeakerColor } from '@/utils/editor/speakerColors'
 
 interface ClipSpeakerProps {
   clipId: string
   speaker: string
   speakers: string[]
-  speakerColors?: Record<string, string> // 화자별 색상 매핑
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
   onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
   onOpenSpeakerManagement?: () => void
@@ -20,7 +19,6 @@ export default function ClipSpeaker({
   clipId,
   speaker,
   speakers,
-  speakerColors = {},
   onSpeakerChange,
   onBatchSpeakerChange,
   onOpenSpeakerManagement,
@@ -225,6 +223,11 @@ export default function ClipSpeaker({
 
   return (
     <div className="flex items-center gap-2 flex-shrink-0">
+      {/* 화자 앞의 동그라미 표시 */}
+      <div
+        className={`w-2 h-2 rounded-full bg-[${EDITOR_COLORS.clip.accent}] flex-shrink-0`}
+      />
+
       {/* 커스텀 드롭다운 또는 편집 입력 필드 */}
       {editingSpeaker ? (
         <div className="relative flex-shrink-0">
@@ -249,9 +252,9 @@ export default function ClipSpeaker({
               setTimeout(() => handleSaveEdit(), 100)
             }}
             placeholder="화자 이름 입력"
-            className="h-8 px-3 text-sm bg-white text-black border border-gray-300 rounded
+            className="h-8 px-3 text-sm bg-gray-800 text-gray-300 rounded
                       focus:outline-none focus:ring-2 focus:border-transparent 
-                      w-[120px] flex-shrink-0 focus:ring-blue-500
+                      w-[120px] flex-shrink-0 border-gray-600 focus:ring-blue-500
                       overflow-hidden whitespace-nowrap"
             style={{ maxWidth: '120px', minWidth: '120px' }}
           />
@@ -261,8 +264,8 @@ export default function ClipSpeaker({
           <button
             type="button"
             className="inline-flex items-center justify-between h-8 px-3 text-sm font-medium
-                       bg-transparent text-black border border-gray-300 rounded
-                       hover:bg-gray-50 hover:border-gray-400 transition-all
+                       bg-gray-800 text-gray-300 border border-gray-600 rounded
+                       hover:bg-gray-700 hover:border-gray-500 transition-all
                        focus:outline-none focus:ring-2 focus:ring-blue-500
                        w-[120px] flex-shrink-0"
             onClick={(e) => {
@@ -272,23 +275,14 @@ export default function ClipSpeaker({
             }}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              {/* 화자 색상 원 */}
-              <div
-                className="w-3 h-3 rounded-full flex-shrink-0 border border-black"
-                style={{
-                  backgroundColor: getSpeakerColor(speaker, speakerColors),
-                }}
-              />
-              <span
-                className={`truncate overflow-hidden whitespace-nowrap ${!speaker ? 'text-orange-500' : ''}`}
-                style={{ maxWidth: '70px' }}
-              >
-                {speaker || '미지정'}
-              </span>
-            </div>
+            <span
+              className={`truncate overflow-hidden whitespace-nowrap ${!speaker ? 'text-orange-400' : ''}`}
+              style={{ maxWidth: '80px', minWidth: '80px' }}
+            >
+              {speaker || '미지정'}
+            </span>
             <ChevronDownIcon
-              className={`w-4 h-4 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+              className={`w-4 h-4 transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`}
             />
           </button>
 
@@ -297,7 +291,7 @@ export default function ClipSpeaker({
             typeof window !== 'undefined' &&
             createPortal(
               <div
-                className="fixed rounded bg-white border border-gray-300 shadow-lg"
+                className="fixed rounded bg-gray-800 border border-gray-600 shadow-lg"
                 style={{
                   zIndex: 99999,
                   left: dropdownRef.current?.getBoundingClientRect().left || 0,
@@ -315,7 +309,7 @@ export default function ClipSpeaker({
                 {speakers.map((s) => (
                   <div key={s} className="group">
                     <div
-                      className="px-3 py-2 text-sm text-black hover:bg-gray-50 cursor-pointer
+                      className="px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 cursor-pointer
                             transition-colors flex items-center justify-between"
                       onClick={(e) => {
                         e.preventDefault()
@@ -324,23 +318,14 @@ export default function ClipSpeaker({
                       }}
                       onMouseDown={(e) => e.stopPropagation()}
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {/* 화자 색상 원 */}
-                        <div
-                          className="w-3 h-3 rounded-full flex-shrink-0 border border-black"
-                          style={{
-                            backgroundColor: getSpeakerColor(s, speakerColors),
-                          }}
-                        />
-                        <span
-                          className={`truncate overflow-hidden whitespace-nowrap ${speaker === s ? 'text-blue-600 font-medium' : ''}`}
-                          style={{ maxWidth: '50px' }}
-                        >
-                          {s}
-                        </span>
-                      </div>
+                      <span
+                        className={`truncate overflow-hidden whitespace-nowrap ${speaker === s ? 'text-blue-400 font-medium' : ''}`}
+                        style={{ maxWidth: '60px' }}
+                      >
+                        {s}
+                      </span>
                       <button
-                        className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-black
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white
                               text-xs px-1 py-0.5 rounded transition-all flex-shrink-0"
                         onClick={(e) => {
                           e.preventDefault()
@@ -356,11 +341,11 @@ export default function ClipSpeaker({
                 ))}
 
                 {/* 구분선 */}
-                <div className="border-t border-gray-200 my-1" />
+                <div className="border-t border-gray-700 my-1" />
 
                 {/* 새 Speaker 추가 옵션 */}
                 <div
-                  className="px-3 py-2 text-sm text-blue-600 hover:bg-gray-50 cursor-pointer
+                  className="px-3 py-2 text-sm text-blue-400 hover:bg-gray-700 cursor-pointer
                         transition-colors font-medium"
                   onClick={(e) => {
                     e.preventDefault()
@@ -374,8 +359,8 @@ export default function ClipSpeaker({
 
                 {/* 화자 관리 옵션 */}
                 <div
-                  className="px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-800 cursor-pointer
-                        transition-colors font-medium flex items-center gap-2"
+                  className="px-3 py-2 text-sm text-green-400 hover:bg-gray-700 cursor-pointer
+                        transition-colors font-medium"
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
@@ -383,25 +368,6 @@ export default function ClipSpeaker({
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
                   화자 관리
                 </div>
               </div>,

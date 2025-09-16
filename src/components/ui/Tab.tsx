@@ -242,7 +242,7 @@ const Tab: React.FC<TabProps> = ({
       {/* Slider bar for horizontal non-quiet tabs */}
       {orientation === 'horizontal' && !isQuiet && (
         <div
-          className="absolute bottom-0 h-0.5 bg-white rounded-none"
+          className="absolute bottom-0 h-0.5 bg-primary rounded-none"
           style={sliderStyle}
         />
       )}

@@ -78,8 +78,7 @@ const TabItem: React.FC<TabItemProps> = ({
       'items-center',
       'justify-center',
       'font-medium',
-      'transition-all',
-      'duration-200',
+      'transition-colors',
       'cursor-pointer',
       'rounded-default',
       'relative',
@@ -105,46 +104,36 @@ const TabItem: React.FC<TabItemProps> = ({
     // Color and style variations based on quiet/emphasized
     if (isQuiet) {
       if (isSelected) {
-        classes.push('text-white')
+        classes.push('text-text-primary')
         if (orientation === 'horizontal') {
-          classes.push('border-b-2', 'border-white')
+          classes.push('border-b-2', 'border-primary')
         } else {
-          classes.push('border-l-2', 'border-white')
+          classes.push('border-l-2', 'border-primary')
         }
       } else {
-        classes.push(
-          'text-white',
-          'hover:text-white',
-          'hover:bg-gray-700',
-          'hover:scale-105',
-          'hover:shadow-sm'
-        )
+        classes.push('text-text-secondary', 'hover:text-text-primary')
       }
     } else if (isEmphasized) {
       if (isSelected) {
-        classes.push('bg-black', 'text-white')
+        classes.push('bg-primary', 'text-white')
       } else {
         classes.push(
-          'bg-white',
-          'text-black',
-          'hover:bg-gray-50',
-          'hover:scale-105',
-          'hover:shadow-md',
+          'bg-surface',
+          'text-text-primary',
+          'hover:bg-surface-secondary',
           'border',
-          'border-gray-200'
+          'border-border'
         )
       }
     } else {
       // Regular style - no individual borders, slider will handle this
       if (isSelected) {
-        classes.push('bg-gray-800', 'text-white')
+        classes.push('bg-surface', 'text-text-primary')
       } else {
         classes.push(
-          'text-gray-400',
-          'hover:text-white',
-          'hover:bg-gray-800',
-          'hover:scale-105',
-          'hover:shadow-md'
+          'text-text-secondary',
+          'hover:text-text-primary',
+          'hover:bg-surface-secondary'
         )
       }
     }

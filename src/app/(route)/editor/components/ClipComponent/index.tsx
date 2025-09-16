@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { ClipComponentProps } from './types'
+import ClipTimeline from './ClipTimeline'
 import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
@@ -19,7 +20,6 @@ export default function ClipComponent({
   isMultiSelected = false,
   enableDragAndDrop = false,
   speakers = [],
-  speakerColors,
   onSelect,
   onCheck,
   onWordEdit,
@@ -46,19 +46,10 @@ export default function ClipComponent({
       isDragging,
     })
 
-  const handleSidebarClick = (e: React.MouseEvent) => {
+  const handleClick = (e: React.MouseEvent) => {
+    // Stop propagation to prevent selection box from triggering
     e.stopPropagation()
-    // Check if the click was on the checkbox area
-    const target = e.target as HTMLElement
-    const isCheckboxClick = target.closest('.clip-checkbox') !== null
-
-    if (isCheckboxClick && onCheck) {
-      // Handle checkbox toggle
-      onCheck(clip.id, !isChecked)
-    } else {
-      // Handle clip selection (clicking on sidebar but not checkbox)
-      onSelect(clip.id)
-    }
+    onSelect(clip.id)
   }
 
   return (
@@ -66,31 +57,21 @@ export default function ClipComponent({
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
+      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex">
         {/* Left sidebar - extends when expanded */}
         <div
-          className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''} cursor-pointer`}
-          onClick={handleSidebarClick}
+          className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''}`}
         >
-          {/* 넘버링 표시 */}
-          <div className="flex flex-col items-center pt-1 px-1">
-            <span className="text-xs text-gray-600 font-mono font-bold mb-1">
-              #{index}
-            </span>
-          </div>
-
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="pointer-events-auto">
-              <ClipCheckbox
-                clipId={clip.id}
-                isChecked={isChecked}
-                onCheck={onCheck}
-              />
-            </div>
-          </div>
+          <ClipTimeline index={index} />
+          <ClipCheckbox
+            clipId={clip.id}
+            isChecked={isChecked}
+            onCheck={onCheck}
+          />
           {isExpanded && <div className="flex-1" />}
         </div>
 
@@ -106,7 +87,6 @@ export default function ClipComponent({
                     clipId={clip.id}
                     speaker={clip.speaker}
                     speakers={speakers}
-                    speakerColors={speakerColors}
                     onSpeakerChange={onSpeakerChange}
                     onBatchSpeakerChange={onBatchSpeakerChange}
                     onOpenSpeakerManagement={onOpenSpeakerManagement}
@@ -134,6 +114,7 @@ export default function ClipComponent({
           {/* Expanded Waveform Editor - positioned beside sidebar */}
           {isExpanded && (
             <ExpandedClipWaveform
+              clipId={clip.id}
               words={clip.words}
               focusedWordId={focusedWordId}
             />

@@ -5,22 +5,12 @@ import {
   FaImage,
   FaMusic,
   FaVideo,
-  FaRocket,
 } from 'react-icons/fa'
 import { MdAudiotrack, MdSubtitles } from 'react-icons/md'
 import { SiAdobepremierepro, SiApple } from 'react-icons/si'
 import { ExportOption } from './ExportTypes'
 
 export const exportOptions: ExportOption[] = [
-  // GPU 고속 렌더링 (추천)
-  {
-    id: 'gpu-render',
-    label: 'GPU 고속 렌더링',
-    description: '⚡ 20-40배 빠름',
-    icon: 'FaRocket',
-    category: 'video',
-    isRecentlyUsed: true,
-  },
   // 영상 파일 (기본 선택)
   {
     id: 'mp4',
@@ -28,7 +18,7 @@ export const exportOptions: ExportOption[] = [
     description: 'mp4',
     icon: 'FaVideo',
     category: 'video',
-    isRecentlyUsed: false,
+    isRecentlyUsed: true,
   },
 
   // 자막 파일
@@ -38,7 +28,6 @@ export const exportOptions: ExportOption[] = [
     description: 'srt',
     icon: 'MdSubtitles',
     category: 'subtitle',
-    isRecentlyUsed: false,
   },
   {
     id: 'txt',
@@ -46,7 +35,6 @@ export const exportOptions: ExportOption[] = [
     description: 'txt',
     icon: 'FaFileAlt',
     category: 'subtitle',
-    isRecentlyUsed: false,
   },
 
   // 오디오 파일
@@ -56,7 +44,6 @@ export const exportOptions: ExportOption[] = [
     description: 'mp3, wav',
     icon: 'MdAudiotrack',
     category: 'audio',
-    isRecentlyUsed: false,
   },
 
   // 이미지
@@ -66,7 +53,6 @@ export const exportOptions: ExportOption[] = [
     description: 'png, gif',
     icon: 'FaImage',
     category: 'image',
-    isRecentlyUsed: false,
   },
 
   // 편집 프로그램용
@@ -76,7 +62,6 @@ export const exportOptions: ExportOption[] = [
     description: 'mov',
     icon: 'FaFilm',
     category: 'project',
-    isRecentlyUsed: false,
   },
   {
     id: 'premiere',
@@ -84,7 +69,6 @@ export const exportOptions: ExportOption[] = [
     description: 'xml',
     icon: 'SiAdobepremierepro',
     category: 'project',
-    isRecentlyUsed: false,
   },
   {
     id: 'finalcut',
@@ -92,7 +76,6 @@ export const exportOptions: ExportOption[] = [
     description: 'fcpxml',
     icon: 'SiApple',
     category: 'project',
-    isRecentlyUsed: false,
   },
   {
     id: 'davinci',
@@ -100,7 +83,6 @@ export const exportOptions: ExportOption[] = [
     description: 'fcpxml',
     icon: 'FaFile',
     category: 'project',
-    isRecentlyUsed: false,
   },
   {
     id: 'hoit',
@@ -108,7 +90,6 @@ export const exportOptions: ExportOption[] = [
     description: 'hoit',
     icon: 'FaFile',
     category: 'project',
-    isRecentlyUsed: false,
   },
 ]
 
@@ -122,7 +103,6 @@ export const getIconComponent = (iconName: string) => {
     FaImage,
     FaFile,
     FaFilm,
-    FaRocket,
     MdSubtitles,
     MdAudiotrack,
     SiAdobepremierepro,

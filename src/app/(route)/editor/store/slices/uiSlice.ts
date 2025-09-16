@@ -21,16 +21,6 @@ export interface UISlice {
   videoPanelWidth: number
   setVideoPanelWidth: (width: number) => void
 
-  // Right Sidebar state
-  rightSidebarType: 'speaker' | 'animation' | 'template' | null
-  setRightSidebarType: (
-    type: 'speaker' | 'animation' | 'template' | null
-  ) => void
-
-  // Editing Mode state
-  editingMode: 'simple' | 'advanced'
-  setEditingMode: (mode: 'simple' | 'advanced') => void
-
   // Animation Asset Sidebar state
   isAssetSidebarOpen: boolean
   setIsAssetSidebarOpen: (open: boolean) => void
@@ -54,10 +44,6 @@ export interface UISlice {
   // Word selection state
   selectedWordId: string | null
   setSelectedWordId: (wordId: string | null) => void
-
-  // Rendering mode state (for Playwright capture)
-  isRenderingMode: boolean
-  setIsRenderingMode: (mode: boolean) => void
 }
 
 export const createUISlice: StateCreator<UISlice> = (set) => ({
@@ -78,14 +64,6 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // Panel resize state
   videoPanelWidth: UI_PANEL_DEFAULTS.VIDEO_PANEL_MIN_WIDTH, // Default width (minimum width)
   setVideoPanelWidth: (width) => set({ videoPanelWidth: width }),
-
-  // Right Sidebar state
-  rightSidebarType: null,
-  setRightSidebarType: (type) => set({ rightSidebarType: type }),
-
-  // Editing Mode state
-  editingMode: 'simple',
-  setEditingMode: (mode) => set({ editingMode: mode }),
 
   // Animation Asset Sidebar state
   isAssetSidebarOpen: false,
@@ -120,8 +98,4 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // Word selection state
   selectedWordId: null,
   setSelectedWordId: (wordId) => set({ selectedWordId: wordId }),
-
-  // Rendering mode state (for Playwright capture)
-  isRenderingMode: false,
-  setIsRenderingMode: (mode) => set({ isRenderingMode: mode }),
 })

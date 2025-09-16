@@ -7,7 +7,7 @@ echo "🔍 Git 상태 확인 중..."
 
 # 현재 브랜치 확인
 CURRENT_BRANCH=$(git branch --show-current)
-if [ "$CURRENT_BRANCH" = "main" ] ; then
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "dev" ]; then
     echo "❌ main/dev 브랜치에서는 PR을 생성할 수 없습니다."
     echo "   feature 브랜치로 이동해주세요."
     exit 1

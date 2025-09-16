@@ -9,169 +9,74 @@ import { AssetItem } from '@/types/asset-store'
 import { clsx } from 'clsx'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useMemo } from 'react'
-import { LuSearch, LuChevronDown } from 'react-icons/lu'
-import { useAuthStatus } from '@/hooks/useAuthStatus'
+import { LuSearch } from 'react-icons/lu'
 
 // 메인 페이지 컴포넌트
 export default function AssetPage() {
   const router = useRouter()
-  const { isLoggedIn, user, isLoading: authLoading } = useAuthStatus()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedAsset, setSelectedAsset] = useState<AssetItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('Smooth')
   const [activeFilter, setActiveFilter] = useState('All')
-  const [sortOrder, setSortOrder] = useState('favorites') // 기본값: 즐겨찾기
-  const [showSortDropdown, setShowSortDropdown] = useState(false)
-  const [contentType, setContentType] = useState<'effects' | 'templates'>(
-    'effects'
-  ) // 이펙트/템플릿 토글
+  const [showFavorites, setShowFavorites] = useState(false)
 
   const [assets, setAssets] = useState<AssetItem[]>([])
-  const [templates, setTemplates] = useState<AssetItem[]>([])
 
-  // 현재 데이터 소스 결정
-  const currentData = contentType === 'effects' ? assets : templates
-  console.log(
-    'Current content type:',
-    contentType,
-    'Data length:',
-    currentData.length
+  // 카테고리 필터 버튼 목록 - 동적으로 계산
+  const categoryFilters = useMemo(
+    () => [
+      { id: 'All', label: 'All', count: assets.length },
+      {
+        id: 'Smooth',
+        label: 'Smooth',
+        count: assets.filter((asset) => asset.category === 'Smooth').length,
+      },
+      {
+        id: 'Dynamic',
+        label: 'Dynamic',
+        count: assets.filter((asset) => asset.category === 'Dynamic').length,
+      },
+      {
+        id: 'Unique',
+        label: 'Unique',
+        count: assets.filter((asset) => asset.category === 'Unique').length,
+      },
+    ],
+    [assets]
   )
 
-  // 카테고리 필터 버튼 목록 - 이펙트/템플릿에 따라 동적으로 계산
-  const categoryFilters = useMemo(() => {
-    if (contentType === 'effects') {
-      return [
-        { id: 'All', label: '전체', count: assets.length },
-        {
-          id: 'Smooth',
-          label: '부드러운',
-          count: assets.filter((asset) => asset.category === 'Smooth').length,
-        },
-        {
-          id: 'Dynamic',
-          label: '역동적',
-          count: assets.filter((asset) => asset.category === 'Dynamic').length,
-        },
-        {
-          id: 'Unique',
-          label: '독특한',
-          count: assets.filter((asset) => asset.category === 'Unique').length,
-        },
-        {
-          id: 'Text',
-          label: '텍스트 효과',
-          count: assets.filter((asset) => asset.tags?.includes('text')).length,
-        },
-        {
-          id: 'CWI',
-          label: 'CWI 전용',
-          count: assets.filter((asset) => asset.tags?.includes('cwi')).length,
-        },
-        {
-          id: 'Animation',
-          label: '애니메이션',
-          count: assets.filter(
-            (asset) =>
-              asset.tags?.includes('gsap') || asset.tags?.includes('animation')
-          ).length,
-        },
-        {
-          id: 'Popular',
-          label: '인기',
-          count: assets.filter((asset) => (asset.downloads || 0) > 1000).length,
-        },
-      ]
-    } else {
-      // 템플릿용 카테고리
-      return [
-        { id: 'All', label: '전체', count: templates.length },
-        {
-          id: 'Cards',
-          label: '카드',
-          count: templates.filter((template) => template.category === 'Cards')
-            .length,
-        },
-        {
-          id: 'Effects',
-          label: '이펙트',
-          count: templates.filter((template) => template.category === 'Effects')
-            .length,
-        },
-        {
-          id: 'Basic',
-          label: '기본',
-          count: templates.filter((template) => template.category === 'Basic')
-            .length,
-        },
-        {
-          id: 'Themes',
-          label: '테마',
-          count: templates.filter((template) => template.category === 'Themes')
-            .length,
-        },
-        {
-          id: 'Modern',
-          label: '모던',
-          count: templates.filter((template) => template.category === 'Modern')
-            .length,
-        },
-        {
-          id: 'Retro',
-          label: '레트로',
-          count: templates.filter((template) => template.category === 'Retro')
-            .length,
-        },
-      ]
-    }
-  }, [contentType, assets, templates])
-
   useEffect(() => {
-    const loadData = async () => {
+    const loadAssets = async () => {
       try {
-        // 이펙트 데이터 로드
-        const assetsResponse = await fetch('/asset-store/assets-database.json')
-        const assetsData = await assetsResponse.json()
-        const origin = (
-          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-          'http://localhost:3300'
-        ).replace(/\/$/, '')
-        const resolvedAssets = (assetsData.assets || []).map(
-          (a: Record<string, unknown>) => {
-            if (a?.pluginKey) {
-              const base = `${origin}/plugins/${a.pluginKey}`
-              return {
-                ...a,
-                thumbnail: `${base}/${a.thumbnailPath || 'assets/thumbnail.svg'}`,
-                manifestFile: `${base}/manifest.json`,
-              }
-            }
-            return a
-          }
-        )
-        setAssets(resolvedAssets)
-
-        // 템플릿 데이터 로드
-        const templatesResponse = await fetch(
-          '/asset-store/templates-database.json'
-        )
-        const templatesData = await templatesResponse.json()
-        console.log('Loaded templates:', templatesData.templates)
-        setTemplates(templatesData.templates)
-
+        const response = await fetch('/asset-store/assets-database.json')
+        const data = await response.json()
+        setAssets(data.assets)
         setIsLoading(false)
       } catch (error) {
-        console.error('Failed to load data:', error)
+        console.error('Failed to load assets:', error)
         setIsLoading(false)
       }
     }
-    loadData()
+    loadAssets()
   }, [])
   const [isLoading, setIsLoading] = useState(true)
 
   const handleCardClick = (asset: AssetItem) => {
     setSelectedAsset(asset)
     setIsModalOpen(true)
+  }
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category)
+  }
+
+  const handleFavoriteClick = () => {
+    setShowFavorites(!showFavorites)
+    // 즐겨찾기 모드 활성화 시 다른 필터 초기화
+    if (!showFavorites) {
+      setActiveFilter('All')
+    }
   }
 
   const handleUploadClick = () => {
@@ -211,103 +116,19 @@ export default function AssetPage() {
     )
   }
 
-  // 정렬 옵션
-  const sortOptions = [
-    { value: 'favorites', label: '즐겨찾기' },
-    { value: 'likes', label: '좋아요순' },
-    { value: 'popular', label: '인기순' },
-    { value: 'latest', label: '최신순' },
-  ]
+  // 즐겨찾기 개수 계산
+  const favoriteCount = assets.filter((asset) => asset.isFavorite).length
 
-  // 정렬 핸들러
-  const handleSortChange = (newSortOrder: string) => {
-    setSortOrder(newSortOrder)
-    setShowSortDropdown(false)
-  }
+  const filteredAssets = assets.filter((asset) => {
+    const matchesSearch = asset.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+    const matchesCategory =
+      activeFilter === 'All' || asset.category === activeFilter
+    const matchesFavorites = !showFavorites || asset.isFavorite
 
-  const filteredAndSortedAssets = useMemo(() => {
-    // 필터링
-    const filtered = currentData.filter((item) => {
-      const matchesSearch = item.title
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-
-      // 카테고리 필터링 로직 확장
-      let matchesCategory = true
-      if (contentType === 'effects') {
-        switch (activeFilter) {
-          case 'All':
-            matchesCategory = true
-            break
-          case 'Smooth':
-          case 'Dynamic':
-          case 'Unique':
-            matchesCategory = item.category === activeFilter
-            break
-          case 'Text':
-            matchesCategory = item.tags?.includes('text') || false
-            break
-          case 'CWI':
-            matchesCategory = item.tags?.includes('cwi') || false
-            break
-          case 'Animation':
-            matchesCategory =
-              item.tags?.includes('gsap') ||
-              item.tags?.includes('animation') ||
-              false
-            break
-          case 'Popular':
-            matchesCategory = (item.downloads || 0) > 1000
-            break
-          default:
-            matchesCategory = item.category === activeFilter
-        }
-      } else {
-        // 템플릿 필터링
-        switch (activeFilter) {
-          case 'All':
-            matchesCategory = true
-            break
-          case 'Cards':
-          case 'Effects':
-          case 'Basic':
-          case 'Themes':
-          case 'Modern':
-          case 'Retro':
-            matchesCategory = item.category === activeFilter
-            break
-          default:
-            matchesCategory = item.category === activeFilter
-        }
-      }
-
-      return matchesSearch && matchesCategory
-    })
-
-    // 정렬
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortOrder) {
-        case 'latest':
-          // 최신순 - 현재는 구현하지 않으므로 기본 순서 유지
-          return 0
-        case 'likes':
-          // 좋아요순 (내림차순)
-          return (b.likes || 0) - (a.likes || 0)
-        case 'popular':
-          // 인기순 (다운로드 수 내림차순)
-          return (b.downloads || 0) - (a.downloads || 0)
-        case 'favorites':
-          // 즐겨찾기 우선, 그 다음 좋아요 순
-          if (a.isFavorite && !b.isFavorite) return -1
-          if (!a.isFavorite && b.isFavorite) return 1
-          return (b.likes || 0) - (a.likes || 0)
-        default:
-          return 0
-      }
-    })
-
-    return sorted
-  }, [currentData, searchTerm, activeFilter, sortOrder, contentType])
+    return matchesSearch && matchesCategory && matchesFavorites
+  })
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
@@ -346,123 +167,73 @@ export default function AssetPage() {
     'pointer-events-none'
   )
 
+  // 카테고리 버튼 클래스
+  const getCategoryButtonClasses = (isActive: boolean) =>
+    clsx(
+      'px-4',
+      'py-2',
+      'rounded-full',
+      'text-sm',
+      'font-medium',
+      'border',
+      'cursor-pointer',
+      TRANSITIONS.colors,
+      isActive
+        ? ['bg-black', 'text-white', 'border-black']
+        : [
+            'bg-white',
+            'text-gray-700',
+            'border-gray-200',
+            'hover:border-gray-300',
+            'hover:bg-gray-50',
+          ]
+    )
+
   return (
     <div className={mainContainerClasses}>
-      <Header
-        onTryClick={handleTryClick}
-        onLoginClick={handleLoginClick}
-        isLoggedIn={isLoggedIn}
-        user={user}
-        isLoading={authLoading}
-      />
+      <Header onTryClick={handleTryClick} onLoginClick={handleLoginClick} />
 
       <div className="flex">
         <AssetSidebar
-          selectedCategory={activeFilter}
-          onCategoryChange={setActiveFilter}
-          categories={categoryFilters}
-          contentType={contentType}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+          favoriteCount={favoriteCount}
+          onFavoriteClick={handleFavoriteClick}
+          onUploadClick={handleUploadClick}
         />
 
         <main className="flex-1 p-8">
-          {/* 검색바와 우측 버튼들 */}
-          <div className="flex items-center justify-between mb-8">
-            <div className={searchContainerClasses}>
-              <input
-                type="text"
-                placeholder="Search assets"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={searchInputClasses}
-              />
-              <LuSearch className={searchIconClasses} size={20} />
-            </div>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold text-black">Asset Store</h1>
 
-            {/* 중앙: 이펙트/템플릿 토글 버튼 */}
-            <div className="flex items-center bg-gray-200 rounded-full p-1 relative">
-              {/* 슬라이딩 배경 */}
-              <div
-                className={`absolute top-1 bottom-1 bg-black rounded-full transition-all duration-300 ease-in-out ${
-                  contentType === 'effects'
-                    ? 'left-1 right-[50%]'
-                    : 'left-[50%] right-1'
-                }`}
-              />
-              <button
-                onClick={() => {
-                  setContentType('effects')
-                  setActiveFilter('All') // 필터 초기화
-                }}
-                className={`relative z-10 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  contentType === 'effects'
-                    ? 'text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                이펙트
-              </button>
-              <button
-                onClick={() => {
-                  setContentType('templates')
-                  setActiveFilter('All') // 필터 초기화
-                }}
-                className={`relative z-10 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
-                  contentType === 'templates'
-                    ? 'text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                템플릿
-              </button>
-            </div>
-
-            {/* 정렬 필터와 업로드 버튼 */}
-            <div className="flex items-center space-x-3">
-              {/* 정렬 필터 드롭다운 */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
-                  className="flex items-center space-x-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:border-gray-300 transition-colors cursor-pointer"
-                >
-                  <span>
-                    {
-                      sortOptions.find((option) => option.value === sortOrder)
-                        ?.label
-                    }
-                  </span>
-                  <LuChevronDown
-                    className={`w-4 h-4 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`}
-                  />
-                </button>
-
-                {showSortDropdown && (
-                  <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[120px]">
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => handleSortChange(option.value)}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg cursor-pointer ${
-                          sortOrder === option.value
-                            ? 'text-blue-600 bg-blue-50'
-                            : 'text-gray-700'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
+            <div className="flex items-center space-x-4">
+              <div className={searchContainerClasses}>
+                <input
+                  type="text"
+                  placeholder="Search assets"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={searchInputClasses}
+                />
+                <LuSearch className={searchIconClasses} size={20} />
               </div>
-
-              {/* 업로드 에셋 버튼 */}
-              <button
-                onClick={handleUploadClick}
-                className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center space-x-2 cursor-pointer"
-              >
-                <span className="font-bold">+</span>
-                <span>에셋 업로드</span>
-              </button>
             </div>
+          </div>
+
+          {/* 카테고리 필터 버튼 */}
+          <div className="flex items-center space-x-3 mb-8">
+            {categoryFilters.map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => setActiveFilter(filter.id)}
+                className={getCategoryButtonClasses(activeFilter === filter.id)}
+              >
+                <span>{filter.label}</span>
+                <span className="ml-1.5 text-xs opacity-70">
+                  ({filter.count})
+                </span>
+              </button>
+            ))}
           </div>
 
           {isLoading ? (
@@ -470,41 +241,17 @@ export default function AssetPage() {
               <div className="text-gray-500">Loading assets...</div>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-4 gap-6">
-                {filteredAndSortedAssets.map((asset, index) => (
-                  <div
-                    key={asset.id}
-                    className="animate-fade-in"
-                    style={{
-                      animationDelay: `${index * 50}ms`,
-                      opacity: 0,
-                      animation: `fadeIn 0.5s ease-out ${index * 50}ms forwards`,
-                    }}
-                  >
-                    <AssetCard
-                      asset={asset}
-                      onCardClick={handleCardClick}
-                      onLikeClick={handleLikeClick}
-                      onFavoriteToggle={handleFavoriteToggle}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <style jsx>{`
-                @keyframes fadeIn {
-                  from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                  }
-                  to {
-                    opacity: 1;
-                    transform: translateY(0);
-                  }
-                }
-              `}</style>
-            </>
+            <div className="grid grid-cols-4 gap-6">
+              {filteredAssets.map((asset) => (
+                <AssetCard
+                  key={asset.id}
+                  asset={asset}
+                  onCardClick={handleCardClick}
+                  onLikeClick={handleLikeClick}
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))}
+            </div>
           )}
         </main>
       </div>

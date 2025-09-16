@@ -115,19 +115,18 @@ export const AssetModal: React.FC<AssetModalProps> = ({
     'absolute',
     'inset-0',
     'bg-black/60',
-    'backdrop-blur-sm',
-    'cursor-pointer'
+    'backdrop-blur-sm'
   )
 
   // 모달 컨테이너 클래스
   const modalClasses = clsx(
     'relative',
-    'bg-white',
+    'bg-gray-900',
     'rounded-lg',
     'mx-4',
     'overflow-hidden',
     'border',
-    'border-gray-200',
+    'border-gray-700',
     'shadow-xl',
     'max-w-7xl',
     'w-full',
@@ -142,8 +141,8 @@ export const AssetModal: React.FC<AssetModalProps> = ({
     'justify-between',
     'p-6',
     'border-b',
-    'border-gray-300',
-    'bg-black'
+    'border-gray-700',
+    'bg-gray-800'
   )
 
   return (
@@ -162,7 +161,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 onClick={onAddToCart}
                 className={clsx(
                   'px-4 py-2 bg-blue-600 hover:bg-blue-700',
-                  'text-white rounded-lg font-medium cursor-pointer',
+                  'text-white rounded-lg font-medium',
                   TRANSITIONS.colors
                 )}
               >
@@ -183,7 +182,6 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 'justify-center',
                 'rounded',
                 'hover:bg-gray-700',
-                'cursor-pointer',
                 TRANSITIONS.colors
               )}
               aria-label="닫기"
@@ -198,7 +196,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
           {/* 미리보기 영역 */}
           <div className="flex-1 min-h-0 p-6 overflow-y-auto">
             <div className="mb-4">
-              <label className="block text-black text-sm font-medium mb-2">
+              <label className="block text-white text-sm font-medium mb-2">
                 미리보기 텍스트
               </label>
               <input
@@ -206,8 +204,8 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 className={clsx(
-                  'w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded',
-                  'text-black placeholder-gray-500',
+                  'w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded',
+                  'text-white placeholder-gray-400',
                   'focus:outline-none focus:border-blue-500',
                   TRANSITIONS.colors
                 )}
@@ -215,7 +213,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
               />
             </div>
 
-            <div className="bg-gray-100 rounded-lg p-4 border border-gray-300">
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
               <MotionTextPreview
                 ref={previewRef}
                 manifestFile={asset.manifestFile || ''}
@@ -230,22 +228,22 @@ export const AssetModal: React.FC<AssetModalProps> = ({
             {/* 에셋 정보 */}
             <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
-                <div className="text-gray-600">작성자</div>
-                <div className="text-black">{asset.authorName}</div>
+                <div className="text-gray-400">작성자</div>
+                <div className="text-white">{asset.authorName}</div>
               </div>
               <div className="space-y-2">
-                <div className="text-gray-600">카테고리</div>
-                <div className="text-black">{asset.category}</div>
+                <div className="text-gray-400">카테고리</div>
+                <div className="text-white">{asset.category}</div>
               </div>
               <div className="space-y-2">
-                <div className="text-gray-600">다운로드</div>
-                <div className="text-black">
+                <div className="text-gray-400">다운로드</div>
+                <div className="text-white">
                   {asset.downloads?.toLocaleString()}
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="text-gray-600">평점</div>
-                <div className="text-black">
+                <div className="text-gray-400">평점</div>
+                <div className="text-white">
                   {'★'.repeat(asset.rating || 0)}
                   {'☆'.repeat(5 - (asset.rating || 0))}
                 </div>
@@ -254,7 +252,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
           </div>
 
           {/* 파라미터 컨트롤 영역 */}
-          <div className="w-80 bg-gray-100 border-l border-gray-300 p-6 overflow-y-auto">
+          <div className="w-80 bg-gray-800 border-l border-gray-700 p-6 overflow-y-auto">
             <PluginParameterControls
               manifest={manifest}
               parameters={parameters}
@@ -299,8 +297,7 @@ export const Modal: React.FC<ModalProps> = ({
     'absolute',
     'inset-0',
     'bg-black/60',
-    'backdrop-blur-sm',
-    'cursor-pointer'
+    'backdrop-blur-sm'
   )
 
   const modalClasses = clsx(
@@ -349,7 +346,6 @@ export const Modal: React.FC<ModalProps> = ({
               'justify-center',
               'rounded',
               'hover:bg-gray-800',
-              'cursor-pointer',
               TRANSITIONS.colors
             )}
             aria-label="닫기"

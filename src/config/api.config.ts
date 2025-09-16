@@ -5,7 +5,7 @@
 
 export const API_CONFIG = {
   // Feature flags
-  USE_MOCK_DATA: false, // Toggle between mock and real API
+  USE_MOCK_DATA: true, // Toggle between mock and real API
 
   // API Base URLs
   FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',

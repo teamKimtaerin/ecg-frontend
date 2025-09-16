@@ -1,4 +1,5 @@
 import React from 'react'
+import { EDITOR_COLORS } from '../../constants/colors'
 
 interface ClipCheckboxProps {
   clipId: string
@@ -14,47 +15,20 @@ export default function ClipCheckbox({
 }: ClipCheckboxProps) {
   if (!onCheck) return null
 
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onCheck(clipId, !isChecked)
-  }
-
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      className="clip-checkbox group relative w-5 h-5 focus:outline-none rounded"
-      aria-checked={isChecked}
-      role="checkbox"
-    >
-      {/* Checkbox background */}
-      <div
-        className={`
-          w-5 h-5 rounded border-2 flex items-center justify-center
-          ${
-            isChecked
-              ? 'bg-black border-black'
-              : 'bg-white border-gray-300 hover:border-gray-400'
-          }
-        `}
-      >
-        {/* Checkmark icon */}
-        {isChecked && (
-          <svg
-            className="w-3 h-3 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            strokeWidth={3}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-        )}
-      </div>
-    </button>
+    <div className="flex justify-center items-center flex-1">
+      <input
+        type="checkbox"
+        checked={isChecked}
+        onChange={(e) => {
+          e.stopPropagation()
+          onCheck(clipId, e.target.checked)
+        }}
+        onClick={(e) => {
+          e.stopPropagation() // Prevent clip selection and parent left side click
+        }}
+        className={`w-5 h-5 text-[${EDITOR_COLORS.clip.accent}] bg-[${EDITOR_COLORS.clip.divider}] border-[${EDITOR_COLORS.clip.textSecondary}] rounded focus:ring-[${EDITOR_COLORS.clip.accent}] focus:ring-2 cursor-pointer accent-[${EDITOR_COLORS.clip.accent}]`}
+      />
+    </div>
   )
 }

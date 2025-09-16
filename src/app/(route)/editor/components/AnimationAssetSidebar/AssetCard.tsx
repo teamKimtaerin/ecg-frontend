@@ -1,7 +1,7 @@
 'use client'
 
-import Image from 'next/image'
 import React from 'react'
+import Image from 'next/image'
 import { IoStar } from 'react-icons/io5'
 
 export interface AssetItem {
@@ -14,23 +14,18 @@ export interface AssetItem {
     value: string
     secondary?: string
   }
-  pluginKey?: string
-  iconName?: string
   isUsed?: boolean
   isFavorite?: boolean
   description?: string
-  disabled?: boolean
 }
 
 interface AssetCardProps {
   asset: AssetItem
   onClick?: (asset: AssetItem) => void
-  disabled?: boolean
 }
 
-const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
+const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick }) => {
   const handleClick = () => {
-    if (disabled) return
     onClick?.(asset)
   }
 
@@ -82,15 +77,11 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
 
   return (
     <div
-      className={`group relative bg-gray-800 rounded-lg p-2 transition-all duration-200 border-2 aspect-[4/5] ${
-        disabled
-          ? 'opacity-50 cursor-not-allowed'
-          : 'hover:bg-gray-500 cursor-pointer hover:border-gray-200'
-      }`}
+      className="group relative bg-slate-700/50 rounded-lg p-3 cursor-pointer hover:bg-slate-600/50 transition-all duration-200 border border-slate-600/30 hover:border-slate-500/50"
       onClick={handleClick}
     >
       {/* Preview Area with Badge Overlay */}
-      <div className="relative aspect-[4/3] mb-2 rounded-lg overflow-hidden">
+      <div className="relative aspect-[4/3] mb-3 rounded-lg overflow-hidden">
         {renderPreview()}
 
         {/* Star Icon for Favorites */}
@@ -110,9 +101,15 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
 
       {/* Asset Info */}
       <div className="space-y-1">
-        <h3 className="text-sm font-bold text-white leading-tight text-center">
+        <h3 className="text-sm font-medium text-white leading-tight">
           {asset.name}
         </h3>
+
+        {asset.description && (
+          <p className="text-xs text-slate-400 leading-tight">
+            {asset.description}
+          </p>
+        )}
       </div>
     </div>
   )

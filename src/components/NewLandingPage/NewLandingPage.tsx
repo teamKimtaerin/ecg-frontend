@@ -3,7 +3,7 @@
 import React from 'react'
 import Header from './Header'
 import HeroSection from './HeroSection'
-// import AISubtitleSection from './AISubtitleSection'
+import AISubtitleSection from './AISubtitleSection'
 import DynamicSubtitleSection from './DynamicSubtitleSection'
 import CustomEditingSection from './CustomEditingSection'
 import FreeAssetsSection from './FreeAssetsSection'
@@ -56,7 +56,7 @@ const NewLandingPage: React.FC<NewLandingPageProps> = ({
 
       <HeroSection onQuickStartClick={onQuickStartClick} />
 
-      {/* <AISubtitleSection /> */}
+      <AISubtitleSection />
 
       <DynamicSubtitleSection
         onApplyDynamicSubtitleClick={onApplyDynamicSubtitleClick}

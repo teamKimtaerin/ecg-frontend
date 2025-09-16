@@ -13,7 +13,7 @@ import { useMotionTextRenderer } from '../hooks/useMotionTextRenderer'
 import {
   loadPluginManifest,
   getDefaultParameters,
-  generateLoopedScenarioV2,
+  generateLoopedScenario,
   validateAndNormalizeParams,
   type PluginManifest,
   type PreviewSettings,
@@ -68,15 +68,6 @@ export const MotionTextPreview = React.forwardRef<
     const updateTimerRef = useRef<number | null>(null)
     const hasScaledFromInitialRef = useRef(false)
 
-    // Stable error handler to avoid re-creating callbacks each render
-    const onRendererError = useCallback(
-      (err: Error) => {
-        console.error('Motion Text Renderer Error:', err)
-        onError?.(err.message)
-      },
-      [onError]
-    )
-
     // Motion Text Renderer Hook
     const {
       containerRef,
@@ -92,7 +83,12 @@ export const MotionTextPreview = React.forwardRef<
     } = useMotionTextRenderer({
       autoPlay: true,
       loop: true,
-      onError: onRendererError,
+      onError: (err) => {
+        console.error('Motion Text Renderer Error:', err)
+        if (onError) {
+          onError(err.message)
+        }
+      },
     })
 
     /**
@@ -103,14 +99,7 @@ export const MotionTextPreview = React.forwardRef<
         try {
           const pluginName = manifestFile.split('/').slice(-2, -1)[0] // '/plugin/rotation@1.0.0/manifest.json' -> 'rotation@1.0.0'
 
-          const serverBase = (
-            process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-            'http://localhost:3300'
-          ).replace(/\/$/, '')
-          const loadedManifest = await loadPluginManifest(pluginName, {
-            mode: 'server',
-            serverBase,
-          })
+          const loadedManifest = await loadPluginManifest(pluginName)
           setManifest(loadedManifest)
 
           // 상위 컴포넌트에 manifest 전달
@@ -147,7 +136,7 @@ export const MotionTextPreview = React.forwardRef<
       if (containerRef.current && videoRef.current) {
         initializeRenderer()
       }
-    }, [containerRef, videoRef, initializeRenderer]) // Include required dependencies
+    }, []) // Empty dependency array - this should only run once on mount
 
     /**
      * 시나리오 업데이트 및 로드
@@ -217,15 +206,12 @@ export const MotionTextPreview = React.forwardRef<
           },
         }
 
-        const scenario = generateLoopedScenarioV2(
+        const scenario = generateLoopedScenario(
           manifest.name,
-          settingsForGenerator as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+          settingsForGenerator,
           3
-        ) as any // eslint-disable-line @typescript-eslint/no-explicit-any
-        await loadScenario(
-          scenario as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-          { silent: firstLoadDoneRef.current }
         )
+        await loadScenario(scenario, { silent: firstLoadDoneRef.current })
         console.log('[MotionTextPreview] Scenario loaded successfully')
         // Attempt to probe DOM to estimate rendered group/text center (best-effort)
         setTimeout(() => {
@@ -273,9 +259,6 @@ export const MotionTextPreview = React.forwardRef<
       rotationDeg,
       loadScenario,
       onError,
-      containerRef,
-      play,
-      showControls,
     ])
 
     /**
@@ -302,15 +285,7 @@ export const MotionTextPreview = React.forwardRef<
           updateTimerRef.current = null
         }
       }
-    }, [
-      manifest,
-      parameters,
-      position,
-      size,
-      rotationDeg,
-      isDragging,
-      updateScenario,
-    ]) // Include updateScenario dependency
+    }, [manifest, parameters, position, size, rotationDeg, isDragging]) // Added isDragging to prevent updates
 
     /**
      * 텍스트 변경은 별도로 더 긴 디바운스 적용 (드래그 중이 아닐 때만)
@@ -327,32 +302,7 @@ export const MotionTextPreview = React.forwardRef<
       return () => {
         window.clearTimeout(textUpdateTimerRef)
       }
-    }, [text, isDragging, updateScenario]) // Include updateScenario dependency
-
-    // Shallow compare helper to avoid useless updates
-    const shallowEqual = (
-      a: Record<string, unknown>,
-      b: Record<string, unknown>
-    ) => {
-      const ak = Object.keys(a)
-      const bk = Object.keys(b)
-      if (ak.length !== bk.length) return false
-      for (const k of ak) {
-        if (a[k] !== b[k]) return false
-      }
-      return true
-    }
-
-    // Expose imperative API for parent to push parameter updates
-    React.useImperativeHandle(
-      ref,
-      () => ({
-        updateParameters: (next: Record<string, unknown>) => {
-          setParameters((prev) => (shallowEqual(prev, next) ? prev : next))
-        },
-      }),
-      []
-    )
+    }, [text, isDragging]) // Added isDragging check
 
     /**
      * 컨테이너 크기 관찰하여 반응형 처리

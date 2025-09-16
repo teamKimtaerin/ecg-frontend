@@ -5,10 +5,7 @@
 
 import { useRef, useCallback, useEffect, useState } from 'react'
 import type { MotionTextRenderer as MTRuntime } from 'motiontext-renderer'
-import type {
-  RendererConfig,
-  RendererConfigV2,
-} from '../utils/scenarioGenerator'
+import type { RendererConfig } from '../utils/scenarioGenerator'
 import {
   preloadPluginsForScenario,
   preloadAllPlugins,
@@ -41,9 +38,7 @@ export function useMotionTextRenderer(
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const loopTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const currentConfigRef = useRef<RendererConfig | RendererConfigV2 | null>(
-    null
-  )
+  const currentConfigRef = useRef<RendererConfig | null>(null)
   const animationFrameRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
 
@@ -51,8 +46,6 @@ export function useMotionTextRenderer(
   const autoPlayRef = useRef(autoPlay)
   const loopRef = useRef(loop)
   const isPlayingRef = useRef(false)
-  const onStatusChangeRef = useRef(onStatusChange)
-  const onErrorRef = useRef(onError)
 
   // State
   const [state, setState] = useState<MotionTextRendererState>({
@@ -68,9 +61,7 @@ export function useMotionTextRenderer(
   useEffect(() => {
     autoPlayRef.current = autoPlay
     loopRef.current = loop
-    onStatusChangeRef.current = onStatusChange
-    onErrorRef.current = onError
-  }, [autoPlay, loop, onStatusChange, onError])
+  }, [autoPlay, loop])
 
   // Update isPlayingRef when state changes
   useEffect(() => {
@@ -81,23 +72,22 @@ export function useMotionTextRenderer(
     (updates: Partial<MotionTextRendererState>) => {
       setState((prev) => {
         const newState = { ...prev, ...updates }
+        if (updates.status && onStatusChange) {
+          onStatusChange(updates.status)
+        }
         return newState
       })
-      // Call onStatusChange after state update using ref to avoid dependency issues
-      if (updates.status && onStatusChangeRef.current) {
-        onStatusChangeRef.current(updates.status)
-      }
     },
-    []
+    [onStatusChange]
   )
 
   const handleError = useCallback(
     (error: Error) => {
       console.error('MotionTextRenderer Error:', error)
       updateState({ error: error.message, isLoading: false, status: 'error' })
-      if (onErrorRef.current) onErrorRef.current(error)
+      if (onError) onError(error)
     },
-    [updateState]
+    [onError, updateState]
   )
 
   const initializeRenderer = useCallback(async () => {
@@ -123,10 +113,7 @@ export function useMotionTextRenderer(
   }, [updateState, handleError])
 
   const loadScenario = useCallback(
-    async (
-      config: RendererConfig | RendererConfigV2,
-      opts?: { silent?: boolean }
-    ) => {
+    async (config: RendererConfig, opts?: { silent?: boolean }) => {
       if (!rendererRef.current) await initializeRenderer()
       if (!rendererRef.current) throw new Error('Failed to initialize renderer')
       try {
@@ -137,50 +124,25 @@ export function useMotionTextRenderer(
             error: null,
           })
         }
-        // Clean up existing timeout
-        if (loopTimeoutRef.current) {
-          clearTimeout(loopTimeoutRef.current)
-          loopTimeoutRef.current = null
-        }
-
-        // Validate config structure
-        if (!config || typeof config !== 'object') {
-          throw new Error('Invalid config: config must be an object')
-        }
-
-        // Preload plugins with error handling
-        try {
-          await preloadPluginsForScenario(config)
-        } catch (pluginError) {
-          console.warn('Plugin preload failed:', pluginError)
-          // Continue execution - plugin errors shouldn't be fatal
-        }
-
-        // Load config with renderer validation
-        if (!rendererRef.current) {
-          throw new Error('Renderer is not available')
-        }
-
-        if (typeof rendererRef.current.loadConfig !== 'function') {
-          throw new Error('Renderer loadConfig method is not available')
-        }
-
-        await rendererRef.current.loadConfig(
-          config as unknown as Record<string, unknown>
-        )
+        if (loopTimeoutRef.current) clearTimeout(loopTimeoutRef.current)
+        await preloadPluginsForScenario(config)
+        await rendererRef.current.loadConfig(config)
         currentConfigRef.current = config
         if (autoPlayRef.current) {
           try {
-            void play()
+            await play()
           } catch {}
         }
-        const duration = getScenarioDuration(config)
-        updateState({ isLoading: false, status: 'loaded', duration })
+        updateState({
+          isLoading: false,
+          status: 'loaded',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          duration: (config.cues?.[0]?.root as any)?.absEnd || 3,
+        })
       } catch (error) {
         handleError(error as Error)
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [initializeRenderer, updateState, handleError]
   )
 
@@ -189,7 +151,7 @@ export function useMotionTextRenderer(
     try {
       rendererRef.current.play()
       startTimeRef.current = performance.now()
-      const duration = getScenarioDuration(currentConfigRef.current) || 3
+      const duration = currentConfigRef.current?.cues?.[0]?.root?.absEnd || 3
       isPlayingRef.current = true
       updateState({ isPlaying: true, status: 'playing', currentTime: 0 })
       const updateFrame = () => {
@@ -276,39 +238,4 @@ export function useMotionTextRenderer(
     seek,
     dispose,
   }
-}
-
-// Helpers
-function getScenarioDuration(cfg: unknown): number {
-  if (!cfg || typeof cfg !== 'object') return 3
-  const anyCfg = cfg as any // eslint-disable-line @typescript-eslint/no-explicit-any
-  const cues = Array.isArray(anyCfg.cues) ? anyCfg.cues : []
-  const cue0 = cues[0]
-  if (anyCfg.version === '2.0') {
-    if (cue0?.domLifetime && Array.isArray(cue0.domLifetime)) {
-      const [s, e] = cue0.domLifetime
-      const d = Number(e || 0) - Number(s || 0)
-      return Number.isFinite(d) && d > 0 ? d : 3
-    }
-    const dt = cue0?.root?.displayTime
-    if (Array.isArray(dt)) {
-      const d = Number(dt[1] || 0) - Number(dt[0] || 0)
-      return Number.isFinite(d) && d > 0 ? d : 3
-    }
-    return 3
-  }
-  // v1.3 fallback
-  const root = cue0?.root
-  const end = Number(root?.absEnd)
-  const start = Number(root?.absStart || 0)
-  if (Number.isFinite(end)) {
-    const d = end - start
-    return Number.isFinite(d) && d > 0 ? d : 3
-  }
-  const ht = cue0?.hintTime
-  if (ht && ht.start != null && ht.end != null) {
-    const d = Number(ht.end) - Number(ht.start)
-    return Number.isFinite(d) && d > 0 ? d : 3
-  }
-  return 3
 }

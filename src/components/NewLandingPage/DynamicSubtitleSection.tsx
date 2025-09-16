@@ -6,11 +6,9 @@ export interface DynamicSubtitleSectionProps {
   onApplyDynamicSubtitleClick?: () => void
 }
 
-const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = (
-  {
-    // onApplyDynamicSubtitleClick,
-  }
-) => {
+const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = ({
+  onApplyDynamicSubtitleClick,
+}) => {
   const [selectedAnimation, setSelectedAnimation] = useState('fade')
   const [currentSubtitle, setCurrentSubtitle] = useState(0)
   const [animationKey, setAnimationKey] = useState(0)
@@ -37,7 +35,7 @@ const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = (
     }, 4000)
 
     return () => clearInterval(interval)
-  }, [selectedAnimation, subtitleTexts.length])
+  }, [selectedAnimation])
 
   const getAnimationClass = (animationType: string) => {
     const baseClasses = 'inline-block'
@@ -72,14 +70,14 @@ const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = (
           </p>
         </div>
 
-        {/* <section className="py-8 text-center">
+        <section className="py-8 text-center">
           <button
             onClick={onApplyDynamicSubtitleClick}
             className="px-8 py-3 text-base font-bold bg-white text-black border-2 border-black rounded-full hover:bg-black hover:text-white transition-all shadow-md hover:shadow-lg cursor-pointer"
           >
             템플릿 적용해보기
           </button>
-        </section> */}
+        </section>
 
         {/* Animation style tabs */}
         <div className="flex justify-center space-x-3 mb-8 flex-wrap gap-2">

@@ -2,23 +2,20 @@
 
 import React, { useState, useEffect } from 'react'
 import { exportOptions, getIconComponent } from './exportOptions'
-import { ExportModalProps, ExportFormat, SocialPlatform } from './ExportTypes'
+import { ExportModalProps, ExportFormat } from './ExportTypes'
 import Portal from './Portal'
-import SocialMediaSection from './SocialMediaSection'
 
 export default function ExportModal({
   isOpen,
   onClose,
   onExport,
-  onSocialShare,
 }: ExportModalProps) {
-  const [selectedFormat, setSelectedFormat] =
-    useState<ExportFormat>('gpu-render')
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('mp4')
 
   // 모달이 열릴 때 기본 선택값 설정
   useEffect(() => {
     if (isOpen) {
-      setSelectedFormat('gpu-render')
+      setSelectedFormat('mp4')
     }
   }, [isOpen])
 
@@ -53,25 +50,14 @@ export default function ExportModal({
     onClose()
   }
 
-  const handleSocialShare = (platform: SocialPlatform) => {
-    if (onSocialShare) {
-      onSocialShare(platform)
-    }
-    onClose()
-  }
-
   if (!isOpen) return null
 
-  // 기본 선택 옵션 (GPU 고속 렌더링)
-  const defaultOption = exportOptions.find(
-    (option) => option.id === 'gpu-render'
-  )!
+  // 기본 선택 옵션 (영상 파일 mp4)
+  const defaultOption = exportOptions.find((option) => option.id === 'mp4')!
   const DefaultIcon = getIconComponent(defaultOption.icon)
 
   // 나머지 옵션들
-  const otherOptions = exportOptions.filter(
-    (option) => option.id !== 'gpu-render'
-  )
+  const otherOptions = exportOptions.filter((option) => option.id !== 'mp4')
 
   return (
     <Portal>
@@ -81,48 +67,43 @@ export default function ExportModal({
         onClick={handleBackdropClick}
       >
         <div
-          className="absolute top-16 right-4 bg-white rounded-lg shadow-2xl w-[400px] max-h-[80vh] overflow-y-auto border border-gray-200 ring-1 ring-black/10"
+          className="absolute top-16 right-4 bg-[#2A2A33] rounded-lg shadow-2xl w-[400px] max-h-[80vh] overflow-y-auto border border-[#4D4D59] ring-1 ring-black/10"
           style={{ zIndex: 9999999 }}
         >
           {/* 헤더 */}
-          <div className="px-4 py-3 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-black">내보내기</h2>
+          <div className="px-4 py-3 border-b border-[#4D4D59]">
+            <h2 className="text-lg font-medium text-[#F2F2F2]">내보내기</h2>
           </div>
 
           {/* 콘텐츠 */}
           <div className="p-4">
-            {/* 기본 선택 옵션 - GPU 고속 렌더링 */}
+            {/* 기본 선택 옵션 - 영상 파일 (mp4) */}
             <div
-              className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 ${
+              className={`flex items-center p-3 rounded-lg cursor-pointer transition-all mb-4 ${
                 selectedFormat === 'mp4'
-                  ? 'bg-gray-100 border border-gray-300'
-                  : 'hover:bg-gray-50 hover:scale-105 hover:shadow-md'
+                  ? 'bg-[#14B0DA] bg-opacity-20 border border-[#14B0DA]'
+                  : 'hover:bg-[#383842]'
               }`}
-              onClick={() => handleExport('gpu-render')}
+              onClick={() => handleExport('mp4')}
             >
               <div className="flex items-center flex-1">
-                <div className="w-6 h-6 mr-3 text-gray-600 flex items-center justify-center bg-gray-200 rounded p-1">
+                <div className="w-6 h-6 mr-3 text-[#14B0DA] flex items-center justify-center bg-[#4D4D59] rounded p-1">
                   <DefaultIcon className="w-full h-full" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-black text-sm">
+                  <span className="font-medium text-[#F2F2F2] text-sm">
                     {defaultOption.label}({defaultOption.description})
                   </span>
-                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                  <span className="text-xs bg-[#14B0DA] text-white px-2 py-1 rounded">
                     최근 사용
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* 소셜 미디어에 공유 */}
-            {onSocialShare && (
-              <SocialMediaSection onSocialShare={handleSocialShare} />
-            )}
-
             {/* 다른 형식으로 내보내기 */}
             <div className="mb-4">
-              <h3 className="text-sm font-medium text-gray-600 mb-3">
+              <h3 className="text-sm font-medium text-[#B3B3B3] mb-3">
                 다른 형식으로 내보내기
               </h3>
 
@@ -134,22 +115,22 @@ export default function ExportModal({
                   return (
                     <div
                       key={option.id}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all ${
                         isSelected
-                          ? 'bg-gray-100 border border-gray-300'
-                          : 'hover:bg-gray-50 hover:scale-105 hover:shadow-md'
+                          ? 'bg-[#14B0DA] bg-opacity-20 border border-[#14B0DA]'
+                          : 'hover:bg-[#383842]'
                       }`}
                       onClick={() => handleExport(option.id)}
                     >
                       <div className="flex items-center flex-1">
-                        <div className="w-5 h-5 mr-3 text-gray-600 flex items-center justify-center bg-gray-200 rounded p-1">
+                        <div className="w-5 h-5 mr-3 text-[#B3B3B3] flex items-center justify-center bg-[#4D4D59] rounded p-1">
                           <IconComponent className="w-full h-full" />
                         </div>
                         <div>
-                          <span className="text-sm text-black">
+                          <span className="text-sm text-[#F2F2F2]">
                             {option.label}
                           </span>
-                          <span className="text-sm text-gray-500 ml-1">
+                          <span className="text-sm text-[#B3B3B3] ml-1">
                             ({option.description})
                           </span>
                         </div>

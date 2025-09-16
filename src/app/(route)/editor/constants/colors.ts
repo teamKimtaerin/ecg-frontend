@@ -3,101 +3,79 @@
  * 재사용성과 일관성을 위한 중앙 색상 관리
  */
 
-// 에디터 전용 색상 상수 (랜딩 페이지 테마와 통일)
+// 에디터 전용 색상 상수
 export const EDITOR_COLORS = {
   // 클립 컴포넌트 색상
   clip: {
-    background: '#FFFFFF', // 메인 배경색 (흰색)
-    sidebar: '#F9FAFB', // 사이드바 색상 (연한 회색)
-    text: '#000000', // 메인 텍스트 (검은색)
-    textSecondary: '#6B7280', // 보조 텍스트 (중간 회색)
-    accent: '#000000', // 강조색 (검은색)
-    divider: '#E5E7EB', // 구분선 (연한 회색)
-    hover: '#F3F4F6', // 호버 상태 색상
+    background: '#2E2E38', // 메인 배경색 (어두운 회색)
+    sidebar: '#4D4D59', // 사이드바 색상 (중간 회색)
+    text: '#F2F2F2', // 메인 텍스트 (밝은 회색)
+    textSecondary: '#9999A6', // 보조 텍스트 (중간 밝기 회색)
+    accent: '#E6E6E6', // 강조색 (밝은 회색)
+    divider: '#383842', // 구분선 (어두운 회색)
+    hover: '#383842', // 호버 상태 색상
   },
 
   // 툴바 색상
   toolbar: {
     // 공통 툴바
     base: {
-      background: 'bg-gray-100',
-      backgroundRaw: 'rgba(243, 244, 246, 1)',
-      border: 'border-b border-gray-300',
-      divider: 'bg-gray-300',
-      text: 'text-black',
-      textHover: 'text-gray-800',
-      hover: 'hover:bg-gray-200',
-      iconColor: 'text-black',
-      iconHover: 'text-gray-800',
+      background: 'bg-slate-800/60',
+      backgroundRaw: 'rgba(30, 41, 59, 0.6)',
+      border: 'border-b border-slate-600/30',
+      divider: 'bg-slate-600',
+      text: 'text-slate-300',
+      textHover: 'text-white',
+      hover: 'hover:bg-slate-700/50',
+      iconColor: 'text-slate-300',
+      iconHover: 'text-white',
     },
-    // 편집 툴바
+    // 편집 툴바 (검은색 배경)
     edit: {
-      background: 'bg-gray-100',
-      backgroundRaw: 'rgba(243, 244, 246, 1)',
-      border: 'border-b border-gray-300',
-      divider: 'bg-gray-300',
-      text: 'text-black',
-      textHover: 'text-gray-800',
-      hover: 'hover:bg-gray-200',
-      iconColor: 'text-black',
-      iconHover: 'text-gray-800',
-    },
-    // 고급 편집 페이지용 어두운 툴바
-    dark: {
-      background: 'bg-gray-800',
-      backgroundRaw: 'rgba(31, 41, 55, 1)',
-      border: 'border-b border-gray-700',
-      divider: 'bg-gray-600',
-      text: 'text-white',
-      textHover: 'text-gray-200',
-      hover: 'hover:bg-gray-700',
-      iconColor: 'text-white',
-      iconHover: 'text-gray-200',
+      background: 'bg-black/90',
+      backgroundRaw: 'rgba(0, 0, 0, 0.9)',
+      border: 'border-b border-gray-800',
+      text: 'text-gray-200',
+      hover: 'hover:bg-gray-900/50',
     },
     // 기타 툴바 변형
     transparent: {
       background: 'bg-transparent',
-      border: 'border-b border-gray-700/50',
-      divider: 'bg-gray-600',
-      text: 'text-black',
-      textHover: 'text-gray-800',
-      hover: 'hover:bg-gray-100',
-      iconColor: 'text-black',
-      iconHover: 'text-gray-800',
+      border: 'border-b border-gray-700/30',
     },
   },
 
   // 드롭다운 색상
   dropdown: {
-    background: 'bg-white',
-    backgroundRaw: 'rgba(255, 255, 255, 1)',
-    border: 'border border-gray-200',
-    hover: 'hover:bg-gray-50',
-    selected: 'bg-gray-100',
-    text: 'text-gray-700',
-    textSecondary: 'text-gray-500',
+    background: 'bg-slate-700/95',
+    backgroundRaw: 'rgba(51, 65, 85, 0.95)',
+    border: 'border border-slate-500/70',
+    hover: 'hover:bg-slate-600/70',
+    selected: 'bg-blue-500/20',
+    text: 'text-white',
+    textSecondary: 'text-slate-400',
     shadow: 'shadow-lg',
   },
 
   // 선택 상태 색상
   selection: {
-    checkbox: '#000000',
-    focus: '#000000',
-    multi: '#000000',
-    hover: '#F3F4F6',
-    ring: 'ring-2 ring-black',
-    ringFocus: 'ring-4 ring-black/20',
+    checkbox: '#33BFD9',
+    focus: '#33BFD9',
+    multi: '#33BFD9',
+    hover: '#E6E6E6',
+    ring: 'ring-2 ring-[#33BFD9]',
+    ringFocus: 'ring-4 ring-[#33BFD9]',
   },
 
   // 버튼 상태 색상
   button: {
-    primary: 'bg-black hover:bg-gray-800',
-    secondary: 'bg-gray-100 hover:bg-gray-200',
-    accent: 'bg-black hover:bg-gray-800',
-    active: 'bg-black border-black text-white',
-    inactive: 'border-gray-300 text-gray-500 hover:bg-gray-50',
-    disabled: 'bg-gray-100 text-gray-400 cursor-not-allowed',
-    hover: 'hover:bg-gray-50',
+    primary: 'bg-blue-500 hover:bg-blue-600',
+    secondary: 'bg-slate-600 hover:bg-slate-700',
+    accent: 'bg-[#33BFD9] hover:bg-[#2BA5C3]',
+    active: 'bg-blue-500 border-blue-500 text-white',
+    inactive: 'border-slate-600 text-slate-300 hover:bg-slate-700/50',
+    disabled: 'bg-slate-500 text-slate-400 cursor-not-allowed',
+    hover: 'hover:bg-slate-700/50',
   },
 
   // 텍스트 서식 색상 팔레트
@@ -128,8 +106,8 @@ export const EDITOR_COLORS = {
 
   // 배경 색상
   background: {
-    editor: 'bg-gray-50',
-    panel: 'bg-white/95',
+    editor: 'bg-gray-900',
+    panel: 'bg-slate-800/80',
     modal: 'bg-black/50',
     overlay: 'bg-black/70',
   },

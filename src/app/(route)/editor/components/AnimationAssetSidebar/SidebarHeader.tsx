@@ -4,27 +4,19 @@ import React from 'react'
 import { IoClose } from 'react-icons/io5'
 import { useEditorStore } from '../../store'
 
-interface SidebarHeaderProps {
-  onClose?: () => void
-}
-
-const SidebarHeader: React.FC<SidebarHeaderProps> = ({ onClose }) => {
+const SidebarHeader: React.FC = () => {
   const { setIsAssetSidebarOpen } = useEditorStore()
 
   const handleClose = () => {
-    if (onClose) {
-      onClose()
-    } else {
-      setIsAssetSidebarOpen(false)
-    }
+    setIsAssetSidebarOpen(false)
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-      <h2 className="text-lg font-semibold text-gray-900">애니메이션 에셋</h2>
+    <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600/40">
+      <h2 className="text-lg font-semibold text-white">애니메이션 에셋</h2>
       <button
         onClick={handleClose}
-        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-200"
+        className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded transition-colors duration-200"
         aria-label="사이드바 닫기"
       >
         <IoClose size={20} />
