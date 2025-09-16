@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import uploadSessionStore, { deleteUploadSession } from '@/lib/uploadSessions'
 
-// Static Export 환경 설정 - 개발 환경에서는 동적으로 처리
-export const dynamic =
-  process.env.NODE_ENV === 'production' ? 'force-static' : 'force-dynamic'
+// Note: This API route is not available in static export mode (production)
 
 // 개발 환경에서는 실제 처리 가능, 프로덕션에서는 안내 메시지
 export async function GET(request: NextRequest) {

@@ -10,9 +10,7 @@ import uploadSessionStore, {
   updateUploadSession,
 } from '@/lib/uploadSessions'
 
-// Static Export 환경 설정 - 개발 환경에서는 동적으로 처리
-export const dynamic =
-  process.env.NODE_ENV === 'production' ? 'force-static' : 'force-dynamic'
+// Note: This API route is not available in static export mode (production)
 
 // YouTube Data API를 사용한 업로드
 export async function POST(request: NextRequest) {

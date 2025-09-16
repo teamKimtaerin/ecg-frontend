@@ -1,10 +1,10 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // S3 정적 호스팅을 위한 설정 - 개발 환경에서는 비활성화
-  ...(process.env.NODE_ENV === 'production' && {
-    output: 'export', // 정적 파일로 빌드 (프로덕션만)
-  }),
+  // S3 정적 호스팅을 위한 설정 - API routes와 충돌로 임시 비활성화
+  // ...(process.env.NODE_ENV === 'production' && {
+  //   output: 'export', // 정적 파일로 빌드 (프로덕션만)
+  // }),
   trailingSlash: true, // S3용 URL 형식
 
   // ES Module 패키지 transpile 설정
