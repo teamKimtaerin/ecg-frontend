@@ -27,7 +27,9 @@ const getIconComponent = (iconName: string) => {
   return iconMap[iconName] || FaYoutube
 }
 
-export default function SocialMediaSection({ onSocialShare }: SocialMediaSectionProps) {
+export default function SocialMediaSection({
+  onSocialShare,
+}: SocialMediaSectionProps) {
   const handleSocialShare = (platform: SocialPlatform) => {
     onSocialShare(platform)
   }
@@ -53,9 +55,7 @@ export default function SocialMediaSection({ onSocialShare }: SocialMediaSection
                   <IconComponent className="w-full h-full" />
                 </div>
                 <div>
-                  <span className="text-sm text-black">
-                    {option.label}
-                  </span>
+                  <span className="text-sm text-black">{option.label}</span>
                   <span className="text-sm text-gray-500 ml-1">
                     ({option.description})
                   </span>

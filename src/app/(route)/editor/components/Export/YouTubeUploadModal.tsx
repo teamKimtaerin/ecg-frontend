@@ -1,7 +1,14 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { YouTubePrivacy, YouTubeUploadData, YouTubeUploadModalProps, YouTubeUploadSettings, YouTubeUploadStatus, UploadProgress } from './ExportTypes'
+import {
+  YouTubePrivacy,
+  YouTubeUploadData,
+  YouTubeUploadModalProps,
+  YouTubeUploadSettings,
+  YouTubeUploadStatus,
+  UploadProgress,
+} from './ExportTypes'
 import Portal from './Portal'
 import YouTubeExportSettings from './components/YouTubeExportSettings'
 import YouTubeVideoPreview from './components/YouTubeVideoPreview'
@@ -18,7 +25,9 @@ export default function YouTubeUploadModal({
   const [status, setStatus] = useState<YouTubeUploadStatus>('settings')
   const [progress, setProgress] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [currentStatus, setCurrentStatus] = useState<UploadProgress | undefined>()
+  const [currentStatus, setCurrentStatus] = useState<
+    UploadProgress | undefined
+  >()
   const [sessionId, setSessionId] = useState<string | undefined>()
   const [uploadReady, setUploadReady] = useState(false)
 
@@ -34,9 +43,10 @@ export default function YouTubeUploadModal({
   // 3단계 YouTube 데이터
   const [data, setData] = useState<YouTubeUploadData>({
     title: defaultTitle,
-    description: 'Hoit으로 생성됨:\nhttps://www.capcut.com/s/CTtk_OftECn683Mb\n/ #CapCut',
+    description:
+      'Hoit으로 생성됨:\nhttps://www.capcut.com/s/CTtk_OftECn683Mb\n/ #CapCut',
     privacy: 'private',
-    channel: '테스트테스트'
+    channel: '테스트테스트',
   })
 
   // 모달이 열릴 때 기본값으로 리셋
@@ -54,9 +64,10 @@ export default function YouTubeUploadModal({
       })
       setData({
         title: defaultTitle,
-        description: 'CapCut으로 생성됨:\nhttps://www.capcut.com/s/CTtk_OftECn683Mb\n/ #CapCut',
+        description:
+          'CapCut으로 생성됨:\nhttps://www.capcut.com/s/CTtk_OftECn683Mb\n/ #CapCut',
         privacy: 'private',
-        channel: '테스트테스트'
+        channel: '테스트테스트',
       })
     }
   }, [isOpen, defaultTitle])
@@ -87,7 +98,9 @@ export default function YouTubeUploadModal({
     if (status === 'uploading' && sessionId) {
       pollInterval = setInterval(async () => {
         try {
-          const response = await fetch(`/api/youtube/upload/status?sessionId=${sessionId}`)
+          const response = await fetch(
+            `/api/youtube/upload/status?sessionId=${sessionId}`
+          )
           if (response.ok) {
             const statusData = await response.json()
             setCurrentStatus(statusData.progress)
@@ -128,7 +141,7 @@ export default function YouTubeUploadModal({
 
   // 2단계 → 3단계
   const handleSettingsNext = () => {
-    setData(prev => ({ ...prev, title: settings.title }))
+    setData((prev) => ({ ...prev, title: settings.title }))
     setStatus('details')
   }
 
@@ -166,12 +179,14 @@ export default function YouTubeUploadModal({
           title: data.title,
           description: data.description,
           privacy: data.privacy,
-          videoPath: 'public/friends.mp4' // friends.mp4 파일 (public 폴더 내)
+          videoPath: 'public/friends.mp4', // friends.mp4 파일 (public 폴더 내)
         }),
       })
 
       if (!response.ok) {
-        const errorResult = await response.json().catch(() => ({ error: '알 수 없는 오류' }))
+        const errorResult = await response
+          .json()
+          .catch(() => ({ error: '알 수 없는 오류' }))
 
         if (response.status === 501) {
           // Static export 환경 또는 프로덕션 환경
@@ -180,12 +195,14 @@ export default function YouTubeUploadModal({
             status: 'error',
             progress: 0,
             message: 'YouTube 업로드는 개발 환경에서만 지원됩니다.',
-            error: errorResult.error || 'API를 사용할 수 없는 환경입니다.'
+            error: errorResult.error || 'API를 사용할 수 없는 환경입니다.',
           })
           return
         }
 
-        throw new Error(`업로드 요청 실패: ${response.status} - ${errorResult.error || '알 수 없는 오류'}`)
+        throw new Error(
+          `업로드 요청 실패: ${response.status} - ${errorResult.error || '알 수 없는 오류'}`
+        )
       }
 
       const result = await response.json()
@@ -196,21 +213,20 @@ export default function YouTubeUploadModal({
           status: 'error',
           progress: 0,
           message: '업로드 시작에 실패했습니다.',
-          error: result.error || '알 수 없는 오류'
+          error: result.error || '알 수 없는 오류',
         })
         console.error('YouTube 업로드 시작 실패:', result.error)
         return
       }
 
       console.log('YouTube 업로드 시작됨:', result.sessionId)
-
     } catch (error) {
       setStatus('details') // 에러 시 다시 설정 화면으로
       setCurrentStatus({
         status: 'error',
         progress: 0,
         message: '업로드 시작 중 오류가 발생했습니다.',
-        error: String(error)
+        error: String(error),
       })
       console.error('YouTube 업로드 중 오류:', error)
     }
@@ -242,17 +258,20 @@ export default function YouTubeUploadModal({
   }
 
   // 설정 변경
-  const handleSettingsChange = (field: keyof YouTubeUploadSettings, value: string) => {
-    setSettings(prev => ({ ...prev, [field]: value }))
+  const handleSettingsChange = (
+    field: keyof YouTubeUploadSettings,
+    value: string
+  ) => {
+    setSettings((prev) => ({ ...prev, [field]: value }))
   }
 
   // 데이터 변경
   const handleDataChange = (field: keyof YouTubeUploadData, value: string) => {
-    setData(prev => ({ ...prev, [field]: value }))
+    setData((prev) => ({ ...prev, [field]: value }))
   }
 
   const handlePrivacyChange = (privacy: YouTubePrivacy) => {
-    setData(prev => ({ ...prev, privacy }))
+    setData((prev) => ({ ...prev, privacy }))
   }
 
   const togglePlay = () => {
@@ -302,7 +321,9 @@ export default function YouTubeUploadModal({
             <div className="flex flex-col h-full">
               {/* 헤더 */}
               <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
-                <h2 className="text-lg font-medium text-black">YouTube에 공유</h2>
+                <h2 className="text-lg font-medium text-black">
+                  YouTube에 공유
+                </h2>
                 <button
                   onClick={onClose}
                   className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
@@ -362,10 +383,7 @@ export default function YouTubeUploadModal({
 
           {/* 4단계: 업로드 완료 */}
           {status === 'completed' && (
-            <YouTubeUploadComplete
-              data={data}
-              onClose={onClose}
-            />
+            <YouTubeUploadComplete data={data} onClose={onClose} />
           )}
         </div>
       </div>

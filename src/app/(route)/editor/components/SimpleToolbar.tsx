@@ -11,7 +11,11 @@ import {
 } from 'react-icons/ai'
 import ExportModal from './Export/ExportModal'
 import YouTubeUploadModal from './Export/YouTubeUploadModal'
-import { ExportFormat, SocialPlatform, YouTubeUploadData } from './Export/ExportTypes'
+import {
+  ExportFormat,
+  SocialPlatform,
+  YouTubeUploadData,
+} from './Export/ExportTypes'
 
 interface SimpleToolbarProps {
   activeClipId: string | null
@@ -68,7 +72,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   const handleSocialShare = (platform: SocialPlatform) => {
     if (platform === 'youtube') {
       setIsExportModalOpen(false)
-    onExportModalStateChange?.(false) // 내보내기 모달 닫기
+      onExportModalStateChange?.(false) // 내보내기 모달 닫기
       setIsYouTubeModalOpen(true) // YouTube 설정 모달 열기
     }
   }

@@ -39,7 +39,10 @@ export default function YouTubeVideoPreview({
         <div className="flex items-center text-white text-sm">
           <span>00:00</span>
           <div className="mx-3 flex-1 h-1 bg-white/30 rounded-full">
-            <div className="h-full bg-white rounded-full" style={{ width: '0%' }}></div>
+            <div
+              className="h-full bg-white rounded-full"
+              style={{ width: '0%' }}
+            ></div>
           </div>
           <span>02:23</span>
         </div>

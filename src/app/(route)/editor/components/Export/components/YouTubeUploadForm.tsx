@@ -72,17 +72,17 @@ export default function YouTubeUploadForm({
       if (!status.browserInstalled) {
         setStatusError({
           error: status.message,
-          type: 'browser'
+          type: 'browser',
         })
       } else if (!status.isLoggedIn) {
         setStatusError({
           error: status.message,
-          type: 'login'
+          type: 'login',
         })
       } else {
         setStatusError({
           error: status.message,
-          type: 'unknown'
+          type: 'unknown',
         })
       }
     } else {
@@ -100,7 +100,10 @@ export default function YouTubeUploadForm({
     setStatusError(null)
   }
   return (
-    <div className="p-4 overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+    <div
+      className="p-4 overflow-y-auto flex-1 min-h-0"
+      style={{ maxHeight: 'calc(90vh - 120px)' }}
+    >
       {/* YouTube 계정 인증 */}
       <div className="mb-4">
         <YouTubeAuthButton
@@ -112,29 +115,31 @@ export default function YouTubeUploadForm({
       {/* YouTube 업로드 상태 확인 (인증된 경우에만 표시) */}
       {isAuthenticated && (
         <div className="mb-4">
-        <YouTubeStatusChecker
-          onStatusChange={handleStatusChange}
-          showDetails={false}
-          className="mb-2"
-        />
-
-        {/* 에러 표시 */}
-        {statusError && (
-          <YouTubeErrorHandler
-            error={statusError.error}
-            errorType={statusError.type}
-            onRetry={handleRetryStatus}
-            onDismiss={() => setStatusError(null)}
+          <YouTubeStatusChecker
+            onStatusChange={handleStatusChange}
             showDetails={false}
-            className="mb-3"
+            className="mb-2"
           />
-        )}
+
+          {/* 에러 표시 */}
+          {statusError && (
+            <YouTubeErrorHandler
+              error={statusError.error}
+              errorType={statusError.type}
+              onRetry={handleRetryStatus}
+              onDismiss={() => setStatusError(null)}
+              showDetails={false}
+              className="mb-3"
+            />
+          )}
         </div>
       )}
 
       {/* YouTube 채널 */}
       <div className="mb-3">
-        <label className="text-xs font-medium text-black mb-1 block">YouTube 채널</label>
+        <label className="text-xs font-medium text-black mb-1 block">
+          YouTube 채널
+        </label>
         <div className="relative">
           {isAuthenticated && channelInfo ? (
             <div className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg bg-gray-50 text-black flex items-center gap-2">
@@ -169,12 +174,16 @@ export default function YouTubeUploadForm({
           className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50"
           placeholder="동영상 제목을 입력하세요"
         />
-        <div className="text-right text-xs text-gray-500 mt-1">{data.title.length}/100</div>
+        <div className="text-right text-xs text-gray-500 mt-1">
+          {data.title.length}/100
+        </div>
       </div>
 
       {/* 설명 */}
       <div className="mb-3">
-        <label className="text-xs font-medium text-black mb-1 block">설명</label>
+        <label className="text-xs font-medium text-black mb-1 block">
+          설명
+        </label>
         <textarea
           value={data.description}
           onChange={(e) => onDataChange('description', e.target.value)}
@@ -182,14 +191,20 @@ export default function YouTubeUploadForm({
           rows={3}
           placeholder="동영상에 대한 설명을 입력하세요"
         />
-        <div className="text-right text-xs text-gray-500 mt-1">{data.description.length}/5000</div>
+        <div className="text-right text-xs text-gray-500 mt-1">
+          {data.description.length}/5000
+        </div>
       </div>
 
       {/* 동영상 커버 */}
       <div className="mb-3">
-        <label className="text-xs font-medium text-black mb-2 block">동영상 커버</label>
+        <label className="text-xs font-medium text-black mb-2 block">
+          동영상 커버
+        </label>
         <div className="p-3 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600 mb-2">커버로 사용할 이미지를 선택하세요.</p>
+          <p className="text-xs text-gray-600 mb-2">
+            커버로 사용할 이미지를 선택하세요.
+          </p>
           <div className="flex gap-2">
             <div className="w-20 h-12 bg-gray-200 rounded border-2 border-blue-500 overflow-hidden">
               <img
@@ -207,14 +222,31 @@ export default function YouTubeUploadForm({
 
       {/* 공개 여부 */}
       <div className="mb-6">
-        <label className="text-xs font-medium text-black mb-3 block">공개 여부</label>
+        <label className="text-xs font-medium text-black mb-3 block">
+          공개 여부
+        </label>
         <div className="space-y-4">
           {[
-            { value: 'private' as YouTubePrivacy, label: '비공개', desc: '내 계정만 동영상을 볼 수 있습니다' },
-            { value: 'unlisted' as YouTubePrivacy, label: '일부 공개', desc: '링크를 아는 사람만 동영상을 볼 수 있습니다' },
-            { value: 'public' as YouTubePrivacy, label: '공개', desc: '모든 사용자가 동영상을 검색하고 볼 수 있습니다' }
+            {
+              value: 'private' as YouTubePrivacy,
+              label: '비공개',
+              desc: '내 계정만 동영상을 볼 수 있습니다',
+            },
+            {
+              value: 'unlisted' as YouTubePrivacy,
+              label: '일부 공개',
+              desc: '링크를 아는 사람만 동영상을 볼 수 있습니다',
+            },
+            {
+              value: 'public' as YouTubePrivacy,
+              label: '공개',
+              desc: '모든 사용자가 동영상을 검색하고 볼 수 있습니다',
+            },
           ].map((option) => (
-            <label key={option.value} className="flex items-start space-x-3 cursor-pointer py-1">
+            <label
+              key={option.value}
+              className="flex items-start space-x-3 cursor-pointer py-1"
+            >
               <input
                 type="radio"
                 name="privacy"
@@ -224,8 +256,12 @@ export default function YouTubeUploadForm({
                 className="mt-1 w-3 h-3 text-blue-600 border-gray-300 focus:ring-blue-500 flex-shrink-0"
               />
               <div className="flex-1">
-                <div className="text-xs font-medium text-black mb-1">{option.label}</div>
-                <div className="text-xs text-gray-500 leading-relaxed">{option.desc}</div>
+                <div className="text-xs font-medium text-black mb-1">
+                  {option.label}
+                </div>
+                <div className="text-xs text-gray-500 leading-relaxed">
+                  {option.desc}
+                </div>
               </div>
             </label>
           ))}

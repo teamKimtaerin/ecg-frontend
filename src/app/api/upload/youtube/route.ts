@@ -7,22 +7,31 @@ export async function POST(request: NextRequest) {
   try {
     // 쿠키에서 인증 토큰 확인
     const authToken = request.cookies.get('youtube_auth_token')?.value
-    console.log('YouTube 업로드 요청 - 토큰 확인:', authToken ? '토큰 존재' : '토큰 없음')
+    console.log(
+      'YouTube 업로드 요청 - 토큰 확인:',
+      authToken ? '토큰 존재' : '토큰 없음'
+    )
 
     if (!authToken) {
-      return NextResponse.json({
-        success: false,
-        error: '인증 토큰이 없습니다. 먼저 YouTube 계정을 연동해주세요.'
-      }, { status: 401 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: '인증 토큰이 없습니다. 먼저 YouTube 계정을 연동해주세요.',
+        },
+        { status: 401 }
+      )
     }
 
     // JWT 토큰에서 Google 토큰 추출
     const tokens = YouTubeApiUploader.extractTokensFromJWT(authToken)
     if (!tokens || !tokens.google_access_token) {
-      return NextResponse.json({
-        success: false,
-        error: '유효하지 않은 인증 토큰입니다.'
-      }, { status: 401 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: '유효하지 않은 인증 토큰입니다.',
+        },
+        { status: 401 }
+      )
     }
 
     // 요청 본문에서 업로드 설정 파싱
@@ -32,7 +41,7 @@ export async function POST(request: NextRequest) {
     console.log('YouTube 업로드 설정:', {
       title: title || 'ECG 생성 영상',
       description: description || '',
-      privacy
+      privacy,
     })
 
     // friends.mp4 파일 경로 (프로젝트 루트의 public 폴더)
@@ -42,10 +51,13 @@ export async function POST(request: NextRequest) {
     // 파일 존재 확인
     if (!fs.existsSync(videoPath)) {
       console.error('비디오 파일을 찾을 수 없음:', videoPath)
-      return NextResponse.json({
-        success: false,
-        error: '업로드할 비디오 파일을 찾을 수 없습니다.'
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: '업로드할 비디오 파일을 찾을 수 없습니다.',
+        },
+        { status: 404 }
+      )
     }
 
     // 파일 크기 확인
@@ -75,8 +87,8 @@ export async function POST(request: NextRequest) {
         resolution: '1080p',
         quality: '추천 품질',
         frameRate: '30fps',
-        format: 'MP4'
-      }
+        format: 'MP4',
+      },
     })
 
     if (uploadResult.success) {
@@ -85,21 +97,26 @@ export async function POST(request: NextRequest) {
         success: true,
         videoUrl: uploadResult.videoUrl,
         videoId: uploadResult.videoId,
-        message: 'YouTube에 성공적으로 업로드되었습니다!'
+        message: 'YouTube에 성공적으로 업로드되었습니다!',
       })
     } else {
       console.error('YouTube 업로드 실패:', uploadResult.error)
-      return NextResponse.json({
-        success: false,
-        error: uploadResult.error || '업로드 중 오류가 발생했습니다.'
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: uploadResult.error || '업로드 중 오류가 발생했습니다.',
+        },
+        { status: 500 }
+      )
     }
-
   } catch (error) {
     console.error('YouTube 업로드 API 오류:', error)
-    return NextResponse.json({
-      success: false,
-      error: '서버 오류가 발생했습니다.'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: '서버 오류가 발생했습니다.',
+      },
+      { status: 500 }
+    )
   }
 }

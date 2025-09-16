@@ -29,7 +29,10 @@ export default function YouTubeExportSettings({
         <h2 className="text-lg font-medium text-black">내보내기 설정</h2>
       </div>
 
-      <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(80vh - 60px)' }}>
+      <div
+        className="p-4 overflow-y-auto"
+        style={{ maxHeight: 'calc(80vh - 60px)' }}
+      >
         {/* 동영상 커버 */}
         <div className="mb-6">
           <h3 className="text-sm font-medium text-black mb-3">동영상 커버</h3>
@@ -60,7 +63,12 @@ export default function YouTubeExportSettings({
           <div className="relative">
             <select
               value={settings.resolution}
-              onChange={(e) => onSettingsChange('resolution', e.target.value as YouTubeUploadSettings['resolution'])}
+              onChange={(e) =>
+                onSettingsChange(
+                  'resolution',
+                  e.target.value as YouTubeUploadSettings['resolution']
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
             >
               <option value="720p">720p</option>
@@ -77,7 +85,12 @@ export default function YouTubeExportSettings({
           <div className="relative">
             <select
               value={settings.quality}
-              onChange={(e) => onSettingsChange('quality', e.target.value as YouTubeUploadSettings['quality'])}
+              onChange={(e) =>
+                onSettingsChange(
+                  'quality',
+                  e.target.value as YouTubeUploadSettings['quality']
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
             >
               <option value="추천 품질">추천 품질</option>
@@ -94,7 +107,12 @@ export default function YouTubeExportSettings({
           <div className="relative">
             <select
               value={settings.frameRate}
-              onChange={(e) => onSettingsChange('frameRate', e.target.value as YouTubeUploadSettings['frameRate'])}
+              onChange={(e) =>
+                onSettingsChange(
+                  'frameRate',
+                  e.target.value as YouTubeUploadSettings['frameRate']
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
             >
               <option value="30fps">30fps</option>
@@ -110,7 +128,12 @@ export default function YouTubeExportSettings({
           <div className="relative">
             <select
               value={settings.format}
-              onChange={(e) => onSettingsChange('format', e.target.value as YouTubeUploadSettings['format'])}
+              onChange={(e) =>
+                onSettingsChange(
+                  'format',
+                  e.target.value as YouTubeUploadSettings['format']
+                )
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-gray-50 appearance-none cursor-pointer"
             >
               <option value="MP4">MP4</option>

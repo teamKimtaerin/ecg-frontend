@@ -18,7 +18,9 @@ export default function YouTubeUploadProgress({
   onCancel,
   sessionId,
 }: YouTubeUploadProgressProps) {
-  const [estimatedTimeLeft, setEstimatedTimeLeft] = useState<string | null>(null)
+  const [estimatedTimeLeft, setEstimatedTimeLeft] = useState<string | null>(
+    null
+  )
   const [uploadStartTime] = useState(Date.now())
 
   useEffect(() => {
@@ -94,7 +96,9 @@ export default function YouTubeUploadProgress({
           />
           <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
             {/* 진행률 표시 */}
-            <div className="text-4xl md:text-6xl font-bold text-white mb-2">{progress}%</div>
+            <div className="text-4xl md:text-6xl font-bold text-white mb-2">
+              {progress}%
+            </div>
 
             {/* 상태 메시지 */}
             <div className="flex items-center gap-2 text-white text-base md:text-lg mb-3">
@@ -112,7 +116,9 @@ export default function YouTubeUploadProgress({
 
             {/* 예상 시간 */}
             {estimatedTimeLeft && (
-              <div className="text-xs md:text-sm text-white/80 mb-2">{estimatedTimeLeft}</div>
+              <div className="text-xs md:text-sm text-white/80 mb-2">
+                {estimatedTimeLeft}
+              </div>
             )}
 
             {/* 안내 메시지 */}
@@ -135,11 +141,12 @@ export default function YouTubeUploadProgress({
           )}
 
           {/* 로딩 스피너 */}
-          {currentStatus?.status !== 'completed' && currentStatus?.status !== 'error' && (
-            <div className="absolute bottom-4 right-4">
-              <div className="w-4 h-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent text-white" />
-            </div>
-          )}
+          {currentStatus?.status !== 'completed' &&
+            currentStatus?.status !== 'error' && (
+              <div className="absolute bottom-4 right-4">
+                <div className="w-4 h-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent text-white" />
+              </div>
+            )}
         </div>
       </div>
 
@@ -151,7 +158,10 @@ export default function YouTubeUploadProgress({
           <div>
             <div className="flex items-center mb-2">
               <span className="text-gray-600 text-sm mr-2">🎬</span>
-              <select className="border border-gray-300 rounded px-2 py-1 text-sm" disabled>
+              <select
+                className="border border-gray-300 rounded px-2 py-1 text-sm"
+                disabled
+              >
                 <option>테스트테스트</option>
               </select>
             </div>
@@ -167,24 +177,34 @@ export default function YouTubeUploadProgress({
               readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-black"
             />
-            <div className="text-right text-xs text-gray-500 mt-1">{data.title.length}/100</div>
+            <div className="text-right text-xs text-gray-500 mt-1">
+              {data.title.length}/100
+            </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-black mb-2 block">설명</label>
+            <label className="text-sm font-medium text-black mb-2 block">
+              설명
+            </label>
             <textarea
               value={data.description}
               readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-black resize-none"
               rows={3}
             />
-            <div className="text-right text-xs text-gray-500 mt-1">{data.description.length}/5000</div>
+            <div className="text-right text-xs text-gray-500 mt-1">
+              {data.description.length}/5000
+            </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-black mb-3 block">동영상 커버</label>
+            <label className="text-sm font-medium text-black mb-3 block">
+              동영상 커버
+            </label>
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-3">커버로 사용할 이미지를 선택하세요.</p>
+              <p className="text-sm text-gray-600 mb-3">
+                커버로 사용할 이미지를 선택하세요.
+              </p>
               <div className="w-24 h-16 bg-gray-200 rounded border-2 border-cyan-400 overflow-hidden">
                 <img
                   src="/youtube-upload/sample-thumbnail.png"
@@ -195,8 +215,21 @@ export default function YouTubeUploadProgress({
               {/* 진행 표시 */}
               <div className="mt-4 flex items-center text-cyan-400">
                 <div className="w-6 h-6 mr-2">
-                  <svg className="animate-spin" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" strokeDasharray="31.416" strokeDashoffset="15.708"></circle>
+                  <svg
+                    className="animate-spin"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      strokeDasharray="31.416"
+                      strokeDashoffset="15.708"
+                    ></circle>
                   </svg>
                 </div>
                 <span className="text-sm">업로드 중...</span>

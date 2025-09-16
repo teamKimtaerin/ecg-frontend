@@ -26,7 +26,7 @@ interface StatusResult {
 export default function YouTubeStatusChecker({
   onStatusChange,
   showDetails = true,
-  className = ''
+  className = '',
 }: YouTubeStatusCheckerProps) {
   const [isChecking, setIsChecking] = useState(false)
   const [status, setStatus] = useState<StatusResult | null>(null)
@@ -44,7 +44,7 @@ export default function YouTubeStatusChecker({
         isLoggedIn: false, // 업로드 시 로그인 확인
         profileExists: false,
         message: '',
-        error: undefined
+        error: undefined,
       }
 
       // 업로드 시 YouTube 로그인이 필요함을 안내
@@ -59,17 +59,16 @@ export default function YouTubeStatusChecker({
           isReady: true, // 기본적으로 준비된 것으로 표시
           browserInstalled: newStatus.browserInstalled,
           isLoggedIn: newStatus.isLoggedIn,
-          message: newStatus.message
+          message: newStatus.message,
         })
       }
-
     } catch (error) {
       const errorStatus: StatusResult = {
         browserInstalled: false,
         isLoggedIn: false,
         profileExists: false,
         message: '브라우저 자동 감지가 지원되지 않는 환경입니다.',
-        error: String(error)
+        error: String(error),
       }
 
       setStatus(errorStatus)
@@ -79,7 +78,7 @@ export default function YouTubeStatusChecker({
           isReady: true, // 에러가 있어도 업로드 시도는 가능
           browserInstalled: false,
           isLoggedIn: false,
-          message: errorStatus.message
+          message: errorStatus.message,
         })
       }
     } finally {
@@ -109,8 +108,16 @@ export default function YouTubeStatusChecker({
 
     return (
       <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+        <svg
+          className="w-2.5 h-2.5 text-white"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+            clipRule="evenodd"
+          />
         </svg>
       </div>
     )
@@ -127,7 +134,9 @@ export default function YouTubeStatusChecker({
       <div className={`flex items-center gap-2 ${className}`}>
         {getStatusIcon()}
         <span className={`text-sm ${getStatusColor()}`}>
-          {isChecking ? '상태 확인 중...' : status?.message || '상태 확인 중...'}
+          {isChecking
+            ? '상태 확인 중...'
+            : status?.message || '상태 확인 중...'}
         </span>
       </div>
     )
@@ -136,7 +145,9 @@ export default function YouTubeStatusChecker({
   return (
     <div className={`bg-gray-50 rounded-lg p-4 ${className}`}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-900">YouTube 업로드 상태</h3>
+        <h3 className="text-sm font-medium text-gray-900">
+          YouTube 업로드 상태
+        </h3>
         <button
           onClick={checkStatus}
           disabled={isChecking}
@@ -149,20 +160,36 @@ export default function YouTubeStatusChecker({
       <div className="space-y-3">
         {/* 브라우저 상태 */}
         <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 rounded-full ${status?.browserInstalled ? 'bg-green-500' : 'bg-orange-500'}`} />
+          <div
+            className={`w-2 h-2 rounded-full ${status?.browserInstalled ? 'bg-green-500' : 'bg-orange-500'}`}
+          />
           <span className="text-sm text-gray-700">
-            브라우저: {isChecking ? '확인 중...' : status?.browserInstalled ? '설치됨' : '설치 필요'}
+            브라우저:{' '}
+            {isChecking
+              ? '확인 중...'
+              : status?.browserInstalled
+                ? '설치됨'
+                : '설치 필요'}
           </span>
           {status?.browserVersion && (
-            <span className="text-xs text-gray-500">({status.browserVersion})</span>
+            <span className="text-xs text-gray-500">
+              ({status.browserVersion})
+            </span>
           )}
         </div>
 
         {/* 로그인 상태 */}
         <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 rounded-full ${status?.isLoggedIn ? 'bg-green-500' : 'bg-orange-500'}`} />
+          <div
+            className={`w-2 h-2 rounded-full ${status?.isLoggedIn ? 'bg-green-500' : 'bg-orange-500'}`}
+          />
           <span className="text-sm text-gray-700">
-            YouTube 로그인: {isChecking ? '확인 중...' : status?.isLoggedIn ? '로그인됨' : '로그인 필요'}
+            YouTube 로그인:{' '}
+            {isChecking
+              ? '확인 중...'
+              : status?.isLoggedIn
+                ? '로그인됨'
+                : '로그인 필요'}
           </span>
         </div>
 
@@ -196,7 +223,9 @@ export default function YouTubeStatusChecker({
         <p className="text-xs text-blue-800 mb-2">💡 YouTube 업로드 안내:</p>
         <ul className="text-xs text-blue-700 space-y-1">
           <li>• 업로드 시작 시 자동으로 YouTube 로그인 페이지가 열립니다</li>
-          <li>• 브라우저에서 YouTube 계정으로 로그인하면 업로드가 진행됩니다</li>
+          <li>
+            • 브라우저에서 YouTube 계정으로 로그인하면 업로드가 진행됩니다
+          </li>
           <li>• Playwright 브라우저가 필요한 경우 자동으로 설치됩니다</li>
         </ul>
       </div>

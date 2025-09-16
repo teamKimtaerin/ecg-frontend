@@ -28,7 +28,10 @@ export default function YouTubeUploadComplete({
               <FaPlay className="w-3 h-3 mr-2" />
               <span>00:00</span>
               <div className="mx-3 flex-1 h-1 bg-white/30 rounded-full">
-                <div className="h-full bg-white rounded-full" style={{ width: '0%' }}></div>
+                <div
+                  className="h-full bg-white rounded-full"
+                  style={{ width: '0%' }}
+                ></div>
               </div>
               <span>02:23</span>
             </div>
@@ -60,24 +63,34 @@ export default function YouTubeUploadComplete({
               readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-black"
             />
-            <div className="text-right text-xs text-gray-500 mt-1">{data.title.length}/100</div>
+            <div className="text-right text-xs text-gray-500 mt-1">
+              {data.title.length}/100
+            </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-black mb-2 block">설명</label>
+            <label className="text-sm font-medium text-black mb-2 block">
+              설명
+            </label>
             <textarea
               value={data.description}
               readOnly
               className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-black resize-none"
               rows={4}
             />
-            <div className="text-right text-xs text-gray-500 mt-1">{data.description.length}/5000</div>
+            <div className="text-right text-xs text-gray-500 mt-1">
+              {data.description.length}/5000
+            </div>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-black mb-3 block">동영상 커버</label>
+            <label className="text-sm font-medium text-black mb-3 block">
+              동영상 커버
+            </label>
             <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-3">커버로 사용할 이미지를 선택하세요.</p>
+              <p className="text-sm text-gray-600 mb-3">
+                커버로 사용할 이미지를 선택하세요.
+              </p>
               <div className="w-24 h-16 bg-gray-200 rounded border-2 border-blue-500 overflow-hidden">
                 <img
                   src="/youtube-upload/sample-thumbnail.png"

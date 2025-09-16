@@ -29,13 +29,16 @@ class UploadSessionStore {
   /**
    * 새 업로드 세션 생성
    */
-  createSession(sessionId: string, initialProgress: UploadProgress): UploadSession {
+  createSession(
+    sessionId: string,
+    initialProgress: UploadProgress
+  ): UploadSession {
     const session: UploadSession = {
       id: sessionId,
       progress: initialProgress,
       createdAt: Date.now(),
       lastUpdated: Date.now(),
-      isCompleted: false
+      isCompleted: false,
     }
 
     this.sessions.set(sessionId, session)
@@ -58,7 +61,9 @@ class UploadSessionStore {
     if (progress.status === 'completed') {
       session.isCompleted = true
       // 업로드 URL 추출 시도
-      const urlMatch = progress.message.match(/https:\/\/(?:www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]+/)
+      const urlMatch = progress.message.match(
+        /https:\/\/(?:www\.)?youtube\.com\/watch\?v=[a-zA-Z0-9_-]+/
+      )
       if (urlMatch) {
         session.videoUrl = urlMatch[0]
       }
@@ -108,12 +113,14 @@ class UploadSessionStore {
   /**
    * 완료된 세션들 정리
    */
-  cleanupCompletedSessions(maxAge: number = 300000): number { // 기본 5분
+  cleanupCompletedSessions(maxAge: number = 300000): number {
+    // 기본 5분
     let cleanedCount = 0
     const now = Date.now()
 
     for (const [sessionId, session] of this.sessions) {
-      const shouldCleanup = session.isCompleted && (now - session.lastUpdated) > maxAge
+      const shouldCleanup =
+        session.isCompleted && now - session.lastUpdated > maxAge
 
       if (shouldCleanup) {
         this.sessions.delete(sessionId)
@@ -127,12 +134,14 @@ class UploadSessionStore {
   /**
    * 오래된 세션들 정리 (완료되지 않았지만 너무 오래된 것들)
    */
-  cleanupStaleSessions(maxAge: number = 1800000): number { // 기본 30분
+  cleanupStaleSessions(maxAge: number = 1800000): number {
+    // 기본 30분
     let cleanedCount = 0
     const now = Date.now()
 
     for (const [sessionId, session] of this.sessions) {
-      const shouldCleanup = !session.isCompleted && (now - session.createdAt) > maxAge
+      const shouldCleanup =
+        !session.isCompleted && now - session.createdAt > maxAge
 
       if (shouldCleanup) {
         this.sessions.delete(sessionId)
@@ -156,7 +165,9 @@ class UploadSessionStore {
       const staleCleaned = this.cleanupStaleSessions()
 
       if (completedCleaned > 0 || staleCleaned > 0) {
-        console.log(`[UploadSessionStore] 정리된 세션: 완료됨(${completedCleaned}), 만료됨(${staleCleaned})`)
+        console.log(
+          `[UploadSessionStore] 정리된 세션: 완료됨(${completedCleaned}), 만료됨(${staleCleaned})`
+        )
       }
     }, 300000) // 5분마다 실행
   }
@@ -205,7 +216,7 @@ class UploadSessionStore {
       total: this.sessions.size,
       active,
       completed,
-      failed
+      failed,
     }
   }
 }
@@ -216,11 +227,15 @@ const uploadSessionStore = new UploadSessionStore()
 export default uploadSessionStore
 
 // 편의 함수들
-export const createUploadSession = (sessionId: string, initialProgress: UploadProgress) =>
-  uploadSessionStore.createSession(sessionId, initialProgress)
+export const createUploadSession = (
+  sessionId: string,
+  initialProgress: UploadProgress
+) => uploadSessionStore.createSession(sessionId, initialProgress)
 
-export const updateUploadSession = (sessionId: string, progress: UploadProgress) =>
-  uploadSessionStore.updateSession(sessionId, progress)
+export const updateUploadSession = (
+  sessionId: string,
+  progress: UploadProgress
+) => uploadSessionStore.updateSession(sessionId, progress)
 
 export const getUploadSession = (sessionId: string) =>
   uploadSessionStore.getSession(sessionId)
@@ -231,5 +246,4 @@ export const deleteUploadSession = (sessionId: string) =>
 export const hasUploadSession = (sessionId: string) =>
   uploadSessionStore.hasSession(sessionId)
 
-export const getUploadSessionStats = () =>
-  uploadSessionStore.getStats()
+export const getUploadSessionStats = () => uploadSessionStore.getStats()

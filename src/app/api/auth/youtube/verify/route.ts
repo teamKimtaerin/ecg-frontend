@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         isAuthenticated: false,
-        error: '인증 토큰이 없습니다.'
+        error: '인증 토큰이 없습니다.',
       })
     }
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     console.log('[VERIFY] 토큰 파싱 결과:', {
       success: !!tokens,
       hasAccessToken: !!tokens?.google_access_token,
-      hasRefreshToken: !!tokens?.google_refresh_token
+      hasRefreshToken: !!tokens?.google_refresh_token,
     })
 
     if (!tokens || !tokens.google_access_token) {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: false,
         isAuthenticated: false,
-        error: '유효하지 않은 인증 토큰입니다.'
+        error: '유효하지 않은 인증 토큰입니다.',
       })
     }
 
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         success: channelResult.success,
         hasChannel: !!channelResult.channel,
         channelTitle: channelResult.channel?.title,
-        error: channelResult.error
+        error: channelResult.error,
       })
 
       if (!channelResult.success) {
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           success: false,
           isAuthenticated: false,
-          error: channelResult.error || 'YouTube API 인증 실패'
+          error: channelResult.error || 'YouTube API 인증 실패',
         })
       }
 
@@ -69,26 +69,24 @@ export async function GET(request: NextRequest) {
         userInfo: {
           email: null, // YouTube API에서는 이메일을 직접 제공하지 않음
           name: channelResult.channel?.title || null,
-          channelId: channelResult.channel?.id || null
+          channelId: channelResult.channel?.id || null,
         },
-        channelInfo: channelResult.channel
+        channelInfo: channelResult.channel,
       })
-
     } catch (apiError) {
       console.error('[VERIFY] YouTube API 호출 오류:', apiError)
       return NextResponse.json({
         success: false,
         isAuthenticated: false,
-        error: 'YouTube API 인증 실패'
+        error: 'YouTube API 인증 실패',
       })
     }
-
   } catch (error) {
     console.error('[VERIFY] 토큰 검증 오류:', error)
     return NextResponse.json({
       success: false,
       isAuthenticated: false,
-      error: '토큰 검증 실패'
+      error: '토큰 검증 실패',
     })
   }
 }

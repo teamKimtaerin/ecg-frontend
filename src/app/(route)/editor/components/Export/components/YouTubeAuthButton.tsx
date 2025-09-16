@@ -1,7 +1,12 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { FaGoogle, FaSpinner, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa'
+import {
+  FaGoogle,
+  FaSpinner,
+  FaCheckCircle,
+  FaExclamationTriangle,
+} from 'react-icons/fa'
 
 interface YouTubeAuthButtonProps {
   onAuthChange?: (isAuthenticated: boolean, userInfo?: any) => void
@@ -26,11 +31,11 @@ interface AuthStatus {
 
 export default function YouTubeAuthButton({
   onAuthChange,
-  sessionId
+  sessionId,
 }: YouTubeAuthButtonProps) {
   const [authStatus, setAuthStatus] = useState<AuthStatus>({
     isAuthenticated: false,
-    isLoading: true
+    isLoading: true,
   })
 
   // 페이지 로드 시 인증 상태 확인
@@ -55,11 +60,11 @@ export default function YouTubeAuthButton({
     } else if (authResult === 'error' || authResult === 'cancelled') {
       console.log('[AUTH_BUTTON] OAuth 실패/취소:', authResult)
       const message = urlParams.get('message') || '인증 실패'
-      setAuthStatus(prev => ({
+      setAuthStatus((prev) => ({
         ...prev,
         isAuthenticated: false,
         isLoading: false,
-        error: decodeURIComponent(message)
+        error: decodeURIComponent(message),
       }))
       onAuthChange?.(false)
       // URL 파라미터 제거
@@ -80,10 +85,14 @@ export default function YouTubeAuthButton({
         // 토큰이 유효한지 API로 확인
         const response = await fetch('/api/auth/youtube/verify/', {
           method: 'GET',
-          credentials: 'include'
+          credentials: 'include',
         })
 
-        console.log('[AUTH_BUTTON] API 응답 상태:', response.status, response.statusText)
+        console.log(
+          '[AUTH_BUTTON] API 응답 상태:',
+          response.status,
+          response.statusText
+        )
 
         if (response.ok) {
           const data = await response.json()
@@ -96,7 +105,7 @@ export default function YouTubeAuthButton({
               isAuthenticated: true,
               isLoading: false,
               userInfo: data.userInfo,
-              channelInfo: data.channelInfo
+              channelInfo: data.channelInfo,
             })
             onAuthChange?.(true, data)
             return
@@ -113,16 +122,15 @@ export default function YouTubeAuthButton({
       console.log('[AUTH_BUTTON] 인증되지 않은 상태로 설정')
       setAuthStatus({
         isAuthenticated: false,
-        isLoading: false
+        isLoading: false,
       })
       onAuthChange?.(false)
-
     } catch (error) {
       console.error('[AUTH_BUTTON] 인증 상태 확인 오류:', error)
       setAuthStatus({
         isAuthenticated: false,
         isLoading: false,
-        error: '인증 상태 확인 실패'
+        error: '인증 상태 확인 실패',
       })
       onAuthChange?.(false)
     }
@@ -130,7 +138,7 @@ export default function YouTubeAuthButton({
 
   const handleAuth = async () => {
     try {
-      setAuthStatus(prev => ({ ...prev, isLoading: true, error: undefined }))
+      setAuthStatus((prev) => ({ ...prev, isLoading: true, error: undefined }))
 
       // sessionId를 URL 파라미터로 안전하게 인코딩
       const encodedSessionId = encodeURIComponent(sessionId || 'default')
@@ -183,24 +191,24 @@ export default function YouTubeAuthButton({
       } else {
         throw new Error(data.error || '인증 URL 생성 실패')
       }
-
     } catch (error) {
       console.error('YouTube 인증 오류:', error)
-      setAuthStatus(prev => ({
+      setAuthStatus((prev) => ({
         ...prev,
         isLoading: false,
-        error: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : String(error),
       }))
     }
   }
 
   const handleLogout = () => {
     // 쿠키 삭제
-    document.cookie = 'youtube_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+    document.cookie =
+      'youtube_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
 
     setAuthStatus({
       isAuthenticated: false,
-      isLoading: false
+      isLoading: false,
     })
     onAuthChange?.(false)
   }

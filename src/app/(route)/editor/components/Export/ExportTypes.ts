@@ -30,7 +30,11 @@ export interface SocialMediaOption {
   icon: string
 }
 
-export type YouTubeUploadStatus = 'settings' | 'details' | 'uploading' | 'completed'
+export type YouTubeUploadStatus =
+  | 'settings'
+  | 'details'
+  | 'uploading'
+  | 'completed'
 export type YouTubePrivacy = 'private' | 'unlisted' | 'public'
 
 export interface YouTubeUploadData {
@@ -63,9 +67,15 @@ export interface YouTubeUploadModalProps {
   defaultTitle?: string
 }
 
-
 export interface UploadProgress {
-  status: 'initializing' | 'navigating' | 'uploading' | 'processing' | 'publishing' | 'completed' | 'error'
+  status:
+    | 'initializing'
+    | 'navigating'
+    | 'uploading'
+    | 'processing'
+    | 'publishing'
+    | 'completed'
+    | 'error'
   progress: number
   message: string
   error?: string
