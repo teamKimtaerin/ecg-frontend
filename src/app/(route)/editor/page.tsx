@@ -1,7 +1,7 @@
 'use client'
 
 import { DndContext, closestCenter } from '@dnd-kit/core'
-import { useCallback, useEffect, useId, useState, useRef } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 // Store
@@ -32,19 +32,19 @@ import { useUnsavedChanges } from './hooks/useUnsavedChanges'
 import SelectionBox from '@/components/DragDrop/SelectionBox'
 import NewUploadModal from '@/components/NewUploadModal'
 import TutorialModal from '@/components/TutorialModal'
+import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
-import Toolbars from './components/Toolbars'
-import SimpleToolbar from './components/SimpleToolbar'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
+import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
-import VideoSection from './components/VideoSection'
-import AnimationAssetSidebar from './components/AnimationAssetSidebar'
 import TemplateSidebar from './components/TemplateSidebar'
-import { ChevronDownIcon } from '@/components/icons'
-import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import Toolbars from './components/Toolbars'
+import VideoSection from './components/VideoSection'
 
 // Utils
 import { EditorHistory } from '@/utils/editor/EditorHistory'
@@ -1652,18 +1652,18 @@ export default function EditorPage() {
   }, [clips, activeClipId, setActiveClipId, skipAutoFocus])
 
   // 복구 중일 때 로딩 화면 표시 (임시 비활성화)
-  // if (isRecovering) {
-  //   return (
-  //     <div className="min-h-screen bg-gray-50">
-  //       <LoadingSpinner
-  //         size="lg"
-  //         message="세션을 복구하고 있습니다..."
-  //         showLogo={true}
-  //         variant="fullscreen"
-  //       />
-  //     </div>
-  //   )
-  // }
+  if (isRecovering) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <LoadingSpinner
+          size="lg"
+          message="세션을 복구하고 있습니다..."
+          showLogo={true}
+          variant="fullscreen"
+        />
+      </div>
+    )
+  }
 
   return (
     <DndContext
