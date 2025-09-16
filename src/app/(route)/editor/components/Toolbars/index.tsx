@@ -1,10 +1,9 @@
 'use client'
 
-import React from 'react'
-import { EditorTab, ClipItem } from '../../types'
-import HomeToolbar from './HomeToolbar'
+import { ClipItem, EditorTab } from '../../types'
 import EditToolbar from './EditToolbar'
 import FormatToolbar from './FormatToolbar'
+import HomeToolbar from './HomeToolbar'
 import InsertToolbar from './InsertToolbar'
 import TemplateToolbar from './TemplateToolbar'
 
@@ -102,7 +101,7 @@ export default function Toolbars({
     case 'edit':
       return (
         <ToolbarWrapper
-          variant="dark"
+          variant="base"
           onExport={handleExport}
           onSave={onSave}
           onSaveAs={onSaveAs}
