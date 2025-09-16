@@ -1,6 +1,11 @@
 'use client'
 
-import { DndContext, closestCenter, closestCorners, DragOverlay } from '@dnd-kit/core'
+import {
+  DndContext,
+  closestCenter,
+  closestCorners,
+  DragOverlay,
+} from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -980,7 +985,6 @@ export default function EditorPage() {
     }
   }
 
-
   // Upload modal handler - currently not used, placeholder for future implementation
   const wrappedHandleStartTranscription = async () => {
     // TODO: Implement actual file upload and transcription logic
@@ -1915,15 +1919,16 @@ export default function EditorPage() {
         {/* Drag overlay for word drag and drop */}
         <DragOverlay>
           {(() => {
-            const { draggedWordId, clips, groupedWordIds } = useEditorStore.getState()
+            const { draggedWordId, clips, groupedWordIds } =
+              useEditorStore.getState()
             if (!draggedWordId) return null
-            
+
             const draggedWord = clips
-              .flatMap(clip => clip.words)
-              .find(word => word.id === draggedWordId)
-              
+              .flatMap((clip) => clip.words)
+              .find((word) => word.id === draggedWordId)
+
             if (!draggedWord) return null
-            
+
             return (
               <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
                 {groupedWordIds.size > 1

@@ -117,11 +117,11 @@ export default function ClipWords({
 
       // Seek video player to word start time
       const videoPlayer = (
-        window as { 
-          videoPlayer?: { 
-            seekTo: (time: number) => void 
+        window as {
+          videoPlayer?: {
+            seekTo: (time: number) => void
             pauseAutoWordSelection?: () => void
-          } 
+          }
         }
       ).videoPlayer
       if (videoPlayer) {

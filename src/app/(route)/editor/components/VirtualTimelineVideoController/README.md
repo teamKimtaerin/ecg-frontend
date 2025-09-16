@@ -7,6 +7,7 @@ The Virtual Timeline Video Controller provides an intuitive interface for contro
 ## Key Concept
 
 **Real Video Time vs Virtual Timeline Time:**
+
 - **Real Video Time**: Original video timeline (0 to original duration)
 - **Virtual Timeline Time**: Edited timeline after cuts (0 to edited duration)
 - **User Interaction**: All controls operate on virtual timeline coordinates
@@ -38,6 +39,7 @@ VirtualTimelineVideoController/
 **Purpose**: Primary interface combining all virtual timeline controls
 
 **Features**:
+
 - Virtual timeline play/pause controls
 - Volume control with slider overlay
 - Playback rate selection (0.25x - 2x)
@@ -46,6 +48,7 @@ VirtualTimelineVideoController/
 - Integration with all sub-components
 
 **Props**:
+
 ```typescript
 interface VirtualTimelineVideoControllerProps {
   className?: string
@@ -60,10 +63,11 @@ interface VirtualTimelineVideoControllerProps {
 **Purpose**: Interactive progress bar operating on virtual timeline coordinates
 
 **Features**:
+
 - Click-to-seek based on virtual time positions
 - Visual representation of timeline segments with color coding:
   - Blue: Normal segments
-  - Green: Split segments  
+  - Green: Split segments
   - Purple: Moved segments
   - Red (striped): Deleted segments (gaps)
 - Hover preview with time tooltip and segment info
@@ -71,6 +75,7 @@ interface VirtualTimelineVideoControllerProps {
 - Current position indicator with enhanced styling during interaction
 
 **Visual Elements**:
+
 - Segment borders showing cut edit operations
 - Gaps indicating deleted content
 - Hover time indicator line
@@ -81,6 +86,7 @@ interface VirtualTimelineVideoControllerProps {
 **Purpose**: Detailed visual timeline showing all cut edit operations
 
 **Features**:
+
 - Comprehensive segment display with tooltips
 - Color-coded segment types with legend
 - Click navigation to segment start times
@@ -89,6 +95,7 @@ interface VirtualTimelineVideoControllerProps {
 - Current time marker with precise positioning
 
 **Interaction**:
+
 - Click segments to seek to their start time
 - Hover for detailed segment information
 - Visual distinction between active and deleted segments
@@ -98,6 +105,7 @@ interface VirtualTimelineVideoControllerProps {
 **Purpose**: Advanced time navigation and input controls
 
 **Features**:
+
 - Frame-by-frame navigation (±1 frame assuming 30fps)
 - Configurable jump distances (1s, 5s, 10s, 30s, 60s)
 - Direct time input with format parsing (supports "mm:ss" and "h:mm:ss")
@@ -106,6 +114,7 @@ interface VirtualTimelineVideoControllerProps {
 - Keyboard navigation support
 
 **Time Input Features**:
+
 - Auto-formatting time display
 - Click-to-edit time input field
 - Enter to confirm, Escape to cancel
@@ -157,6 +166,7 @@ interface VirtualTimelineVideoControllerProps {
 To fully activate the Virtual Timeline Video Controller:
 
 1. **Implement Virtual Timeline Store Slice**:
+
    ```typescript
    // Add to EditorStore
    virtualTimeline: VirtualTimeline
@@ -183,7 +193,7 @@ function EditorPage() {
     <div className="editor-layout">
       {/* Video display area */}
       <VideoPlayer />
-      
+
       {/* Virtual Timeline Controls */}
       <VirtualTimelineVideoController
         onVirtualTimeUpdate={handleVirtualTimeUpdate}

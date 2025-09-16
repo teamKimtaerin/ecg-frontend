@@ -128,13 +128,25 @@ export function useWordDragAndDrop(clipId: string) {
           const { moveWordBetweenClips } = useEditorStore.getState()
           if (moveWordBetweenClips) {
             // Find target position based on the target word
-            const targetClip = useEditorStore.getState().clips.find((clip) => clip.id === targetClipId)
+            const targetClip = useEditorStore
+              .getState()
+              .clips.find((clip) => clip.id === targetClipId)
             if (targetClip) {
-              const targetWordIndex = targetClip.words.findIndex((word) => word.id === targetWordId)
+              const targetWordIndex = targetClip.words.findIndex(
+                (word) => word.id === targetWordId
+              )
               // Insert position depends on drop position (before or after)
               const { dropPosition } = useEditorStore.getState()
-              const insertPosition = dropPosition === 'before' ? targetWordIndex : targetWordIndex + 1
-              moveWordBetweenClips(sourceClipId, targetClipId, sourceWordId, insertPosition)
+              const insertPosition =
+                dropPosition === 'before'
+                  ? targetWordIndex
+                  : targetWordIndex + 1
+              moveWordBetweenClips(
+                sourceClipId,
+                targetClipId,
+                sourceWordId,
+                insertPosition
+              )
             }
           }
         }

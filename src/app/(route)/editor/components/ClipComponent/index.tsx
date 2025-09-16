@@ -51,7 +51,7 @@ export default function ClipComponent({
     // Check if the click was on the checkbox area
     const target = e.target as HTMLElement
     const isCheckboxClick = target.closest('.clip-checkbox') !== null
-    
+
     if (isCheckboxClick && onCheck) {
       // Handle checkbox toggle
       onCheck(clip.id, !isChecked)
@@ -81,7 +81,7 @@ export default function ClipComponent({
               #{index}
             </span>
           </div>
-          
+
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               <ClipCheckbox

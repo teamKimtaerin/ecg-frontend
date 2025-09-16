@@ -109,13 +109,15 @@ export const PauseIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <Pause className={className} size={size} />
 )
 
-export const ChevronLeftIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
-  <ChevronLeft className={className} size={size} />
-)
+export const ChevronLeftIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <ChevronLeft className={className} size={size} />
 
-export const ChevronRightIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
-  <ChevronRight className={className} size={size} />
-)
+export const ChevronRightIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <ChevronRight className={className} size={size} />
 
 export const CopyIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <Copy className={className} size={size} />
@@ -130,22 +132,25 @@ export const SkipBackIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <SkipBack className={className} size={size} />
 )
 
-export const SkipForwardIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
-  <SkipForward className={className} size={size} />
-)
+export const SkipForwardIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <SkipForward className={className} size={size} />
 
 export const RewindIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <Rewind className={className} size={size} />
 )
 
-export const FastForwardIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
-  <FastForward className={className} size={size} />
-)
+export const FastForwardIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <FastForward className={className} size={size} />
 
 export const VolumeIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
   <Volume2 className={className} size={size} />
 )
 
-export const VolumeOffIcon: React.FC<IconProps> = ({ className, size = 20 }) => (
-  <VolumeX className={className} size={size} />
-)
+export const VolumeOffIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <VolumeX className={className} size={size} />

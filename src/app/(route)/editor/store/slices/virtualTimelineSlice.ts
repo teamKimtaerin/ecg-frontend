@@ -15,7 +15,7 @@ import {
   VirtualSegment,
   VirtualFrameData,
   VirtualTimelineConfig,
-  CutEditOperation
+  CutEditOperation,
 } from '@/utils/virtual-timeline/types'
 
 /**
@@ -35,20 +35,20 @@ export interface VirtualTimelineState {
   videoName: string | null
   videoDuration: number | null
   videoElement: HTMLVideoElement | null
-  
+
   // Playback 상태 (Virtual Timeline 기반)
   currentVirtualTime: number
   isPlaying: boolean
   playbackRate: number
-  
+
   // UI 상태
   isInitialized: boolean
   isRVFCActive: boolean
   lastFrameData: VirtualFrameData | null
-  
+
   // 설정
   config: VirtualTimelineConfig
-  
+
   // 에러 상태
   error: string | null
 }
@@ -62,23 +62,23 @@ export interface VirtualTimelineActions {
   attachVideoElement: (video: HTMLVideoElement) => void
   detachVideoElement: () => void
   updateConfig: (config: Partial<VirtualTimelineConfig>) => void
-  
+
   // Media 관리 (기존 MediaSlice 호환)
-  setMediaInfo: (info: { 
+  setMediaInfo: (info: {
     mediaId?: string
     videoUrl?: string
     videoName?: string
     videoDuration?: number
   }) => void
   clearMedia: () => void
-  
+
   // 재생 제어 (Virtual Timeline 기반)
   play: () => Promise<void>
   pause: () => void
   stop: () => void
   seek: (virtualTime: number) => void
   setPlaybackRate: (rate: number) => void
-  
+
   // Cut Edit 작업 (기존 시스템 통합)
   splitClip: (clipId: string, splitVirtualTime: number) => [string, string]
   deleteClip: (clipId: string) => void
@@ -90,22 +90,22 @@ export interface VirtualTimelineActions {
     targetClipId: string,
     targetPosition: number
   ) => void
-  
+
   // Timeline 조회
   getActiveSegments: (virtualTime?: number) => VirtualSegment[]
   getEditHistory: () => CutEditOperation[]
   getCurrentClipOrder: () => string[]
-  
+
   // Virtual/Real time 변환
   virtualToReal: (virtualTime: number) => { isValid: boolean; realTime: number }
   realToVirtual: (realTime: number) => { isValid: boolean; virtualTime: number }
-  
+
   // Export 지원
   generateExportSegments: () => import('@/utils/virtual-timeline/ECGTimelineMapper').ECGPlaybackSegment[]
-  
+
   // 디버깅
   getDebugInfo: () => object
-  
+
   // 리소스 정리
   cleanup: () => void
 }
@@ -117,7 +117,7 @@ const defaultConfig: VirtualTimelineConfig = {
   frameRate: 30,
   bufferSize: 10,
   syncThreshold: 16.67,
-  debugMode: false
+  debugMode: false,
 }
 
 const initialState: VirtualTimelineState = {
@@ -127,70 +127,78 @@ const initialState: VirtualTimelineState = {
     isPlaying: false,
     segments: [],
     clipOrder: [],
-    lastUpdated: 0
+    lastUpdated: 0,
   },
   timelineManager: new VirtualTimelineManager(defaultConfig),
-  timelineMapper: new ECGTimelineMapper(new VirtualTimelineManager(defaultConfig)),
+  timelineMapper: new ECGTimelineMapper(
+    new VirtualTimelineManager(defaultConfig)
+  ),
   virtualPlayer: null,
-  
+
   // Media 상태
   mediaId: null,
   videoUrl: null,
   videoName: null,
   videoDuration: null,
   videoElement: null,
-  
+
   // Playback 상태
   currentVirtualTime: 0,
   isPlaying: false,
   playbackRate: 1.0,
-  
+
   // UI 상태
   isInitialized: false,
   isRVFCActive: false,
   lastFrameData: null,
-  
+
   config: defaultConfig,
-  error: null
+  error: null,
 }
 
-export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (set, get) => {
+export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (
+  set,
+  get
+) => {
   // Timeline Manager와 Mapper 초기화
   const timelineManager = new VirtualTimelineManager(defaultConfig)
   const timelineMapper = new ECGTimelineMapper(timelineManager)
-  const virtualPlayer = new VirtualPlayerController(timelineMapper, defaultConfig)
-  
+  const virtualPlayer = new VirtualPlayerController(
+    timelineMapper,
+    defaultConfig
+  )
+
   // Virtual Player 이벤트 리스너 설정
   virtualPlayer.onFrame((frameData: VirtualFrameData) => {
     set((state) => ({
       ...state,
       currentVirtualTime: frameData.virtualTime,
       timeline: timelineMapper.timelineManager.getTimeline(),
-      lastFrameData: frameData
+      lastFrameData: frameData,
     }))
   })
-  
+
   virtualPlayer.onPlay(() => {
     set((state) => ({ ...state, isPlaying: true }))
   })
-  
+
   virtualPlayer.onPause(() => {
     set((state) => ({ ...state, isPlaying: false }))
   })
-  
+
   virtualPlayer.onStop(() => {
-    set((state) => ({ 
-      ...state, 
-      isPlaying: false, 
-      currentVirtualTime: 0 
+    set((state) => ({
+      ...state,
+      isPlaying: false,
+      currentVirtualTime: 0,
     }))
   })
-  
+
   virtualPlayer.onSeek((virtualTime: number) => {
-    set((state) => ({ 
-      ...state, 
+    set((state) => ({
+      ...state,
       currentVirtualTime: virtualTime,
-      timeline: timelineMapper.timelineManager.getTimeline()
+      timeline: timelineMapper.timelineManager.getTimeline(),
     }))
   })
 
@@ -203,61 +211,64 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
     // 초기화 및 설정
     initializeVirtualTimeline: (clips: ClipItem[]) => {
       log('VirtualTimelineSlice', `Initializing with ${clips.length} clips`)
-      
+
       try {
         timelineMapper.initialize(clips)
-        
+
         set((state) => ({
           ...state,
           timeline: timelineManager.getTimeline(),
           isInitialized: true,
-          error: null
+          error: null,
         }))
-        
+
         log('VirtualTimelineSlice', 'Virtual Timeline initialized successfully')
       } catch (error) {
         log('VirtualTimelineSlice', 'Initialization failed:', error)
         set((state) => ({
           ...state,
-          error: error instanceof Error ? error.message : 'Unknown initialization error'
+          error:
+            error instanceof Error
+              ? error.message
+              : 'Unknown initialization error',
         }))
       }
     },
 
     attachVideoElement: (video: HTMLVideoElement) => {
       log('VirtualTimelineSlice', 'Attaching video element')
-      
+
       virtualPlayer.attachVideo(video)
-      
+
       set((state) => ({
         ...state,
         videoElement: video,
-        isRVFCActive: true
+        isRVFCActive: true,
       }))
     },
 
     detachVideoElement: () => {
       log('VirtualTimelineSlice', 'Detaching video element')
-      
+
       virtualPlayer.detachVideo()
-      
+
       set((state) => ({
         ...state,
         videoElement: null,
-        isRVFCActive: false
+        isRVFCActive: false,
       }))
     },
 
     updateConfig: (newConfig: Partial<VirtualTimelineConfig>) => {
       const updatedConfig = { ...get().config, ...newConfig }
-      
+
       timelineManager.updateConfig(updatedConfig)
-      
+
       set((state) => ({
         ...state,
-        config: updatedConfig
+        config: updatedConfig,
       }))
-      
+
       log('VirtualTimelineSlice', 'Config updated:', updatedConfig)
     },
 
@@ -268,15 +279,15 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
         mediaId: info.mediaId ?? state.mediaId,
         videoUrl: info.videoUrl ?? state.videoUrl,
         videoName: info.videoName ?? state.videoName,
-        videoDuration: info.videoDuration ?? state.videoDuration
+        videoDuration: info.videoDuration ?? state.videoDuration,
       }))
-      
+
       log('VirtualTimelineSlice', 'Media info updated:', info)
     },
 
     clearMedia: () => {
       virtualPlayer.detachVideo()
-      
+
       set((state) => ({
         ...state,
         mediaId: null,
@@ -286,9 +297,9 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
         videoElement: null,
         currentVirtualTime: 0,
         isPlaying: false,
-        isRVFCActive: false
+        isRVFCActive: false,
       }))
-      
+
       log('VirtualTimelineSlice', 'Media cleared')
     },
 
@@ -301,7 +312,7 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
         log('VirtualTimelineSlice', 'Play failed:', error)
         set((state) => ({
           ...state,
-          error: error instanceof Error ? error.message : 'Play failed'
+          error: error instanceof Error ? error.message : 'Play failed',
         }))
         throw error
       }
@@ -324,33 +335,36 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
 
     setPlaybackRate: (rate: number) => {
       virtualPlayer.setPlaybackRate(rate)
-      
+
       set((state) => ({
         ...state,
-        playbackRate: rate
+        playbackRate: rate,
       }))
-      
+
       log('VirtualTimelineSlice', `Playback rate set to: ${rate}`)
     },
 
     // Cut Edit 작업
     splitClip: (clipId: string, splitVirtualTime: number) => {
-      log('VirtualTimelineSlice', `Splitting clip ${clipId} at virtual time ${splitVirtualTime}`)
-      
+      log(
+        'VirtualTimelineSlice',
+        `Splitting clip ${clipId} at virtual time ${splitVirtualTime}`
+      )
+
       try {
         const result = timelineMapper.splitClip(clipId, splitVirtualTime)
-        
+
         set((state) => ({
           ...state,
-          timeline: timelineManager.getTimeline()
+          timeline: timelineManager.getTimeline(),
         }))
-        
+
         return result
       } catch (error) {
         log('VirtualTimelineSlice', 'Split clip failed:', error)
         set((state) => ({
           ...state,
-          error: error instanceof Error ? error.message : 'Split failed'
+          error: error instanceof Error ? error.message : 'Split failed',
         }))
         throw error
       }
@@ -358,45 +372,58 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
 
     deleteClip: (clipId: string) => {
       log('VirtualTimelineSlice', `Deleting clip: ${clipId}`)
-      
+
       timelineMapper.deleteClip(clipId)
-      
+
       set((state) => ({
         ...state,
-        timeline: timelineManager.getTimeline()
+        timeline: timelineManager.getTimeline(),
       }))
     },
 
     restoreClip: (clipId: string) => {
       log('VirtualTimelineSlice', `Restoring clip: ${clipId}`)
-      
+
       timelineMapper.restoreClip(clipId)
-      
+
       set((state) => ({
         ...state,
-        timeline: timelineManager.getTimeline()
+        timeline: timelineManager.getTimeline(),
       }))
     },
 
     reorderClips: (newOrder: string[]) => {
       log('VirtualTimelineSlice', `Reordering clips:`, newOrder)
-      
+
       timelineMapper.reorderClips(newOrder)
-      
+
       set((state) => ({
         ...state,
-        timeline: timelineManager.getTimeline()
+        timeline: timelineManager.getTimeline(),
       }))
     },
 
-    moveWordBetweenClips: (wordId, sourceClipId, targetClipId, targetPosition) => {
-      log('VirtualTimelineSlice', `Moving word ${wordId} from ${sourceClipId} to ${targetClipId}`)
-      
-      timelineMapper.moveWordBetweenClips(wordId, sourceClipId, targetClipId, targetPosition)
-      
+    moveWordBetweenClips: (
+      wordId,
+      sourceClipId,
+      targetClipId,
+      targetPosition
+    ) => {
+      log(
+        'VirtualTimelineSlice',
+        `Moving word ${wordId} from ${sourceClipId} to ${targetClipId}`
+      )
+
+      timelineMapper.moveWordBetweenClips(
+        wordId,
+        sourceClipId,
+        targetClipId,
+        targetPosition
+      )
+
       set((state) => ({
         ...state,
-        timeline: timelineManager.getTimeline()
+        timeline: timelineManager.getTimeline(),
       }))
     },
 
@@ -419,7 +446,7 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
       const mapping = timelineMapper.toReal(virtualTime)
       return {
         isValid: mapping.isValid,
-        realTime: mapping.realTime
+        realTime: mapping.realTime,
       }
     },
 
@@ -427,7 +454,7 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
       const mapping = timelineMapper.toVirtual(realTime)
       return {
         isValid: mapping.isValid,
-        virtualTime: mapping.virtualTime
+        virtualTime: mapping.virtualTime,
       }
     },
 
@@ -446,23 +473,25 @@ export const createVirtualTimelineSlice: StateCreator<VirtualTimelineSlice> = (s
           isInitialized: get().isInitialized,
           isRVFCActive: get().isRVFCActive,
           currentVirtualTime: get().currentVirtualTime,
-          isPlaying: get().isPlaying
-        }
+          isPlaying: get().isPlaying,
+        },
       }
     },
 
     // 리소스 정리
     cleanup: () => {
       log('VirtualTimelineSlice', 'Cleaning up resources')
-      
+
       virtualPlayer.cleanup()
-      
+
       set(() => ({
         ...initialState,
         timelineManager: new VirtualTimelineManager(defaultConfig),
-        timelineMapper: new ECGTimelineMapper(new VirtualTimelineManager(defaultConfig)),
-        virtualPlayer: null
+        timelineMapper: new ECGTimelineMapper(
+          new VirtualTimelineManager(defaultConfig)
+        ),
+        virtualPlayer: null,
       }))
-    }
+    },
   }
 }

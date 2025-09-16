@@ -2,14 +2,14 @@
 
 import React, { useCallback, useState } from 'react'
 import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
-import { 
-  SkipBackIcon, 
-  SkipForwardIcon, 
-  RewindIcon, 
+// import Input from '@/components/ui/Input' // Unused import
+import {
+  SkipBackIcon,
+  SkipForwardIcon,
+  // RewindIcon, // Unused import
   FastForwardIcon,
   HomeIcon,
-  SettingsIcon
+  SettingsIcon,
 } from '@/components/icons'
 
 interface VirtualTimeControlsProps {
@@ -41,7 +41,7 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
     const hours = Math.floor(seconds / 3600)
     const minutes = Math.floor((seconds % 3600) / 60)
     const secs = Math.floor(seconds % 60)
-    
+
     if (hours > 0) {
       return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
     }
@@ -51,13 +51,13 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
   // Parse time input (supports mm:ss and h:mm:ss formats)
   const parseTimeInput = useCallback((input: string): number | null => {
     const trimmed = input.trim()
-    
+
     // Match formats: "123", "1:23", "1:23:45"
     const timeRegex = /^(?:(\d+):)?(\d+):(\d+)$|^(\d+)$/
     const match = timeRegex.exec(trimmed)
-    
+
     if (!match) return null
-    
+
     if (match[4]) {
       // Simple seconds format "123"
       return parseInt(match[4], 10)
@@ -66,7 +66,7 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
       const hours = match[1] ? parseInt(match[1], 10) : 0
       const minutes = parseInt(match[2], 10)
       const seconds = parseInt(match[3], 10)
-      
+
       return hours * 3600 + minutes * 60 + seconds
     }
   }, [])
@@ -74,7 +74,7 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
   // Handle time input submission
   const handleTimeInputSubmit = useCallback(() => {
     const parsedTime = parseTimeInput(timeInput)
-    
+
     if (parsedTime !== null && parsedTime >= 0 && parsedTime <= duration) {
       onSeek(parsedTime)
       setShowTimeInput(false)
@@ -86,32 +86,43 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
   }, [timeInput, parseTimeInput, duration, onSeek, currentTime, formatTime])
 
   // Handle jump backward/forward
-  const handleJump = useCallback((direction: 'backward' | 'forward') => {
-    const delta = direction === 'forward' ? jumpDistance : -jumpDistance
-    const newTime = Math.max(0, Math.min(duration, currentTime + delta))
-    onSeek(newTime)
-  }, [currentTime, duration, jumpDistance, onSeek])
+  const handleJump = useCallback(
+    (direction: 'backward' | 'forward') => {
+      const delta = direction === 'forward' ? jumpDistance : -jumpDistance
+      const newTime = Math.max(0, Math.min(duration, currentTime + delta))
+      onSeek(newTime)
+    },
+    [currentTime, duration, jumpDistance, onSeek]
+  )
 
   // Handle skip to start/end
-  const handleSkip = useCallback((direction: 'start' | 'end') => {
-    if (direction === 'start') {
-      onSeek(0)
-    } else {
-      onSeek(duration)
-    }
-    onJump?.(direction)
-  }, [onSeek, duration, onJump])
+  const handleSkip = useCallback(
+    (direction: 'start' | 'end') => {
+      if (direction === 'start') {
+        onSeek(0)
+      } else {
+        onSeek(duration)
+      }
+      onJump?.(direction)
+    },
+    [onSeek, duration, onJump]
+  )
 
   // Handle frame-by-frame navigation (assuming 30fps)
-  const handleFrameStep = useCallback((direction: 'backward' | 'forward') => {
-    const frameTime = 1 / 30 // 30 FPS
-    const delta = direction === 'forward' ? frameTime : -frameTime
-    const newTime = Math.max(0, Math.min(duration, currentTime + delta))
-    onSeek(newTime)
-  }, [currentTime, duration, onSeek])
+  const handleFrameStep = useCallback(
+    (direction: 'backward' | 'forward') => {
+      const frameTime = 1 / 30 // 30 FPS
+      const delta = direction === 'forward' ? frameTime : -frameTime
+      const newTime = Math.max(0, Math.min(duration, currentTime + delta))
+      onSeek(newTime)
+    },
+    [currentTime, duration, onSeek]
+  )
 
   return (
-    <div className={`virtual-time-controls flex items-center gap-2 ${className}`}>
+    <div
+      className={`virtual-time-controls flex items-center gap-2 ${className}`}
+    >
       {/* Skip to start */}
       <Button
         variant="secondary"
@@ -152,9 +163,9 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
           <input
             type="text"
             value={timeInput}
-            onChange={(e: any) => setTimeInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTimeInput(e.target.value)}
             onBlur={handleTimeInputSubmit}
-            onKeyDown={(e: any) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'Enter') {
                 handleTimeInputSubmit()
               } else if (e.key === 'Escape') {
@@ -180,7 +191,7 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
             {formatTime(currentTime)}
           </Button>
         )}
-        
+
         <span className="text-gray-500 text-sm">/</span>
         <span className="text-gray-300 font-mono text-sm">
           {formatTime(duration)}

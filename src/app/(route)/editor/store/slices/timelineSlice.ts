@@ -25,33 +25,33 @@ export interface Transition {
 
 export interface TimelineClip {
   id: string
-  sourceClipId: string  // 원본 ClipItem ID 참조
-  inPoint: number       // 원본 클립에서의 시작점 (초)
-  outPoint: number      // 원본 클립에서의 끝점 (초)
-  startTime: number     // 타임라인상 시작 시간 (초)
-  duration: number      // 클립 길이 (초) - (outPoint - inPoint)
-  track: TrackType      // 트랙 타입
-  trackIndex: number    // 같은 타입 내에서의 트랙 번호 (0, 1, 2...)
-  enabled: boolean      // 클립 활성화 여부
-  locked: boolean       // 편집 잠금 여부
-  effects?: Effect[]    // 적용된 효과들
-  transitions?: Transition[]  // 전환 효과들
-  volume?: number       // 오디오 볼륨 (0-1)
-  opacity?: number      // 비디오 투명도 (0-1)
+  sourceClipId: string // 원본 ClipItem ID 참조
+  inPoint: number // 원본 클립에서의 시작점 (초)
+  outPoint: number // 원본 클립에서의 끝점 (초)
+  startTime: number // 타임라인상 시작 시간 (초)
+  duration: number // 클립 길이 (초) - (outPoint - inPoint)
+  track: TrackType // 트랙 타입
+  trackIndex: number // 같은 타입 내에서의 트랙 번호 (0, 1, 2...)
+  enabled: boolean // 클립 활성화 여부
+  locked: boolean // 편집 잠금 여부
+  effects?: Effect[] // 적용된 효과들
+  transitions?: Transition[] // 전환 효과들
+  volume?: number // 오디오 볼륨 (0-1)
+  opacity?: number // 비디오 투명도 (0-1)
 }
 
 export interface Timeline {
   clips: TimelineClip[]
-  totalDuration: number     // 전체 타임라인 길이
-  playbackPosition: number  // 현재 재생 위치
-  viewportStart: number     // 뷰포트 시작 시간
-  viewportEnd: number       // 뷰포트 끝 시간
-  zoom: number             // 줌 레벨 (픽셀 per 초)
-  snapToGrid: boolean      // 그리드에 스냅 여부
-  gridSize: number         // 그리드 크기 (초)
+  totalDuration: number // 전체 타임라인 길이
+  playbackPosition: number // 현재 재생 위치
+  viewportStart: number // 뷰포트 시작 시간
+  viewportEnd: number // 뷰포트 끝 시간
+  zoom: number // 줌 레벨 (픽셀 per 초)
+  snapToGrid: boolean // 그리드에 스냅 여부
+  gridSize: number // 그리드 크기 (초)
   isSequentialMode: boolean // 연속 재생 모드 (클립들을 순서대로 이어붙임)
-  clipOrder: string[]      // 클립 재생 순서 (클립 ID 배열)
-  lastUpdated?: number     // 마지막 업데이트 타임스탬프 (자막 시스템 동기화용)
+  clipOrder: string[] // 클립 재생 순서 (클립 ID 배열)
+  lastUpdated?: number // 마지막 업데이트 타임스탬프 (자막 시스템 동기화용)
 }
 
 export interface TimelineState {
@@ -59,9 +59,9 @@ export interface TimelineState {
   selectedClipIds: Set<string>
   draggedClipId: string | null
   isPlaying: boolean
-  previewMode: boolean     // 미리보기 모드
-  editMode: 'ripple' | 'insert' | 'overwrite'  // 편집 모드
-  trackHeight: number      // 트랙 높이
+  previewMode: boolean // 미리보기 모드
+  editMode: 'ripple' | 'insert' | 'overwrite' // 편집 모드
+  trackHeight: number // 트랙 높이
 }
 
 export interface TimelineActions {
@@ -69,7 +69,7 @@ export interface TimelineActions {
   initializeTimeline: (originalClips: ClipItem[]) => void
   updateTimeline: (updates: Partial<Timeline>) => void
   resetTimeline: () => void
-  
+
   // 연속 재생 모드 관리
   enableSequentialMode: () => void
   disableSequentialMode: () => void
@@ -77,42 +77,50 @@ export interface TimelineActions {
   getSequentialClips: () => TimelineClip[]
   calculateSequentialDuration: () => number
   recalculateSequentialTimeline: () => void
-  
+
   // 클립 관리
   addTimelineClip: (clip: TimelineClip) => void
   removeTimelineClip: (clipId: string) => void
   updateTimelineClip: (clipId: string, updates: Partial<TimelineClip>) => void
-  moveTimelineClip: (clipId: string, newStartTime: number, newTrackIndex?: number) => void
+  moveTimelineClip: (
+    clipId: string,
+    newStartTime: number,
+    newTrackIndex?: number
+  ) => void
   splitTimelineClip: (clipId: string, splitTime: number) => string[] // 분할된 클립 ID 반환
-  trimTimelineClip: (clipId: string, newInPoint?: number, newOutPoint?: number) => void
+  trimTimelineClip: (
+    clipId: string,
+    newInPoint?: number,
+    newOutPoint?: number
+  ) => void
   duplicateTimelineClip: (clipId: string) => string // 복제된 클립 ID 반환
-  
+
   // 선택 관리
   selectTimelineClip: (clipId: string, multiSelect?: boolean) => void
   clearTimelineSelection: () => void
   selectAllTimelineClips: () => void
-  
+
   // 재생 제어
   setPlaybackPosition: (position: number) => void
   play: () => void
   pause: () => void
   stop: () => void
   seekTo: (time: number) => void
-  
+
   // 뷰포트 제어
   zoomTimeline: (zoom: number) => void
   setViewport: (start: number, end: number) => void
   fitTimelineToView: () => void
-  
+
   // 편집 모드
   setEditMode: (mode: 'ripple' | 'insert' | 'overwrite') => void
   toggleSnapToGrid: () => void
   setGridSize: (size: number) => void
-  
+
   // 드래그 앤 드롭
   startDragTimelineClip: (clipId: string) => void
   endDragTimelineClip: () => void
-  
+
   // 유틸리티
   getClipAtTime: (time: number, track?: TrackType) => TimelineClip | null
   getActiveClips: (time: number) => TimelineClip[]
@@ -151,8 +159,12 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     set((state) => {
       const timelineClips: TimelineClip[] = originalClips.map((clip, index) => {
         // 클립의 시작/끝 시간 계산
-        const startTime = clip.words.length > 0 ? clip.words[0].start : index * 5
-        const endTime = clip.words.length > 0 ? clip.words[clip.words.length - 1].end : startTime + 5
+        const startTime =
+          clip.words.length > 0 ? clip.words[0].start : index * 5
+        const endTime =
+          clip.words.length > 0
+            ? clip.words[clip.words.length - 1].end
+            : startTime + 5
         const duration = endTime - startTime
 
         return {
@@ -174,15 +186,18 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       })
 
       // 클립 순서 초기화 (원본 순서대로)
-      const clipOrder = timelineClips.map(clip => clip.id)
+      const clipOrder = timelineClips.map((clip) => clip.id)
 
       // 총 지속 시간 계산
       const totalDuration = Math.max(
-        ...timelineClips.map(clip => clip.startTime + clip.duration),
+        ...timelineClips.map((clip) => clip.startTime + clip.duration),
         60 // 최소 1분
       )
 
-      log('timelineSlice.ts', `Timeline initialized with ${timelineClips.length} clips, duration: ${totalDuration}s`)
+      log(
+        'timelineSlice.ts',
+        `Timeline initialized with ${timelineClips.length} clips, duration: ${totalDuration}s`
+      )
 
       return {
         ...state,
@@ -192,7 +207,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
           clipOrder,
           totalDuration,
           viewportEnd: Math.min(totalDuration, 60),
-        }
+        },
       }
     })
   },
@@ -206,7 +221,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           ...updates,
-        }
+        },
       }
     })
   },
@@ -229,7 +244,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     set((state) => {
       const newClips = [...state.timeline.clips, clip]
       const totalDuration = Math.max(
-        ...newClips.map(c => c.startTime + c.duration),
+        ...newClips.map((c) => c.startTime + c.duration),
         state.timeline.totalDuration
       )
 
@@ -241,7 +256,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
           ...state.timeline,
           clips: newClips,
           totalDuration,
-        }
+        },
       }
     })
   },
@@ -249,7 +264,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 타임라인 클립 제거
   removeTimelineClip: (clipId) => {
     set((state) => {
-      const newClips = state.timeline.clips.filter(c => c.id !== clipId)
+      const newClips = state.timeline.clips.filter((c) => c.id !== clipId)
       const newSelectedIds = new Set(state.selectedClipIds)
       newSelectedIds.delete(clipId)
 
@@ -262,7 +277,8 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
           clips: newClips,
         },
         selectedClipIds: newSelectedIds,
-        draggedClipId: state.draggedClipId === clipId ? null : state.draggedClipId,
+        draggedClipId:
+          state.draggedClipId === clipId ? null : state.draggedClipId,
       }
     })
   },
@@ -270,7 +286,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 타임라인 클립 업데이트
   updateTimelineClip: (clipId, updates) => {
     set((state) => {
-      const newClips = state.timeline.clips.map(clip =>
+      const newClips = state.timeline.clips.map((clip) =>
         clip.id === clipId ? { ...clip, ...updates } : clip
       )
 
@@ -279,7 +295,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           clips: newClips,
-        }
+        },
       }
     })
   },
@@ -287,19 +303,20 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 타임라인 클립 이동
   moveTimelineClip: (clipId, newStartTime, newTrackIndex) => {
     set((state) => {
-      const newClips = state.timeline.clips.map(clip => {
+      const newClips = state.timeline.clips.map((clip) => {
         if (clip.id === clipId) {
           return {
             ...clip,
             startTime: newStartTime,
-            trackIndex: newTrackIndex !== undefined ? newTrackIndex : clip.trackIndex,
+            trackIndex:
+              newTrackIndex !== undefined ? newTrackIndex : clip.trackIndex,
           }
         }
         return clip
       })
 
       const totalDuration = Math.max(
-        ...newClips.map(c => c.startTime + c.duration),
+        ...newClips.map((c) => c.startTime + c.duration),
         state.timeline.totalDuration
       )
 
@@ -311,7 +328,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
           ...state.timeline,
           clips: newClips,
           totalDuration,
-        }
+        },
       }
     })
   },
@@ -319,9 +336,13 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 타임라인 클립 분할
   splitTimelineClip: (clipId, splitTime) => {
     const state = get()
-    const clip = state.timeline.clips.find(c => c.id === clipId)
-    
-    if (!clip || splitTime <= clip.startTime || splitTime >= clip.startTime + clip.duration) {
+    const clip = state.timeline.clips.find((c) => c.id === clipId)
+
+    if (
+      !clip ||
+      splitTime <= clip.startTime ||
+      splitTime >= clip.startTime + clip.duration
+    ) {
       return []
     }
 
@@ -346,7 +367,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
 
     set((state) => {
       const newClips = state.timeline.clips
-        .filter(c => c.id !== clipId)
+        .filter((c) => c.id !== clipId)
         .concat([firstClip, secondClip])
 
       log('timelineSlice.ts', `Split clip ${clipId} at ${splitTime}s`)
@@ -356,7 +377,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           clips: newClips,
-        }
+        },
       }
     })
 
@@ -366,10 +387,11 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 타임라인 클립 트림
   trimTimelineClip: (clipId, newInPoint, newOutPoint) => {
     set((state) => {
-      const newClips = state.timeline.clips.map(clip => {
+      const newClips = state.timeline.clips.map((clip) => {
         if (clip.id === clipId) {
           const inPoint = newInPoint !== undefined ? newInPoint : clip.inPoint
-          const outPoint = newOutPoint !== undefined ? newOutPoint : clip.outPoint
+          const outPoint =
+            newOutPoint !== undefined ? newOutPoint : clip.outPoint
           const duration = outPoint - inPoint
 
           return {
@@ -389,7 +411,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           clips: newClips,
-        }
+        },
       }
     })
   },
@@ -397,8 +419,8 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 타임라인 클립 복제
   duplicateTimelineClip: (clipId) => {
     const state = get()
-    const clip = state.timeline.clips.find(c => c.id === clipId)
-    
+    const clip = state.timeline.clips.find((c) => c.id === clipId)
+
     if (!clip) return ''
 
     const newClipId = `${clipId}_copy_${Date.now()}`
@@ -411,7 +433,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     set((state) => {
       const newClips = [...state.timeline.clips, newClip]
       const totalDuration = Math.max(
-        ...newClips.map(c => c.startTime + c.duration),
+        ...newClips.map((c) => c.startTime + c.duration),
         state.timeline.totalDuration
       )
 
@@ -423,7 +445,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
           ...state.timeline,
           clips: newClips,
           totalDuration,
-        }
+        },
       }
     })
 
@@ -465,7 +487,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   selectAllTimelineClips: () => {
     set((state) => ({
       ...state,
-      selectedClipIds: new Set(state.timeline.clips.map(clip => clip.id)),
+      selectedClipIds: new Set(state.timeline.clips.map((clip) => clip.id)),
     }))
   },
 
@@ -475,8 +497,11 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       ...state,
       timeline: {
         ...state.timeline,
-        playbackPosition: Math.max(0, Math.min(position, state.timeline.totalDuration)),
-      }
+        playbackPosition: Math.max(
+          0,
+          Math.min(position, state.timeline.totalDuration)
+        ),
+      },
     }))
   },
 
@@ -512,7 +537,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           playbackPosition: 0,
-        }
+        },
       }
     })
   },
@@ -520,13 +545,16 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 시크
   seekTo: (time) => {
     set((state) => {
-      const clampedTime = Math.max(0, Math.min(time, state.timeline.totalDuration))
+      const clampedTime = Math.max(
+        0,
+        Math.min(time, state.timeline.totalDuration)
+      )
       return {
         ...state,
         timeline: {
           ...state.timeline,
           playbackPosition: clampedTime,
-        }
+        },
       }
     })
   },
@@ -538,7 +566,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       timeline: {
         ...state.timeline,
         zoom: Math.max(1, Math.min(zoom, 100)), // 1-100 픽셀 per 초
-      }
+      },
     }))
   },
 
@@ -550,7 +578,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         ...state.timeline,
         viewportStart: Math.max(0, start),
         viewportEnd: Math.min(end, state.timeline.totalDuration),
-      }
+      },
     }))
   },
 
@@ -562,7 +590,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         ...state.timeline,
         viewportStart: 0,
         viewportEnd: state.timeline.totalDuration,
-      }
+      },
     }))
   },
 
@@ -584,7 +612,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       timeline: {
         ...state.timeline,
         snapToGrid: !state.timeline.snapToGrid,
-      }
+      },
     }))
   },
 
@@ -595,7 +623,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       timeline: {
         ...state.timeline,
         gridSize: Math.max(0.1, size),
-      }
+      },
     }))
   },
 
@@ -618,18 +646,22 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   // 특정 시간에 있는 클립 찾기
   getClipAtTime: (time, track) => {
     const state = get()
-    return state.timeline.clips.find(clip => {
-      const inRange = time >= clip.startTime && time < clip.startTime + clip.duration
-      const trackMatch = !track || clip.track === track
-      return inRange && trackMatch && clip.enabled
-    }) || null
+    return (
+      state.timeline.clips.find((clip) => {
+        const inRange =
+          time >= clip.startTime && time < clip.startTime + clip.duration
+        const trackMatch = !track || clip.track === track
+        return inRange && trackMatch && clip.enabled
+      }) || null
+    )
   },
 
   // 특정 시간에 활성화된 모든 클립 찾기
   getActiveClips: (time) => {
     const state = get()
-    return state.timeline.clips.filter(clip => {
-      const inRange = time >= clip.startTime && time < clip.startTime + clip.duration
+    return state.timeline.clips.filter((clip) => {
+      const inRange =
+        time >= clip.startTime && time < clip.startTime + clip.duration
       return inRange && clip.enabled
     })
   },
@@ -638,16 +670,16 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
   calculateTimelineDuration: () => {
     const state = get()
     const maxEndTime = Math.max(
-      ...state.timeline.clips.map(clip => clip.startTime + clip.duration),
+      ...state.timeline.clips.map((clip) => clip.startTime + clip.duration),
       0
     )
-    
+
     set((state) => ({
       ...state,
       timeline: {
         ...state.timeline,
         totalDuration: maxEndTime,
-      }
+      },
     }))
 
     return maxEndTime
@@ -662,7 +694,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           isSequentialMode: true,
-        }
+        },
       }
     })
   },
@@ -676,7 +708,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         timeline: {
           ...state.timeline,
           isSequentialMode: false,
-        }
+        },
       }
     })
   },
@@ -688,10 +720,12 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         // 연속 재생 모드: 클립들을 새로운 순서로 연속 배치
         let currentTime = 0
         const reorderedClips: TimelineClip[] = []
-        
+
         // 새로운 순서대로 클립들을 재배치
         for (const clipId of newOrder) {
-          const originalClip = state.timeline.clips.find(clip => clip.id === clipId)
+          const originalClip = state.timeline.clips.find(
+            (clip) => clip.id === clipId
+          )
           if (originalClip) {
             const reorderedClip = {
               ...originalClip,
@@ -703,18 +737,24 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
         }
 
         // 순서에 없는 클립들은 끝에 추가 (비활성화)
-        const remainingClips = state.timeline.clips.filter(clip => 
-          !newOrder.includes(clip.id)
-        ).map(clip => ({
-          ...clip,
-          startTime: currentTime,
-          enabled: false, // 순서에서 제외된 클립은 비활성화
-        }))
+        const remainingClips = state.timeline.clips
+          .filter((clip) => !newOrder.includes(clip.id))
+          .map((clip) => ({
+            ...clip,
+            startTime: currentTime,
+            enabled: false, // 순서에서 제외된 클립은 비활성화
+          }))
 
         const allClips = [...reorderedClips, ...remainingClips]
-        const totalDuration = Math.max(currentTime, state.timeline.totalDuration)
+        const totalDuration = Math.max(
+          currentTime,
+          state.timeline.totalDuration
+        )
 
-        log('timelineSlice.ts', `Sequential timeline reconstructed: ${reorderedClips.length} active clips, total duration: ${totalDuration}s`)
+        log(
+          'timelineSlice.ts',
+          `Sequential timeline reconstructed: ${reorderedClips.length} active clips, total duration: ${totalDuration}s`
+        )
 
         const newState = {
           ...state,
@@ -724,29 +764,35 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
             clipOrder: newOrder,
             totalDuration,
             // 재생 위치가 새로운 길이를 초과하면 조정
-            playbackPosition: Math.min(state.timeline.playbackPosition, totalDuration),
+            playbackPosition: Math.min(
+              state.timeline.playbackPosition,
+              totalDuration
+            ),
             // Add a timestamp to force subtitle system re-render
-            lastUpdated: Date.now()
-          }
+            lastUpdated: Date.now(),
+          },
         }
 
         console.log('[timelineSlice] Timeline updated after reorder:', {
           clipOrderLength: newOrder.length,
           totalClips: allClips.length,
           totalDuration,
-          timestamp: newState.timeline.lastUpdated
+          timestamp: newState.timeline.lastUpdated,
         })
 
         return newState
       } else {
         // 일반 모드: 순서만 기록, 실제 배치는 변경하지 않음
-        log('timelineSlice.ts', `Clip order updated (non-sequential mode): ${newOrder.length} clips`)
+        log(
+          'timelineSlice.ts',
+          `Clip order updated (non-sequential mode): ${newOrder.length} clips`
+        )
         return {
           ...state,
           timeline: {
             ...state.timeline,
             clipOrder: newOrder,
-          }
+          },
         }
       }
     })
@@ -760,26 +806,30 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     }
 
     // Safety check: ensure clipOrder is an array
-    const clipOrder = Array.isArray(state.timeline.clipOrder) ? state.timeline.clipOrder : []
-    
+    const clipOrder = Array.isArray(state.timeline.clipOrder)
+      ? state.timeline.clipOrder
+      : []
+
     // If clipOrder is empty, return clips in their original order
     if (clipOrder.length === 0) {
-      console.log('[timelineSlice] clipOrder is empty, returning clips in original order')
+      console.log(
+        '[timelineSlice] clipOrder is empty, returning clips in original order'
+      )
       return state.timeline.clips
     }
-    
+
     const sequentialClips = clipOrder
-      .map(clipId => state.timeline.clips.find(clip => clip.id === clipId))
+      .map((clipId) => state.timeline.clips.find((clip) => clip.id === clipId))
       .filter(Boolean) as TimelineClip[]
-      
+
     console.log('[timelineSlice] getSequentialClips:', {
       clipOrder: clipOrder.length,
       timelineClips: state.timeline.clips.length,
       sequentialClips: sequentialClips.length,
       clipOrderIds: clipOrder,
-      timelineClipIds: state.timeline.clips.map(c => c.id)
+      timelineClipIds: state.timeline.clips.map((c) => c.id),
     })
-    
+
     return sequentialClips
   },
 
@@ -791,14 +841,17 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
     }
 
     const sequentialClips = get().getSequentialClips()
-    const totalDuration = sequentialClips.reduce((sum, clip) => sum + clip.duration, 0)
+    const totalDuration = sequentialClips.reduce(
+      (sum, clip) => sum + clip.duration,
+      0
+    )
 
     set((state) => ({
       ...state,
       timeline: {
         ...state.timeline,
         totalDuration,
-      }
+      },
     }))
 
     return totalDuration
@@ -815,7 +868,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
 
     set((currentState) => {
       let currentTime = 0
-      const updatedClips = currentState.timeline.clips.map(clip => {
+      const updatedClips = currentState.timeline.clips.map((clip) => {
         // clipOrder에 있는 순서로 클립들을 연속 배치
         const orderIndex = currentState.timeline.clipOrder.indexOf(clip.id)
         if (orderIndex >= 0) {
@@ -834,12 +887,12 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
       const orderedClips = [...updatedClips].sort((a, b) => {
         const aIndex = currentState.timeline.clipOrder.indexOf(a.id)
         const bIndex = currentState.timeline.clipOrder.indexOf(b.id)
-        
+
         // clipOrder에 없는 클립은 맨 뒤로
         if (aIndex === -1 && bIndex === -1) return 0
         if (aIndex === -1) return 1
         if (bIndex === -1) return -1
-        
+
         return aIndex - bIndex
       })
 
@@ -849,7 +902,7 @@ export const createTimelineSlice: StateCreator<TimelineSlice> = (set, get) => ({
           ...currentState.timeline,
           clips: orderedClips,
           totalDuration: currentTime,
-        }
+        },
       }
     })
 

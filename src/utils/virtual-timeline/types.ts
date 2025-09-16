@@ -9,25 +9,25 @@
  */
 export interface VirtualSegment {
   id: string
-  virtualStartTime: number    // Virtual timeline 상의 시작 시간
-  virtualEndTime: number      // Virtual timeline 상의 끝 시간
-  realStartTime: number       // 실제 비디오의 시작 시간
-  realEndTime: number         // 실제 비디오의 끝 시간
-  sourceClipId: string        // 원본 ClipItem ID
-  isEnabled: boolean          // 세그먼트 활성화 여부
-  type: 'normal' | 'split' | 'moved'  // 세그먼트 타입
+  virtualStartTime: number // Virtual timeline 상의 시작 시간
+  virtualEndTime: number // Virtual timeline 상의 끝 시간
+  realStartTime: number // 실제 비디오의 시작 시간
+  realEndTime: number // 실제 비디오의 끝 시간
+  sourceClipId: string // 원본 ClipItem ID
+  isEnabled: boolean // 세그먼트 활성화 여부
+  type: 'normal' | 'split' | 'moved' // 세그먼트 타입
 }
 
 /**
  * Virtual Timeline 상태 정의
  */
 export interface VirtualTimeline {
-  currentTime: number         // 현재 virtual time
-  duration: number           // 전체 virtual timeline 길이
-  isPlaying: boolean         // 재생 상태
+  currentTime: number // 현재 virtual time
+  duration: number // 전체 virtual timeline 길이
+  isPlaying: boolean // 재생 상태
   segments: VirtualSegment[] // Virtual 세그먼트 목록
-  clipOrder: string[]        // 클립 재생 순서
-  lastUpdated: number        // 마지막 업데이트 타임스탬프
+  clipOrder: string[] // 클립 재생 순서
+  lastUpdated: number // 마지막 업데이트 타임스탬프
 }
 
 /**
@@ -48,11 +48,11 @@ export interface VirtualPlayerControl {
  * RVFC 프레임 정보
  */
 export interface VirtualFrameData {
-  virtualTime: number                    // Virtual timeline 시간
-  mediaTime: number                      // 실제 비디오 시간
-  displayTime: DOMHighResTimeStamp      // 브라우저 표시 예정 시각
-  frameNumber?: number                   // 프레임 번호 (선택적)
-  activeSegments: VirtualSegment[]       // 현재 활성 세그먼트들
+  virtualTime: number // Virtual timeline 시간
+  mediaTime: number // 실제 비디오 시간
+  displayTime: DOMHighResTimeStamp // 브라우저 표시 예정 시각
+  frameNumber?: number // 프레임 번호 (선택적)
+  activeSegments: VirtualSegment[] // 현재 활성 세그먼트들
 }
 
 /**
@@ -104,20 +104,20 @@ export interface CutEditOperation {
 
 export interface SplitOperation extends CutEditOperation {
   type: 'split'
-  splitPoint: number  // Virtual time에서의 분할 지점
-  resultClipIds: [string, string]  // 분할 결과 생성된 클립 ID들
+  splitPoint: number // Virtual time에서의 분할 지점
+  resultClipIds: [string, string] // 분할 결과 생성된 클립 ID들
 }
 
 export interface DeleteOperation extends CutEditOperation {
   type: 'delete'
-  originalSegment: VirtualSegment  // 삭제된 원본 세그먼트
+  originalSegment: VirtualSegment // 삭제된 원본 세그먼트
 }
 
 export interface MoveOperation extends CutEditOperation {
   type: 'move'
   fromPosition: number
   toPosition: number
-  targetWordId?: string  // Word-level move의 경우
+  targetWordId?: string // Word-level move의 경우
 }
 
 export interface RestoreOperation extends CutEditOperation {
@@ -140,11 +140,11 @@ export interface TimelineMapping {
  * Virtual Timeline 설정
  */
 export interface VirtualTimelineConfig {
-  enableFramePrecision: boolean    // 프레임 단위 정밀도 활성화
-  frameRate: number               // 타겟 프레임레이트
-  bufferSize: number              // 프레임 버퍼 크기
-  syncThreshold: number           // 동기화 임계값 (ms)
-  debugMode: boolean              // 디버그 모드
+  enableFramePrecision: boolean // 프레임 단위 정밀도 활성화
+  frameRate: number // 타겟 프레임레이트
+  bufferSize: number // 프레임 버퍼 크기
+  syncThreshold: number // 동기화 임계값 (ms)
+  debugMode: boolean // 디버그 모드
 }
 
 /**

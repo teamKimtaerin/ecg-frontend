@@ -26,13 +26,13 @@ export type PlaybackCompleteCallback = () => void
 export class VirtualSegmentController {
   private config: SegmentControllerConfig
   private timeline: VirtualTimeline | null = null
-  
+
   // 현재 상태 추적
   private currentSegment: VirtualSegment | null = null
   private lastTransitionTime: number = 0
   private isTransitioning: boolean = false
   private debounceTimeoutId: NodeJS.Timeout | null = null
-  
+
   // 콜백들
   private transitionCallbacks: Set<SegmentTransitionCallback> = new Set()
   private completeCallbacks: Set<PlaybackCompleteCallback> = new Set()
@@ -42,7 +42,7 @@ export class VirtualSegmentController {
       boundaryThreshold: 0.05, // 50ms
       debounceTime: 100, // 100ms
       debugMode: false,
-      ...config
+      ...config,
     }
 
     if (this.config.debugMode) {
@@ -58,10 +58,12 @@ export class VirtualSegmentController {
     this.currentSegment = null
     this.isTransitioning = false
     this.lastTransitionTime = 0
-    
+
     if (this.config.debugMode) {
-      log('VirtualSegmentController', 
-        `Timeline set with ${timeline.segments.filter(s => s.isEnabled).length} active segments`)
+      log(
+        'VirtualSegmentController',
+        `Timeline set with ${timeline.segments.filter((s) => s.isEnabled).length} active segments`
+      )
     }
   }
 
@@ -75,7 +77,7 @@ export class VirtualSegmentController {
     targetTime?: number
     isPlaybackComplete?: boolean
   } {
-    // 새로운 연속적 가상 시간 모델에서는 VirtualSegmentController가 
+    // 새로운 연속적 가상 시간 모델에서는 VirtualSegmentController가
     // 자동 점프를 하지 않고 VirtualPlayerController가 모든 제어를 담당
     return { needsTransition: false }
   }
@@ -86,17 +88,23 @@ export class VirtualSegmentController {
   private findActiveSegment(realTime: number): VirtualSegment | null {
     if (!this.timeline) return null
 
-    return this.timeline.segments.find(segment => 
-      segment.isEnabled && 
-      realTime >= segment.realStartTime && 
-      realTime <= segment.realEndTime
-    ) || null
+    return (
+      this.timeline.segments.find(
+        (segment) =>
+          segment.isEnabled &&
+          realTime >= segment.realStartTime &&
+          realTime <= segment.realEndTime
+      ) || null
+    )
   }
 
   /**
    * 세그먼트 변경 처리
    */
-  private handleSegmentChange(realTime: number, newSegment: VirtualSegment | null): {
+  private handleSegmentChange(
+    realTime: number,
+    newSegment: VirtualSegment | null
+  ): {
     needsTransition: boolean
     targetTime?: number
     isPlaybackComplete?: boolean
@@ -108,14 +116,16 @@ export class VirtualSegmentController {
       fromSegment: previousSegment,
       toSegment: newSegment,
       transitionTime: realTime,
-      isLastSegment: this.isLastActiveSegment(newSegment)
+      isLastSegment: this.isLastActiveSegment(newSegment),
     }
 
     this.notifyTransition(transition)
 
     if (this.config.debugMode) {
-      log('VirtualSegmentController', 
-        `Segment changed: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'}`)
+      log(
+        'VirtualSegmentController',
+        `Segment changed: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'}`
+      )
     }
 
     return { needsTransition: false }
@@ -124,7 +134,10 @@ export class VirtualSegmentController {
   /**
    * 현재 세그먼트 내에서 경계 체크
    */
-  private checkSegmentBoundary(realTime: number, segment: VirtualSegment): {
+  private checkSegmentBoundary(
+    realTime: number,
+    segment: VirtualSegment
+  ): {
     needsTransition: boolean
     targetTime?: number
     isPlaybackComplete?: boolean
@@ -134,31 +147,36 @@ export class VirtualSegmentController {
     if (timeUntilEnd <= this.config.boundaryThreshold && timeUntilEnd > 0) {
       // 세그먼트 끝에 가까움 - 다음 세그먼트로 이동 필요
       const nextSegment = this.findNextActiveSegment(segment.realEndTime)
-      
+
       if (nextSegment) {
         // 다음 세그먼트로 이동
         this.startTransition()
-        
+
         if (this.config.debugMode) {
-          log('VirtualSegmentController', 
-            `Segment boundary detected: moving from ${realTime.toFixed(3)}s to ${nextSegment.realStartTime.toFixed(3)}s`)
+          log(
+            'VirtualSegmentController',
+            `Segment boundary detected: moving from ${realTime.toFixed(3)}s to ${nextSegment.realStartTime.toFixed(3)}s`
+          )
         }
 
         return {
           needsTransition: true,
-          targetTime: nextSegment.realStartTime
+          targetTime: nextSegment.realStartTime,
         }
       } else {
         // 마지막 세그먼트 - 재생 완료
         if (this.config.debugMode) {
-          log('VirtualSegmentController', 'Last segment completed, ending playback')
+          log(
+            'VirtualSegmentController',
+            'Last segment completed, ending playback'
+          )
         }
 
         this.notifyPlaybackComplete()
-        
+
         return {
           needsTransition: false,
-          isPlaybackComplete: true
+          isPlaybackComplete: true,
         }
       }
     }
@@ -175,30 +193,35 @@ export class VirtualSegmentController {
     isPlaybackComplete?: boolean
   } {
     const nextSegment = this.findNextActiveSegment(realTime)
-    
+
     if (nextSegment) {
       this.startTransition()
-      
+
       if (this.config.debugMode) {
-        log('VirtualSegmentController', 
-          `Invalid position at ${realTime.toFixed(3)}s, moving to next segment at ${nextSegment.realStartTime.toFixed(3)}s`)
+        log(
+          'VirtualSegmentController',
+          `Invalid position at ${realTime.toFixed(3)}s, moving to next segment at ${nextSegment.realStartTime.toFixed(3)}s`
+        )
       }
 
       return {
         needsTransition: true,
-        targetTime: nextSegment.realStartTime
+        targetTime: nextSegment.realStartTime,
       }
     } else {
       // 더 이상 유효한 세그먼트가 없음
       if (this.config.debugMode) {
-        log('VirtualSegmentController', 'No more segments available, ending playback')
+        log(
+          'VirtualSegmentController',
+          'No more segments available, ending playback'
+        )
       }
 
       this.notifyPlaybackComplete()
-      
+
       return {
         needsTransition: false,
-        isPlaybackComplete: true
+        isPlaybackComplete: true,
       }
     }
   }
@@ -210,7 +233,9 @@ export class VirtualSegmentController {
     if (!this.timeline) return null
 
     const nextSegments = this.timeline.segments
-      .filter(segment => segment.isEnabled && segment.realStartTime > afterTime)
+      .filter(
+        (segment) => segment.isEnabled && segment.realStartTime > afterTime
+      )
       .sort((a, b) => a.realStartTime - b.realStartTime)
 
     return nextSegments[0] || null
@@ -223,7 +248,7 @@ export class VirtualSegmentController {
     if (!segment || !this.timeline) return false
 
     const activeSegments = this.timeline.segments
-      .filter(s => s.isEnabled)
+      .filter((s) => s.isEnabled)
       .sort((a, b) => a.realStartTime - b.realStartTime)
 
     return activeSegments[activeSegments.length - 1]?.id === segment.id
@@ -235,12 +260,12 @@ export class VirtualSegmentController {
   private startTransition(): void {
     this.isTransitioning = true
     this.lastTransitionTime = Date.now()
-    
+
     // 기존 디바운스 타이머 클리어
     if (this.debounceTimeoutId) {
       clearTimeout(this.debounceTimeoutId)
     }
-    
+
     // 새 디바운스 타이머 설정
     this.debounceTimeoutId = setTimeout(() => {
       this.isTransitioning = false
@@ -252,7 +277,10 @@ export class VirtualSegmentController {
    * 디바운스 상태 확인
    */
   private isInDebounceState(): boolean {
-    return this.isTransitioning || (Date.now() - this.lastTransitionTime) < this.config.debounceTime
+    return (
+      this.isTransitioning ||
+      Date.now() - this.lastTransitionTime < this.config.debounceTime
+    )
   }
 
   /**
@@ -275,7 +303,7 @@ export class VirtualSegmentController {
    * 세그먼트 전환 알림
    */
   private notifyTransition(transition: SegmentTransition): void {
-    this.transitionCallbacks.forEach(callback => {
+    this.transitionCallbacks.forEach((callback) => {
       try {
         callback(transition)
       } catch (error) {
@@ -288,11 +316,15 @@ export class VirtualSegmentController {
    * 재생 완료 알림
    */
   private notifyPlaybackComplete(): void {
-    this.completeCallbacks.forEach(callback => {
+    this.completeCallbacks.forEach((callback) => {
       try {
         callback()
       } catch (error) {
-        log('VirtualSegmentController', 'Playback complete callback error:', error)
+        log(
+          'VirtualSegmentController',
+          'Playback complete callback error:',
+          error
+        )
       }
     })
   }
@@ -312,8 +344,9 @@ export class VirtualSegmentController {
       currentSegment: this.currentSegment?.id || null,
       isTransitioning: this.isTransitioning,
       lastTransitionTime: this.lastTransitionTime,
-      activeSegments: this.timeline?.segments.filter(s => s.isEnabled).length || 0,
-      totalSegments: this.timeline?.segments.length || 0
+      activeSegments:
+        this.timeline?.segments.filter((s) => s.isEnabled).length || 0,
+      totalSegments: this.timeline?.segments.length || 0,
     }
   }
 
@@ -325,13 +358,13 @@ export class VirtualSegmentController {
       clearTimeout(this.debounceTimeoutId)
       this.debounceTimeoutId = null
     }
-    
+
     this.transitionCallbacks.clear()
     this.completeCallbacks.clear()
     this.currentSegment = null
     this.timeline = null
     this.isTransitioning = false
-    
+
     if (this.config.debugMode) {
       log('VirtualSegmentController', 'Disposed')
     }

@@ -38,9 +38,13 @@ export function findCurrentWord(
     if (currentTime >= clipStartTime && currentTime <= clipEndTime) {
       // Find the active word within this clip
       const relativeTime = currentTime - clipStartTime
-      
+
       for (const word of clip.words) {
-        if (!word || typeof word.start !== 'number' || typeof word.end !== 'number') {
+        if (
+          !word ||
+          typeof word.start !== 'number' ||
+          typeof word.end !== 'number'
+        ) {
           continue
         }
 
@@ -48,24 +52,35 @@ export function findCurrentWord(
         const tolerance = 0.05
         const wordAbsoluteStart = clipStartTime + word.start
         const wordAbsoluteEnd = clipStartTime + word.end
-        
-        if (currentTime >= (wordAbsoluteStart - tolerance) && currentTime < (wordAbsoluteEnd + tolerance)) {
+
+        if (
+          currentTime >= wordAbsoluteStart - tolerance &&
+          currentTime < wordAbsoluteEnd + tolerance
+        ) {
           // Only log occasionally to avoid spam
-          if (Math.random() < 0.01) { // 1% chance
-            log('currentWordFinder', `Found current word: "${word.text}" at ${currentTime}s (word: ${wordAbsoluteStart}-${wordAbsoluteEnd})`)
+          if (Math.random() < 0.01) {
+            // 1% chance
+            log(
+              'currentWordFinder',
+              `Found current word: "${word.text}" at ${currentTime}s (word: ${wordAbsoluteStart}-${wordAbsoluteEnd})`
+            )
           }
           return {
             clipId: clip.id,
             wordId: word.id,
             word,
-            clip
+            clip,
           }
         }
       }
 
       // Less verbose logging for debugging
-      if (Math.random() < 0.001) { // 0.1% chance
-        log('currentWordFinder', `In clip ${clip.id} at ${currentTime}s (relative: ${relativeTime}s) but no active word found`)
+      if (Math.random() < 0.001) {
+        // 0.1% chance
+        log(
+          'currentWordFinder',
+          `In clip ${clip.id} at ${currentTime}s (relative: ${relativeTime}s) but no active word found`
+        )
       }
     }
   }
@@ -82,7 +97,9 @@ function parseTimeToSeconds(timeStr: string): number {
   }
 
   // Handle timeline format "MM:SS → MM:SS" by taking the first part
-  const startTimeStr = timeStr.includes(' → ') ? timeStr.split(' → ')[0] : timeStr
+  const startTimeStr = timeStr.includes(' → ')
+    ? timeStr.split(' → ')[0]
+    : timeStr
 
   if (startTimeStr.includes(':')) {
     const parts = startTimeStr.split(':').map(Number)
@@ -96,7 +113,7 @@ function parseTimeToSeconds(timeStr: string): number {
       return (minutes || 0) * 60 + (seconds || 0)
     }
   }
-  
+
   return parseFloat(startTimeStr) || 0
 }
 
@@ -107,7 +124,7 @@ function parseDurationToSeconds(durationStr: string): number {
   if (!durationStr || typeof durationStr !== 'string') {
     return 0
   }
-  
+
   // Remove '초' suffix if present and parse
   const cleanStr = durationStr.replace('초', '').trim()
   return parseFloat(cleanStr) || 0

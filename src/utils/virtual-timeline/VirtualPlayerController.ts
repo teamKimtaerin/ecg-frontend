@@ -17,7 +17,7 @@ import {
   TimeUpdateCallback,
   VirtualTimeline,
   VirtualTimelineConfig,
-  VirtualSegment
+  VirtualSegment,
 } from './types'
 
 // MotionText Renderer 연동을 위한 콜백 타입
@@ -39,7 +39,9 @@ interface RVFCMetadata {
   processingDuration?: number
 }
 
-export class VirtualPlayerController implements VirtualPlayerControl, VirtualPlayerEvents {
+export class VirtualPlayerController
+  implements VirtualPlayerControl, VirtualPlayerEvents
+{
   private video: HTMLVideoElement | null = null
   private timelineMapper: ECGTimelineMapper
   private config: VirtualTimelineConfig
@@ -52,11 +54,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private stopCallbacks: Set<PlayStateCallback> = new Set()
   private seekCallbacks: Set<SeekCallback> = new Set()
   private timeUpdateCallbacks: Set<TimeUpdateCallback> = new Set()
-  private timelineChangeCallbacks: Set<(timeline: VirtualTimeline) => void> = new Set()
-  
+  private timelineChangeCallbacks: Set<(timeline: VirtualTimeline) => void> =
+    new Set()
+
   // MotionText Renderer 연동 콜백
   private motionTextSeekCallbacks: Set<MotionTextSeekCallback> = new Set()
-  
+
   // MotionText 직접 제어 (프레임 동기화 통합)
   private motionTextRenderer: MotionTextRendererRef | null = null
   private motionTextIntegrationEnabled: boolean = false
@@ -76,7 +79,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private baseFrameProcessingDebounceMs: number = 20 // ~50fps 기준 (더 보수적)
   private maxFrameProcessingDebounceMs: number = 40 // ~25fps 최대 (성능 저하시)
   private currentFrameProcessingDebounceMs: number = 20 // 현재 동적 값
-  
+
   // 성능 모니터링을 위한 변수들
   private frameTimes: number[] = [] // 최근 프레임 시간들 (rolling window)
   private frameTimeWindowSize: number = 30 // 0.5초간의 프레임 기록
@@ -84,22 +87,22 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private performanceCheckInterval: number = 500 // 0.5초마다 성능 체크
   private consecutiveSlowFrames: number = 0
   private maxConsecutiveSlowFrames: number = 5 // 5프레임 연속 느리면 조정
-  
+
   // Continuous virtual time progression
   private virtualTimeStartTimestamp: number = 0 // 가상 시간 시작 기준점
   private virtualTimePausedAt: number = 0 // 일시정지된 가상 시간
   private isVirtualTimeRunning: boolean = false // 가상 시간 진행 상태
-  
-  // Current active segment tracking  
+
+  // Current active segment tracking
   private currentActiveSegment: VirtualSegment | null = null
   private lastVirtualTimeProcessed: number = -1
-  
+
   // Performance optimization caching (Multi-Level)
   private cachedVirtualTime: number = 0
   private cachedActiveSegment: VirtualSegment | null = null
   private lastCacheUpdateTime: number = 0
   private cacheValidityThreshold: number = 10 // 10ms cache validity
-  
+
   // 다중 레벨 캐싱 (Current + Neighbors)
   private segmentCacheMap: Map<string, VirtualSegment> = new Map()
   private neighborCache: {
@@ -109,11 +112,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   } = { prev: null, current: null, next: null }
   private cacheHitCount: number = 0
   private cacheMissCount: number = 0
-  
+
   // Callback throttling
   private lastCallbackTime: number = 0
   private callbackThrottleMs: number = 5 // 5ms callback throttling (improved responsiveness)
-  
+
   // 콜백 배치 처리
   private pendingCallbacks: {
     frameData?: VirtualFrameData
@@ -121,28 +124,28 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     motionTextSeek?: number
   } = {}
   private callbackBatchScheduled: boolean = false
-  
+
   // 메모리 최적화 - Object Pooling
   private frameDataPool: VirtualFrameData[] = []
   private maxPoolSize: number = 10
   private reusableFrameData: VirtualFrameData | null = null
-  
+
   // 디버깅 성능 최적화
   private debugLogQueue: string[] = []
   private lastDebugFlush: number = 0
   private debugFlushInterval: number = 1000 // 1초마다 로그 플러시
   private debugLevel: 'none' | 'minimal' | 'verbose' = 'minimal'
-  
+
   // Video position update optimization (더욱 보수적 설정)
   private lastVideoUpdateTime: number = 0
   private videoUpdateThreshold: number = 200 // 200ms threshold (최대한 적은 seek로 부드러운 재생)
-  
+
   // 예측적 Seek 최적화
   private lastVideoSeekTime: number = 0
   private videoSeekTargetTime: number = -1
   private isVideoSeeking: boolean = false
   private naturalPlaybackToleranceMs: number = 500 // 자연스러운 재생 허용 오차 (초관대하게 - 끊김 방지 최우선)
-  
+
   // 세그먼트 탐색 최적화 (Binary Search)
   private sortedActiveSegments: VirtualSegment[] = []
   private segmentsSortTimestamp: number = 0
@@ -158,16 +161,16 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       bufferSize: 10,
       syncThreshold: 16.67,
       debugMode: false,
-      ...config
+      ...config,
     }
 
     // VirtualSegmentController 초기화
     this.segmentController = new VirtualSegmentController({
       boundaryThreshold: 0.05, // 50ms
       debounceTime: 100, // 100ms
-      debugMode: this.config.debugMode
+      debugMode: this.config.debugMode,
     })
-    
+
     // 디버깅 레벨 설정 (config에서 가져오거나 기본값)
     this.debugLevel = this.config.debugMode ? 'minimal' : 'none'
 
@@ -254,22 +257,28 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (!this.video) return
 
     // 가상 시간 직접 설정
-    this.currentVirtualTime = Math.max(0, Math.min(virtualTime, this.getDuration()))
-    
+    this.currentVirtualTime = Math.max(
+      0,
+      Math.min(virtualTime, this.getDuration())
+    )
+
     // 가상 시간 진행 상태 업데이트 (seek 시 현재 위치 기준으로 재설정)
     if (this.isVirtualTimeRunning) {
       this.virtualTimePausedAt = this.currentVirtualTime
       this.virtualTimeStartTimestamp = performance.now()
     }
-    
+
     // 현재 가상 시간에 해당하는 세그먼트 찾기 및 비디오 위치 설정
     this.updateVideoPositionFromVirtualTime()
-    
+
     this.notifySeekCallbacks(this.currentVirtualTime)
     this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
     this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
-    
-    log('VirtualPlayerController', `Seeked to virtual time: ${this.currentVirtualTime.toFixed(3)}s`)
+
+    log(
+      'VirtualPlayerController',
+      `Seeked to virtual time: ${this.currentVirtualTime.toFixed(3)}s`
+    )
   }
 
   getCurrentTime(): number {
@@ -335,8 +344,10 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   handleTimelineUpdate(timeline: VirtualTimeline): void {
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 
-        `Timeline updated: ${timeline.segments.filter(s => s.isEnabled).length} active segments of ${timeline.segments.length} total`)
+      log(
+        'VirtualPlayerController',
+        `Timeline updated: ${timeline.segments.filter((s) => s.isEnabled).length} active segments of ${timeline.segments.length} total`
+      )
     }
 
     // 세그먼트 컨트롤러에 새로운 타임라인 설정
@@ -344,18 +355,25 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
 
     // 현재 Virtual Time을 새로운 타임라인에 맞게 조정
     if (this.currentVirtualTime > timeline.duration) {
-      this.currentVirtualTime = Math.min(this.currentVirtualTime, timeline.duration)
-      log('VirtualPlayerController', `Adjusted virtual time to ${this.currentVirtualTime} due to timeline shrinkage`)
+      this.currentVirtualTime = Math.min(
+        this.currentVirtualTime,
+        timeline.duration
+      )
+      log(
+        'VirtualPlayerController',
+        `Adjusted virtual time to ${this.currentVirtualTime} due to timeline shrinkage`
+      )
     }
 
     // 현재 재생 중이고 유효하지 않은 위치에 있다면 조정
     if (this.video) {
       const currentRealTime = this.video.currentTime
-      
+
       if (!this.isWithinValidSegment(currentRealTime)) {
         if (this.isPlaying) {
           // 재생 중이면 세그먼트 컨트롤러를 통해 처리
-          const result = this.segmentController.processCurrentTime(currentRealTime)
+          const result =
+            this.segmentController.processCurrentTime(currentRealTime)
           if (result.needsTransition && result.targetTime !== undefined) {
             this.video.currentTime = result.targetTime
           }
@@ -367,7 +385,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
 
     // 모든 타임라인 변경 콜백 호출
-    this.timelineChangeCallbacks.forEach(callback => {
+    this.timelineChangeCallbacks.forEach((callback) => {
       try {
         callback(timeline)
       } catch (error) {
@@ -387,9 +405,9 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
 
     const timeline = this.timelineMapper.timelineManager.getTimeline()
     const firstSegment = timeline.segments
-      .filter(segment => segment.isEnabled)
+      .filter((segment) => segment.isEnabled)
       .sort((a, b) => a.realStartTime - b.realStartTime)[0]
-    
+
     if (firstSegment) {
       this.video.currentTime = firstSegment.realStartTime
       const mapping = this.timelineMapper.toVirtual(firstSegment.realStartTime)
@@ -398,10 +416,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
         this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
         this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
       }
-      
+
       if (this.config.debugMode) {
-        log('VirtualPlayerController', 
-          `Moved to first valid segment: ${firstSegment.realStartTime.toFixed(3)}s`)
+        log(
+          'VirtualPlayerController',
+          `Moved to first valid segment: ${firstSegment.realStartTime.toFixed(3)}s`
+        )
       }
     }
   }
@@ -420,9 +440,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   attachMotionTextRenderer(renderer: MotionTextRendererRef): void {
     this.motionTextRenderer = renderer
     this.motionTextIntegrationEnabled = true
-    
+
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 'MotionText Renderer attached for direct frame synchronization')
+      log(
+        'VirtualPlayerController',
+        'MotionText Renderer attached for direct frame synchronization'
+      )
     }
   }
 
@@ -432,7 +455,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   detachMotionTextRenderer(): void {
     this.motionTextRenderer = null
     this.motionTextIntegrationEnabled = false
-    
+
     if (this.config.debugMode) {
       log('VirtualPlayerController', 'MotionText Renderer detached')
     }
@@ -469,24 +492,36 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
 
     // Enhanced RVFC with error handling and timing optimization
     try {
-      this.rvfcHandle = this.video.requestVideoFrameCallback((now, metadata) => {
-        // RVFC 타이밍 최적화 - 안정적인 프레임 처리
-        this.handleVideoFrameWithOptimizedTiming(now, metadata as RVFCMetadata)
-        
-        // 재귀 호출을 안전하게 처리
-        if (this.isRVFCActive) {
-          this.scheduleNextFrame()
+      this.rvfcHandle = this.video.requestVideoFrameCallback(
+        (now, metadata) => {
+          // RVFC 타이밍 최적화 - 안정적인 프레임 처리
+          this.handleVideoFrameWithOptimizedTiming(
+            now,
+            metadata as RVFCMetadata
+          )
+
+          // 재귀 호출을 안전하게 처리
+          if (this.isRVFCActive) {
+            this.scheduleNextFrame()
+          }
         }
-      })
+      )
     } catch (error) {
-      log('VirtualPlayerController', 'RVFC scheduling failed, falling back to RAF:', error)
+      log(
+        'VirtualPlayerController',
+        'RVFC scheduling failed, falling back to RAF:',
+        error
+      )
       this.fallbackToRAF()
     }
   }
 
   private fallbackToRAF(): void {
-    log('VirtualPlayerController', 'RVFC not supported, falling back to optimized RAF')
-    
+    log(
+      'VirtualPlayerController',
+      'RVFC not supported, falling back to optimized RAF'
+    )
+
     const rafCallback = (timestamp: DOMHighResTimeStamp) => {
       if (this.video && this.isRVFCActive) {
         try {
@@ -498,12 +533,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
             height: this.video.videoHeight,
             mediaTime: this.video.currentTime,
             presentedFrames: this.frameCount++,
-            processingDuration: 0
+            processingDuration: 0,
           }
 
           // RAF 타이밍도 최적화된 핸들러 사용
           this.handleVideoFrameWithOptimizedTiming(timestamp, syntheticMetadata)
-          
+
           // 안전한 재귀 호출
           if (this.isRVFCActive) {
             requestAnimationFrame(rafCallback)
@@ -524,7 +559,10 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * RVFC 타이밍 최적화된 프레임 핸들러
    */
-  private handleVideoFrameWithOptimizedTiming(now: DOMHighResTimeStamp, metadata: RVFCMetadata): void {
+  private handleVideoFrameWithOptimizedTiming(
+    now: DOMHighResTimeStamp,
+    metadata: RVFCMetadata
+  ): void {
     // 기본 프레임 처리에 추가적인 타이밍 최적화 적용
     try {
       this.handleVideoFrame(now, metadata)
@@ -534,44 +572,53 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
   }
 
-  private handleVideoFrame(now: DOMHighResTimeStamp, metadata: RVFCMetadata): void {
+  private handleVideoFrame(
+    now: DOMHighResTimeStamp,
+    metadata: RVFCMetadata
+  ): void {
     if (!this.video) return
 
     // 적응형 Frame rate limiting with performance monitoring
     const timeSinceLastFrame = now - this.lastFrameTime
-    
+
     // 성능 모니터링 및 적응형 조정
     this.monitorPerformanceAndAdjust(now, timeSinceLastFrame)
-    
+
     if (timeSinceLastFrame < this.currentFrameProcessingDebounceMs) {
       return // Skip frame to maintain adaptive target frame rate
     }
-    
+
     // 연속적인 가상 시간 진행 업데이트 (캐싱 적용)
     const previousVirtualTime = this.currentVirtualTime
     this.updateContinuousVirtualTimeOptimized(now)
-    
+
     // 가상 시간 변화량이 극도로 미미하면 처리 스킵 (완화된 조건)
-    const virtualTimeDelta = Math.abs(this.currentVirtualTime - previousVirtualTime)
-    if (virtualTimeDelta < 0.001 && this.frameCount > 10) { // 1ms 미만 변화는 스킵 (10프레임 후부터)
+    const virtualTimeDelta = Math.abs(
+      this.currentVirtualTime - previousVirtualTime
+    )
+    if (virtualTimeDelta < 0.001 && this.frameCount > 10) {
+      // 1ms 미만 변화는 스킵 (10프레임 후부터)
       return
     }
-    
+
     // 가상 시간이 총 길이를 초과하면 재생 완료
     const totalDuration = this.getDuration()
     if (this.currentVirtualTime >= totalDuration) {
       this.pauseAtEnd()
       return
     }
-    
+
     // 캐시된 세그먼트 사용 또는 새로 탐색
-    const activeSegment = this.getActiveSegmentOptimized(this.currentVirtualTime, now)
-    
+    const activeSegment = this.getActiveSegmentOptimized(
+      this.currentVirtualTime,
+      now
+    )
+
     // 세그먼트 변경 감지 및 처리
     if (activeSegment !== this.currentActiveSegment) {
       this.handleSegmentChangeOptimized(activeSegment)
     }
-    
+
     // 비디오 위치 업데이트 (throttled)
     this.updateVideoPositionOptimized(now)
 
@@ -586,21 +633,30 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     // 강화된 디버그 로깅 (30프레임마다)
     if (this.config.debugMode && this.frameCount % 30 === 0) {
       const fps = (1000 / timeSinceLastFrame).toFixed(1)
-      const progress = activeSegment ? 
-        ((this.currentVirtualTime - activeSegment.virtualStartTime) / 
-         (activeSegment.virtualEndTime - activeSegment.virtualStartTime) * 100).toFixed(1) : 'N/A'
-      
-      log('VirtualPlayerController', 
+      const progress = activeSegment
+        ? (
+            ((this.currentVirtualTime - activeSegment.virtualStartTime) /
+              (activeSegment.virtualEndTime - activeSegment.virtualStartTime)) *
+            100
+          ).toFixed(1)
+        : 'N/A'
+
+      log(
+        'VirtualPlayerController',
         `Frame ${this.frameCount}: fps=${fps}, virtual=${this.currentVirtualTime.toFixed(3)}s, ` +
-        `segment=${activeSegment?.id || 'none'} (${progress}%), ` +
-        `delta=${virtualTimeDelta.toFixed(4)}s, adaptiveFPS=${(1000/this.currentFrameProcessingDebounceMs).toFixed(1)}`)
+          `segment=${activeSegment?.id || 'none'} (${progress}%), ` +
+          `delta=${virtualTimeDelta.toFixed(4)}s, adaptiveFPS=${(1000 / this.currentFrameProcessingDebounceMs).toFixed(1)}`
+      )
     }
   }
 
   /**
    * 성능 모니터링 및 적응형 프레임 레이트 조정
    */
-  private monitorPerformanceAndAdjust(now: DOMHighResTimeStamp, timeSinceLastFrame: number): void {
+  private monitorPerformanceAndAdjust(
+    now: DOMHighResTimeStamp,
+    timeSinceLastFrame: number
+  ): void {
     // 프레임 시간 기록 (rolling window)
     this.frameTimes.push(timeSinceLastFrame)
     if (this.frameTimes.length > this.frameTimeWindowSize) {
@@ -608,7 +664,10 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
 
     // 정기적인 성능 체크
-    if (now - this.lastPerformanceCheck > this.performanceCheckInterval && this.frameTimes.length >= 10) {
+    if (
+      now - this.lastPerformanceCheck > this.performanceCheckInterval &&
+      this.frameTimes.length >= 10
+    ) {
       this.adjustAdaptiveFrameRate()
       this.lastPerformanceCheck = now
     }
@@ -632,25 +691,32 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (this.frameTimes.length < 10) return
 
     // 평균 프레임 시간 계산
-    const avgFrameTime = this.frameTimes.reduce((sum, time) => sum + time, 0) / this.frameTimes.length
+    const avgFrameTime =
+      this.frameTimes.reduce((sum, time) => sum + time, 0) /
+      this.frameTimes.length
     const currentTargetFrameTime = this.currentFrameProcessingDebounceMs
 
     // 성능 평가
     const performanceRatio = avgFrameTime / currentTargetFrameTime
-    
+
     if (performanceRatio > 1.5) {
       // 성능이 나쁨 - 프레임 레이트 낮춤
       this.increaseFrameThreshold()
-    } else if (performanceRatio < 0.8 && avgFrameTime < this.baseFrameProcessingDebounceMs) {
+    } else if (
+      performanceRatio < 0.8 &&
+      avgFrameTime < this.baseFrameProcessingDebounceMs
+    ) {
       // 성능이 좋음 - 프레임 레이트 높임
       this.decreaseFrameThreshold()
     }
 
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 
+      log(
+        'VirtualPlayerController',
         `Performance check: avgFrame=${avgFrameTime.toFixed(1)}ms, ` +
-        `target=${currentTargetFrameTime}ms, ratio=${performanceRatio.toFixed(2)}, ` +
-        `adaptive=${this.currentFrameProcessingDebounceMs}ms`)
+          `target=${currentTargetFrameTime}ms, ratio=${performanceRatio.toFixed(2)}, ` +
+          `adaptive=${this.currentFrameProcessingDebounceMs}ms`
+      )
     }
   }
 
@@ -665,7 +731,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   /**
-   * 프레임 임계값 감소 (프레임 레이트 증가)  
+   * 프레임 임계값 감소 (프레임 레이트 증가)
    */
   private decreaseFrameThreshold(): void {
     this.currentFrameProcessingDebounceMs = Math.max(
@@ -741,24 +807,28 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (!this.video) return
 
     const currentRealTime = this.video.currentTime
-    
+
     // 현재 위치가 유효하지 않으면 첫 번째 유효한 세그먼트로 이동
     if (!this.isWithinValidSegment(currentRealTime)) {
       const timeline = this.timelineMapper.timelineManager.getTimeline()
       const firstSegment = timeline.segments
-        .filter(segment => segment.isEnabled)
+        .filter((segment) => segment.isEnabled)
         .sort((a, b) => a.realStartTime - b.realStartTime)[0]
-      
+
       if (firstSegment) {
         this.video.currentTime = firstSegment.realStartTime
-        const mapping = this.timelineMapper.toVirtual(firstSegment.realStartTime)
+        const mapping = this.timelineMapper.toVirtual(
+          firstSegment.realStartTime
+        )
         if (mapping.isValid) {
           this.currentVirtualTime = mapping.virtualTime
         }
-        
+
         if (this.config.debugMode) {
-          log('VirtualPlayerController', 
-            `Starting Virtual Timeline at first segment: ${firstSegment.realStartTime.toFixed(3)}s`)
+          log(
+            'VirtualPlayerController',
+            `Starting Virtual Timeline at first segment: ${firstSegment.realStartTime.toFixed(3)}s`
+          )
         }
       }
     }
@@ -769,49 +839,51 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   private isWithinValidSegment(realTime: number): boolean {
     const timeline = this.timelineMapper.timelineManager.getTimeline()
-    
-    return timeline.segments.some(segment => 
-      segment.isEnabled && 
-      realTime >= segment.realStartTime && 
-      realTime <= segment.realEndTime
+
+    return timeline.segments.some(
+      (segment) =>
+        segment.isEnabled &&
+        realTime >= segment.realStartTime &&
+        realTime <= segment.realEndTime
     )
   }
-
 
   /**
    * Virtual Timeline 재생 완료 시 정지 (연속적 가상 시간 모델용)
    */
   private pauseAtEnd(): void {
     if (!this.video) return
-    
+
     // 가상 시간 진행 중지
     this.pauseVirtualTimeProgression()
-    
+
     // 재생 상태 변경
     this.isPlaying = false
     this.video.pause()
-    
+
     // Virtual Timeline의 총 재생 시간으로 설정
     const totalDuration = this.getDuration()
     this.currentVirtualTime = totalDuration
-    
+
     // 활성 세그먼트 초기화
     this.currentActiveSegment = null
-    
+
     // 모든 콜백에 재생 완료 알림
     this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
     this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
     this.notifyPauseCallbacks()
-    
+
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 
-        `Virtual Timeline playback completed: virtual=${this.currentVirtualTime.toFixed(3)}s/${totalDuration.toFixed(3)}s`)
+      log(
+        'VirtualPlayerController',
+        `Virtual Timeline playback completed: virtual=${this.currentVirtualTime.toFixed(3)}s/${totalDuration.toFixed(3)}s`
+      )
     }
-    
+
     // Virtual Timeline 완료 이벤트 콜백 호출
     this.notifyVirtualTimelineComplete()
   }
-  
+
   /**
    * Virtual Timeline 완료 이벤트 알림
    */
@@ -823,11 +895,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
   }
 
-
   /**
    * 주어진 Virtual Time과 가장 가까운 유효한 Virtual Time 찾기
    */
-  private findNearestValidVirtualTime(targetVirtualTime: number): number | null {
+  private findNearestValidVirtualTime(
+    targetVirtualTime: number
+  ): number | null {
     const timeline = this.timelineMapper.timelineManager.getTimeline()
     let nearestTime: number | null = null
     let minDistance = Infinity
@@ -835,7 +908,9 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     for (const segment of timeline.segments) {
       if (segment.isEnabled) {
         // 세그먼트 시작점과의 거리 계산
-        const startDistance = Math.abs(segment.virtualStartTime - targetVirtualTime)
+        const startDistance = Math.abs(
+          segment.virtualStartTime - targetVirtualTime
+        )
         if (startDistance < minDistance) {
           minDistance = startDistance
           nearestTime = segment.virtualStartTime
@@ -856,7 +931,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   // Callback notification methods
 
   private notifyFrameCallbacks(frameData: VirtualFrameData): void {
-    this.frameCallbacks.forEach(callback => {
+    this.frameCallbacks.forEach((callback) => {
       try {
         callback(frameData)
       } catch (error) {
@@ -866,7 +941,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   private notifyPlayCallbacks(): void {
-    this.playCallbacks.forEach(callback => {
+    this.playCallbacks.forEach((callback) => {
       try {
         callback()
       } catch (error) {
@@ -876,7 +951,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   private notifyPauseCallbacks(): void {
-    this.pauseCallbacks.forEach(callback => {
+    this.pauseCallbacks.forEach((callback) => {
       try {
         callback()
       } catch (error) {
@@ -886,7 +961,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   private notifyStopCallbacks(): void {
-    this.stopCallbacks.forEach(callback => {
+    this.stopCallbacks.forEach((callback) => {
       try {
         callback()
       } catch (error) {
@@ -896,7 +971,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   private notifySeekCallbacks(virtualTime: number): void {
-    this.seekCallbacks.forEach(callback => {
+    this.seekCallbacks.forEach((callback) => {
       try {
         callback(virtualTime)
       } catch (error) {
@@ -906,7 +981,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   }
 
   private notifyTimeUpdateCallbacks(virtualTime: number): void {
-    this.timeUpdateCallbacks.forEach(callback => {
+    this.timeUpdateCallbacks.forEach((callback) => {
       try {
         callback(virtualTime)
       } catch (error) {
@@ -925,11 +1000,15 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       }
     } else {
       // 기존 콜백 방식 (레거시 지원)
-      this.motionTextSeekCallbacks.forEach(callback => {
+      this.motionTextSeekCallbacks.forEach((callback) => {
         try {
           callback(virtualTime)
         } catch (error) {
-          log('VirtualPlayerController', 'MotionText seek callback error:', error)
+          log(
+            'VirtualPlayerController',
+            'MotionText seek callback error:',
+            error
+          )
         }
       })
     }
@@ -950,12 +1029,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     this.timeUpdateCallbacks.clear()
     this.timelineChangeCallbacks.clear()
     this.motionTextSeekCallbacks.clear()
-    
+
     // 메모리 최적화 - Object Pool 정리
     this.clearObjectPools()
     this.segmentCacheMap.clear()
     this.neighborCache = { prev: null, current: null, next: null }
-    
+
     log('VirtualPlayerController', 'Cleaned up')
   }
 
@@ -966,9 +1045,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     this.isVirtualTimeRunning = true
     this.virtualTimeStartTimestamp = performance.now()
     this.virtualTimePausedAt = this.currentVirtualTime
-    
+
     if (this.config.debugMode) {
-      log('VirtualPlayerController', `Started virtual time progression from ${this.currentVirtualTime.toFixed(3)}s`)
+      log(
+        'VirtualPlayerController',
+        `Started virtual time progression from ${this.currentVirtualTime.toFixed(3)}s`
+      )
     }
   }
 
@@ -979,9 +1061,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (this.isVirtualTimeRunning) {
       this.virtualTimePausedAt = this.currentVirtualTime
       this.isVirtualTimeRunning = false
-      
+
       if (this.config.debugMode) {
-        log('VirtualPlayerController', `Paused virtual time progression at ${this.currentVirtualTime.toFixed(3)}s`)
+        log(
+          'VirtualPlayerController',
+          `Paused virtual time progression at ${this.currentVirtualTime.toFixed(3)}s`
+        )
       }
     }
   }
@@ -993,14 +1078,14 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     this.isVirtualTimeRunning = false
     this.virtualTimeStartTimestamp = 0
     this.virtualTimePausedAt = 0
-    
+
     // 캐시 초기화
     this.cachedVirtualTime = 0
     this.cachedActiveSegment = null
     this.lastCacheUpdateTime = 0
     this.lastCallbackTime = 0
     this.lastVideoUpdateTime = 0
-    
+
     if (this.config.debugMode) {
       log('VirtualPlayerController', 'Stopped virtual time progression')
     }
@@ -1017,10 +1102,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     // 현재 시각에서 시작 시점 차이를 계산하여 가상 시간 진행
     const elapsedMs = now - this.virtualTimeStartTimestamp
     const elapsedSeconds = elapsedMs / 1000
-    
+
     // 재생 속도 적용하여 가상 시간 계산
-    this.currentVirtualTime = this.virtualTimePausedAt + (elapsedSeconds * this.playbackRate)
-    
+    this.currentVirtualTime =
+      this.virtualTimePausedAt + elapsedSeconds * this.playbackRate
+
     // 총 길이를 초과하지 않도록 제한
     const totalDuration = this.getDuration()
     this.currentVirtualTime = Math.min(this.currentVirtualTime, totalDuration)
@@ -1029,14 +1115,19 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 가상 시간 기준으로 활성 세그먼트 찾기
    */
-  private findActiveSegmentAtVirtualTime(virtualTime: number): VirtualSegment | null {
+  private findActiveSegmentAtVirtualTime(
+    virtualTime: number
+  ): VirtualSegment | null {
     const timeline = this.timelineMapper.timelineManager.getTimeline()
-    
-    return timeline.segments.find(segment => 
-      segment.isEnabled &&
-      virtualTime >= segment.virtualStartTime &&
-      virtualTime < segment.virtualEndTime
-    ) || null
+
+    return (
+      timeline.segments.find(
+        (segment) =>
+          segment.isEnabled &&
+          virtualTime >= segment.virtualStartTime &&
+          virtualTime < segment.virtualEndTime
+      ) || null
+    )
   }
 
   /**
@@ -1045,13 +1136,15 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private handleSegmentChange(newSegment: VirtualSegment | null): void {
     const previousSegment = this.currentActiveSegment
     this.currentActiveSegment = newSegment
-    
+
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 
+      log(
+        'VirtualPlayerController',
         `Segment changed: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'} ` +
-        `at virtual time ${this.currentVirtualTime.toFixed(3)}s`)
+          `at virtual time ${this.currentVirtualTime.toFixed(3)}s`
+      )
     }
-    
+
     // 세그먼트 전환 시 필요한 추가 로직이 있다면 여기에 구현
     // 예: 세그먼트 전환 콜백 호출, 애니메이션 효과 등
   }
@@ -1067,12 +1160,13 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     // 가상 시간은 항상 계산하여 연속적 진행 보장
     const elapsedMs = now - this.virtualTimeStartTimestamp
     const elapsedSeconds = elapsedMs / 1000
-    this.currentVirtualTime = this.virtualTimePausedAt + (elapsedSeconds * this.playbackRate)
-    
+    this.currentVirtualTime =
+      this.virtualTimePausedAt + elapsedSeconds * this.playbackRate
+
     // 총 길이 제한
     const totalDuration = this.getDuration()
     this.currentVirtualTime = Math.min(this.currentVirtualTime, totalDuration)
-    
+
     // 캐시는 계산 결과 저장만, 시간 진행은 방해하지 않음
     this.cachedVirtualTime = this.currentVirtualTime
     this.lastCacheUpdateTime = now
@@ -1081,7 +1175,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 활성 세그먼트 탐색 (스마트 캐싱 + 이진 탐색 최적화 버전)
    */
-  private getActiveSegmentOptimized(virtualTime: number, _now: DOMHighResTimeStamp): VirtualSegment | null {
+  private getActiveSegmentOptimized(
+    virtualTime: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _now: DOMHighResTimeStamp
+  ): VirtualSegment | null {
     // 1단계: Neighbor Cache 확인 (가장 빠름)
     const neighborHit = this.checkNeighborCache(virtualTime)
     if (neighborHit) {
@@ -1090,16 +1188,18 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
 
     // 2단계: 기존 단일 캐시 확인
-    if (this.cachedActiveSegment && 
-        virtualTime >= this.cachedActiveSegment.virtualStartTime &&
-        virtualTime < this.cachedActiveSegment.virtualEndTime) {
+    if (
+      this.cachedActiveSegment &&
+      virtualTime >= this.cachedActiveSegment.virtualStartTime &&
+      virtualTime < this.cachedActiveSegment.virtualEndTime
+    ) {
       this.cacheHitCount++
       return this.cachedActiveSegment
     }
 
     // 3단계: Cache Miss - 이진 탐색 수행
     this.cacheMissCount++
-    
+
     // 정렬된 세그먼트 배열 업데이트 확인
     this.updateSortedSegmentsIfNeeded()
 
@@ -1108,7 +1208,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
 
     // 캐시 업데이트 (Multi-Level)
     this.updateSmartCache(activeSegment, virtualTime)
-    
+
     return activeSegment
   }
 
@@ -1117,23 +1217,29 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   private checkNeighborCache(virtualTime: number): VirtualSegment | null {
     // Current neighbor 확인
-    if (this.neighborCache.current && 
-        virtualTime >= this.neighborCache.current.virtualStartTime &&
-        virtualTime < this.neighborCache.current.virtualEndTime) {
+    if (
+      this.neighborCache.current &&
+      virtualTime >= this.neighborCache.current.virtualStartTime &&
+      virtualTime < this.neighborCache.current.virtualEndTime
+    ) {
       return this.neighborCache.current
     }
 
     // Next neighbor 확인
-    if (this.neighborCache.next && 
-        virtualTime >= this.neighborCache.next.virtualStartTime &&
-        virtualTime < this.neighborCache.next.virtualEndTime) {
+    if (
+      this.neighborCache.next &&
+      virtualTime >= this.neighborCache.next.virtualStartTime &&
+      virtualTime < this.neighborCache.next.virtualEndTime
+    ) {
       return this.neighborCache.next
     }
 
     // Previous neighbor 확인
-    if (this.neighborCache.prev && 
-        virtualTime >= this.neighborCache.prev.virtualStartTime &&
-        virtualTime < this.neighborCache.prev.virtualEndTime) {
+    if (
+      this.neighborCache.prev &&
+      virtualTime >= this.neighborCache.prev.virtualStartTime &&
+      virtualTime < this.neighborCache.prev.virtualEndTime
+    ) {
       return this.neighborCache.prev
     }
 
@@ -1143,7 +1249,10 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 스마트 캐시 업데이트 (Current + Neighbors)
    */
-  private updateSmartCache(activeSegment: VirtualSegment | null, virtualTime: number): void {
+  private updateSmartCache(
+    activeSegment: VirtualSegment | null,
+    virtualTime: number
+  ): void {
     this.cachedActiveSegment = activeSegment
     this.cachedVirtualTime = virtualTime
     this.lastCacheUpdateTime = performance.now()
@@ -1151,7 +1260,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (activeSegment) {
       // Neighbor Cache 업데이트
       this.updateNeighborCache(activeSegment)
-      
+
       // Segment Cache Map 업데이트
       this.segmentCacheMap.set(activeSegment.id, activeSegment)
     }
@@ -1161,18 +1270,25 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    * 인접 세그먼트 캐시 업데이트
    */
   private updateNeighborCache(currentSegment: VirtualSegment): void {
-    const currentIndex = this.sortedActiveSegments.findIndex(seg => seg.id === currentSegment.id)
-    
+    const currentIndex = this.sortedActiveSegments.findIndex(
+      (seg) => seg.id === currentSegment.id
+    )
+
     if (currentIndex !== -1) {
       this.neighborCache.current = currentSegment
-      this.neighborCache.prev = currentIndex > 0 ? this.sortedActiveSegments[currentIndex - 1] : null
-      this.neighborCache.next = currentIndex < this.sortedActiveSegments.length - 1 ? 
-        this.sortedActiveSegments[currentIndex + 1] : null
+      this.neighborCache.prev =
+        currentIndex > 0 ? this.sortedActiveSegments[currentIndex - 1] : null
+      this.neighborCache.next =
+        currentIndex < this.sortedActiveSegments.length - 1
+          ? this.sortedActiveSegments[currentIndex + 1]
+          : null
 
       if (this.config.debugMode && this.frameCount % 60 === 0) {
-        log('VirtualPlayerController', 
+        log(
+          'VirtualPlayerController',
           `Neighbor cache updated: ${this.neighborCache.prev?.id || 'none'} ← ` +
-          `${this.neighborCache.current?.id || 'none'} → ${this.neighborCache.next?.id || 'none'}`)
+            `${this.neighborCache.current?.id || 'none'} → ${this.neighborCache.next?.id || 'none'}`
+        )
       }
     }
   }
@@ -1185,18 +1301,24 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     const currentTimestamp = Date.now()
 
     // 타임라인이 변경되었거나 캐시가 없으면 재정렬
-    if (this.segmentsSortTimestamp < timeline.lastUpdated || 
-        this.sortedActiveSegments.length === 0 ||
-        currentTimestamp - this.segmentsSortTimestamp > 1000) { // 1초마다 갱신
-      
+    if (
+      this.segmentsSortTimestamp < timeline.lastUpdated ||
+      this.sortedActiveSegments.length === 0 ||
+      currentTimestamp - this.segmentsSortTimestamp > 1000
+    ) {
+      // 1초마다 갱신
+
       this.sortedActiveSegments = timeline.segments
-        .filter(segment => segment.isEnabled)
+        .filter((segment) => segment.isEnabled)
         .sort((a, b) => a.virtualStartTime - b.virtualStartTime)
-      
+
       this.segmentsSortTimestamp = currentTimestamp
 
       if (this.config.debugMode && this.frameCount % 60 === 0) {
-        log('VirtualPlayerController', `Sorted segments updated: ${this.sortedActiveSegments.length} active segments`)
+        log(
+          'VirtualPlayerController',
+          `Sorted segments updated: ${this.sortedActiveSegments.length} active segments`
+        )
       }
     }
   }
@@ -1204,7 +1326,9 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 이진 탐색으로 활성 세그먼트 찾기 (O(log n))
    */
-  private findActiveSegmentBinarySearch(virtualTime: number): VirtualSegment | null {
+  private findActiveSegmentBinarySearch(
+    virtualTime: number
+  ): VirtualSegment | null {
     if (this.sortedActiveSegments.length === 0) {
       return null
     }
@@ -1218,7 +1342,10 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       const mid = Math.floor((left + right) / 2)
       const segment = this.sortedActiveSegments[mid]
 
-      if (virtualTime >= segment.virtualStartTime && virtualTime < segment.virtualEndTime) {
+      if (
+        virtualTime >= segment.virtualStartTime &&
+        virtualTime < segment.virtualEndTime
+      ) {
         // 정확한 매치 찾음
         return segment
       } else if (virtualTime < segment.virtualStartTime) {
@@ -1227,7 +1354,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       } else {
         // 더 늦은 세그먼트 영역에서 찾기
         left = mid + 1
-        
+
         // 현재 세그먼트가 candidate보다 가까우면 후보로 저장
         if (virtualTime >= segment.virtualStartTime) {
           candidate = segment
@@ -1236,16 +1363,20 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
 
     // 정확한 매치가 없으면 가장 가까운 후보 반환 (null일 수 있음)
-    return candidate && virtualTime < candidate.virtualEndTime ? candidate : null
+    return candidate && virtualTime < candidate.virtualEndTime
+      ? candidate
+      : null
   }
 
   /**
    * 세그먼트 변경 처리 (최적화 버전)
    */
-  private handleSegmentChangeOptimized(newSegment: VirtualSegment | null): void {
+  private handleSegmentChangeOptimized(
+    newSegment: VirtualSegment | null
+  ): void {
     const previousSegment = this.currentActiveSegment
     this.currentActiveSegment = newSegment
-    
+
     // 세그먼트 전환 시 비디오 위치 점프 처리
     if (newSegment && previousSegment && newSegment.id !== previousSegment.id) {
       this.performSegmentTransition(previousSegment, newSegment)
@@ -1253,27 +1384,34 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       // 첫 번째 세그먼트 진입
       this.jumpToSegmentStart(newSegment)
     }
-    
+
     // 디버그 로깅 빈도 감소
     if (this.config.debugMode && this.frameCount % 10 === 0) {
-      log('VirtualPlayerController', 
-        `Segment: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'}`)
+      log(
+        'VirtualPlayerController',
+        `Segment: ${previousSegment?.id || 'none'} → ${newSegment?.id || 'none'}`
+      )
     }
   }
 
   /**
    * 세그먼트 전환 처리 (이전 세그먼트에서 새 세그먼트로 점프)
    */
-  private performSegmentTransition(previousSegment: VirtualSegment, newSegment: VirtualSegment): void {
+  private performSegmentTransition(
+    previousSegment: VirtualSegment,
+    newSegment: VirtualSegment
+  ): void {
     if (!this.video) return
 
     // 가상 시간에서 새 세그먼트 내 상대 위치 계산
-    const virtualProgress = (this.currentVirtualTime - newSegment.virtualStartTime) / 
-                          (newSegment.virtualEndTime - newSegment.virtualStartTime)
-    
+    const virtualProgress =
+      (this.currentVirtualTime - newSegment.virtualStartTime) /
+      (newSegment.virtualEndTime - newSegment.virtualStartTime)
+
     // 새 세그먼트의 실제 시간 위치 계산
-    const targetRealTime = newSegment.realStartTime + 
-                          (newSegment.realEndTime - newSegment.realStartTime) * virtualProgress
+    const targetRealTime =
+      newSegment.realStartTime +
+      (newSegment.realEndTime - newSegment.realStartTime) * virtualProgress
 
     // 비디오 위치 점프
     this.video.currentTime = targetRealTime
@@ -1281,9 +1419,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     this.lastVideoUpdateTime = performance.now()
 
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 
+      log(
+        'VirtualPlayerController',
         `Segment transition: ${previousSegment.id} → ${newSegment.id}, ` +
-        `jumped to ${targetRealTime.toFixed(3)}s (progress: ${(virtualProgress * 100).toFixed(1)}%)`)
+          `jumped to ${targetRealTime.toFixed(3)}s (progress: ${(virtualProgress * 100).toFixed(1)}%)`
+      )
     }
   }
 
@@ -1294,22 +1434,26 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (!this.video) return
 
     // 가상 시간에서 세그먼트 내 상대 위치 계산
-    const virtualProgress = Math.max(0, 
-      (this.currentVirtualTime - segment.virtualStartTime) / 
-      (segment.virtualEndTime - segment.virtualStartTime)
+    const virtualProgress = Math.max(
+      0,
+      (this.currentVirtualTime - segment.virtualStartTime) /
+        (segment.virtualEndTime - segment.virtualStartTime)
     )
-    
+
     // 세그먼트의 실제 시간 위치 계산
-    const targetRealTime = segment.realStartTime + 
-                          (segment.realEndTime - segment.realStartTime) * virtualProgress
+    const targetRealTime =
+      segment.realStartTime +
+      (segment.realEndTime - segment.realStartTime) * virtualProgress
 
     this.video.currentTime = targetRealTime
     this.lastVideoSeekTime = performance.now()
     this.lastVideoUpdateTime = performance.now()
 
     if (this.config.debugMode) {
-      log('VirtualPlayerController', 
-        `Jumped to segment ${segment.id} at ${targetRealTime.toFixed(3)}s (progress: ${(virtualProgress * 100).toFixed(1)}%)`)
+      log(
+        'VirtualPlayerController',
+        `Jumped to segment ${segment.id} at ${targetRealTime.toFixed(3)}s (progress: ${(virtualProgress * 100).toFixed(1)}%)`
+      )
     }
   }
 
@@ -1318,20 +1462,23 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   private updateVideoPositionOptimized(now: DOMHighResTimeStamp): void {
     if (!this.video) return
-    
+
     const activeSegment = this.currentActiveSegment
-    
+
     if (activeSegment) {
       // 활성 세그먼트가 있을 때: 해당 세그먼트의 실제 시간으로 비디오 재생
-      const segmentProgress = (this.currentVirtualTime - activeSegment.virtualStartTime) / 
-                            (activeSegment.virtualEndTime - activeSegment.virtualStartTime)
-      
-      const targetRealTime = activeSegment.realStartTime + 
-                           (activeSegment.realEndTime - activeSegment.realStartTime) * segmentProgress
-      
+      const segmentProgress =
+        (this.currentVirtualTime - activeSegment.virtualStartTime) /
+        (activeSegment.virtualEndTime - activeSegment.virtualStartTime)
+
+      const targetRealTime =
+        activeSegment.realStartTime +
+        (activeSegment.realEndTime - activeSegment.realStartTime) *
+          segmentProgress
+
       // 예측적 Seek 최적화
       this.performSmartVideoSeek(targetRealTime, now, activeSegment)
-      
+
       // 비디오가 일시정지 상태라면 재생
       if (this.video.paused && this.isPlaying) {
         this.video.play().catch(() => {
@@ -1343,9 +1490,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       if (!this.video.paused) {
         this.video.pause()
         this.lastVideoUpdateTime = now
-        
+
         if (this.config.debugMode) {
-          log('VirtualPlayerController', `Video paused at virtual time ${this.currentVirtualTime.toFixed(3)}s`)
+          log(
+            'VirtualPlayerController',
+            `Video paused at virtual time ${this.currentVirtualTime.toFixed(3)}s`
+          )
         }
       }
     }
@@ -1354,7 +1504,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 스마트 비디오 Seek (예측적 + 자연 재생 우선)
    */
-  private performSmartVideoSeek(targetRealTime: number, now: DOMHighResTimeStamp, activeSegment: VirtualSegment): void {
+  private performSmartVideoSeek(
+    targetRealTime: number,
+    now: DOMHighResTimeStamp,
+    activeSegment: VirtualSegment
+  ): void {
     if (!this.video) return
 
     const currentVideoTime = this.video.currentTime
@@ -1363,16 +1517,16 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     const timeSinceLastUpdate = now - this.lastVideoUpdateTime
 
     // 자연스러운 재생 허용 영역 (세그먼트 내에서)
-    const isWithinNaturalPlaybackRange = 
-      currentVideoTime >= activeSegment.realStartTime && 
+    const isWithinNaturalPlaybackRange =
+      currentVideoTime >= activeSegment.realStartTime &&
       currentVideoTime <= activeSegment.realEndTime &&
-      timeDifference < (this.naturalPlaybackToleranceMs / 1000)
+      timeDifference < this.naturalPlaybackToleranceMs / 1000
 
     // Seek 필요성 판단
     const shouldSeek = this.shouldPerformVideoSeek(
-      timeDifference, 
-      timeSinceLastSeek, 
-      timeSinceLastUpdate, 
+      timeDifference,
+      timeSinceLastSeek,
+      timeSinceLastUpdate,
       isWithinNaturalPlaybackRange
     )
 
@@ -1380,7 +1534,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       // 예측적 Seek: 약간 앞선 위치로 seek하여 지연 보상
       const predictiveOffset = this.calculatePredictiveOffset(activeSegment)
       const adjustedTargetTime = Math.min(
-        targetRealTime + predictiveOffset, 
+        targetRealTime + predictiveOffset,
         activeSegment.realEndTime - 0.1 // 세그먼트 끝에서 100ms 여유
       )
 
@@ -1391,9 +1545,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
       this.isVideoSeeking = true
 
       if (this.config.debugMode && this.frameCount % 30 === 0) {
-        log('VirtualPlayerController', 
+        log(
+          'VirtualPlayerController',
           `Smart seek: ${adjustedTargetTime.toFixed(3)}s (diff: ${timeDifference.toFixed(3)}s, ` +
-          `predictive: +${predictiveOffset.toFixed(3)}s)`)
+            `predictive: +${predictiveOffset.toFixed(3)}s)`
+        )
       }
     }
   }
@@ -1402,8 +1558,8 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    * Seek 필요성 판단 (초보수적 설정 - 끊김 방지 최우선)
    */
   private shouldPerformVideoSeek(
-    timeDifference: number, 
-    timeSinceLastSeek: number, 
+    timeDifference: number,
+    timeSinceLastSeek: number,
     timeSinceLastUpdate: number,
     isWithinNaturalPlaybackRange: boolean
   ): boolean {
@@ -1413,22 +1569,29 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     }
 
     // 매우 큰 차이만 즉시 보정 (더욱 보수적)
-    if (timeDifference > 1.0) { // 0.5s → 1.0s (매우 보수적)
+    if (timeDifference > 1.0) {
+      // 0.5s → 1.0s (매우 보수적)
       return true
     }
 
     // 중간 차이는 매우 엄격한 throttling 적용
-    if (timeDifference > 0.25 && timeSinceLastUpdate >= this.videoUpdateThreshold * 2) { // 0.15s → 0.25s, threshold 2배
+    if (
+      timeDifference > 0.25 &&
+      timeSinceLastUpdate >= this.videoUpdateThreshold * 2
+    ) {
+      // 0.15s → 0.25s, threshold 2배
       return true
     }
 
     // 작은 차이는 완전히 무시 (끊김 방지 최우선)
-    if (timeDifference < 0.2) { // 0.1s → 0.2s (200ms까지 허용)
+    if (timeDifference < 0.2) {
+      // 0.1s → 0.2s (200ms까지 허용)
       return false
     }
 
     // 연속된 Seek 방지
-    if (timeSinceLastSeek < 100) { // 100ms 내 연속 Seek 방지
+    if (timeSinceLastSeek < 100) {
+      // 100ms 내 연속 Seek 방지
       return false
     }
 
@@ -1445,7 +1608,8 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     const baseOffset = (this.playbackRate - 1) * 0.1 // 재생 속도가 빠를수록 더 많이 앞서감
 
     // 세그먼트 길이에 따른 조정
-    const segmentDuration = activeSegment.realEndTime - activeSegment.realStartTime
+    const segmentDuration =
+      activeSegment.realEndTime - activeSegment.realStartTime
     const segmentFactor = Math.min(segmentDuration / 10, 0.05) // 최대 50ms
 
     // 현재 적응형 프레임 레이트에 따른 조정 (낮은 fps에서는 더 많은 예측 필요)
@@ -1458,7 +1622,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 콜백 호출 최적화 (배치 처리 버전)
    */
-  private notifyCallbacksOptimized(now: DOMHighResTimeStamp, activeSegment: VirtualSegment | null, metadata: RVFCMetadata): void {
+  private notifyCallbacksOptimized(
+    now: DOMHighResTimeStamp,
+    activeSegment: VirtualSegment | null,
+    metadata: RVFCMetadata
+  ): void {
     // throttling: 5ms마다만 콜백 호출 (더 반응적)
     const timeSinceLastCallback = now - this.lastCallbackTime
     if (timeSinceLastCallback < this.callbackThrottleMs) {
@@ -1487,7 +1655,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     // 배치 실행이 예약되지 않았으면 예약
     if (!this.callbackBatchScheduled) {
       this.callbackBatchScheduled = true
-      
+
       // 다음 마이크로태스크에서 실행 (더 빠른 배치 처리)
       Promise.resolve().then(() => {
         this.flushBatchedCallbacks()
@@ -1498,7 +1666,11 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   /**
    * 배치된 콜백 즉시 실행
    */
-  private executeBatchedCallbacks(now: DOMHighResTimeStamp, activeSegment: VirtualSegment | null, metadata: RVFCMetadata): void {
+  private executeBatchedCallbacks(
+    now: DOMHighResTimeStamp,
+    activeSegment: VirtualSegment | null,
+    metadata: RVFCMetadata
+  ): void {
     // Object Pooling으로 frame data 생성
     const frameData = this.createPooledFrameData(
       this.currentVirtualTime,
@@ -1512,21 +1684,33 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
 
     this.lastCallbackTime = now
-    
+
     // 강화된 디버깅 정보
     if (this.config.debugMode && this.frameCount % 30 === 0) {
       const syncStatus = activeSegment ? 'synced' : 'empty'
-      const timeDiff = activeSegment ? 
-        Math.abs(this.video!.currentTime - (activeSegment.realStartTime + 
-          (this.currentVirtualTime - activeSegment.virtualStartTime))) : 0
-      
-      const cacheHitRate = this.cacheHitCount + this.cacheMissCount > 0 ? 
-        (this.cacheHitCount / (this.cacheHitCount + this.cacheMissCount) * 100).toFixed(1) : '0'
-      
-      log('VirtualPlayerController', 
+      const timeDiff = activeSegment
+        ? Math.abs(
+            this.video!.currentTime -
+              (activeSegment.realStartTime +
+                (this.currentVirtualTime - activeSegment.virtualStartTime))
+          )
+        : 0
+
+      const cacheHitRate =
+        this.cacheHitCount + this.cacheMissCount > 0
+          ? (
+              (this.cacheHitCount /
+                (this.cacheHitCount + this.cacheMissCount)) *
+              100
+            ).toFixed(1)
+          : '0'
+
+      log(
+        'VirtualPlayerController',
         `Status: ${syncStatus}, VTime: ${this.currentVirtualTime.toFixed(3)}s, ` +
-        `RTime: ${this.video!.currentTime.toFixed(3)}s, Diff: ${timeDiff.toFixed(3)}s, ` +
-        `Cache Hit Rate: ${cacheHitRate}%, Pool Size: ${this.frameDataPool.length}`)
+          `RTime: ${this.video!.currentTime.toFixed(3)}s, Diff: ${timeDiff.toFixed(3)}s, ` +
+          `Cache Hit Rate: ${cacheHitRate}%, Pool Size: ${this.frameDataPool.length}`
+      )
     }
   }
 
@@ -1534,7 +1718,10 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    * 배치된 콜백 플러시
    */
   private flushBatchedCallbacks(): void {
-    if (!this.callbackBatchScheduled || Object.keys(this.pendingCallbacks).length === 0) {
+    if (
+      !this.callbackBatchScheduled ||
+      Object.keys(this.pendingCallbacks).length === 0
+    ) {
       this.callbackBatchScheduled = false
       return
     }
@@ -1574,28 +1761,34 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
     if (this.reusableFrameData) {
       const frameData = this.reusableFrameData
       this.reusableFrameData = null
-      
+
       // 기존 객체 재활용 (속성 업데이트)
       frameData.virtualTime = virtualTime
       frameData.mediaTime = mediaTime
       frameData.displayTime = displayTime
-      frameData.activeSegments = this.timelineMapper.timelineManager.getActiveSegments(virtualTime)
-      
+      frameData.activeSegments =
+        this.timelineMapper.timelineManager.getActiveSegments(virtualTime)
+
       return frameData
     }
 
     // 풀에서 가져오기
     let frameData = this.frameDataPool.pop()
-    
+
     if (!frameData) {
       // 풀이 비어있으면 새로 생성
-      frameData = this.timelineMapper.createVirtualFrameData(virtualTime, mediaTime, displayTime)
+      frameData = this.timelineMapper.createVirtualFrameData(
+        virtualTime,
+        mediaTime,
+        displayTime
+      )
     } else {
       // 풀에서 가져온 객체 재활용
       frameData.virtualTime = virtualTime
       frameData.mediaTime = mediaTime
       frameData.displayTime = displayTime
-      frameData.activeSegments = this.timelineMapper.timelineManager.getActiveSegments(virtualTime)
+      frameData.activeSegments =
+        this.timelineMapper.timelineManager.getActiveSegments(virtualTime)
     }
 
     return frameData
@@ -1623,7 +1816,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
   private clearObjectPools(): void {
     this.frameDataPool = []
     this.reusableFrameData = null
-    
+
     this.logDebug('minimal', 'Object pools cleared')
   }
 
@@ -1632,12 +1825,12 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   private logDebug(level: 'minimal' | 'verbose', message: string): void {
     if (this.debugLevel === 'none') return
-    
+
     // 레벨 체크
     if (level === 'verbose' && this.debugLevel !== 'verbose') return
-    
+
     const logMessage = `[VirtualPlayerController] ${message}`
-    
+
     // 즉시 로깅 (minimal) 또는 배치 로깅 (verbose)
     if (level === 'minimal') {
       log('VirtualPlayerController', message)
@@ -1652,7 +1845,7 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   private scheduleDebugFlush(): void {
     const now = performance.now()
-    
+
     if (now - this.lastDebugFlush > this.debugFlushInterval) {
       this.flushDebugLogs()
     }
@@ -1663,13 +1856,13 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
    */
   private flushDebugLogs(): void {
     if (this.debugLogQueue.length === 0) return
-    
+
     // 배치로 로그 출력
     const batchMessage = this.debugLogQueue.join('\n')
     console.group('VirtualPlayerController Debug Batch')
     console.log(batchMessage)
     console.groupEnd()
-    
+
     this.debugLogQueue = []
     this.lastDebugFlush = performance.now()
   }
@@ -1710,9 +1903,9 @@ export class VirtualPlayerController implements VirtualPlayerControl, VirtualPla
         play: this.playCallbacks.size,
         pause: this.pauseCallbacks.size,
         seek: this.seekCallbacks.size,
-        motionTextSeek: this.motionTextSeekCallbacks.size
+        motionTextSeek: this.motionTextSeekCallbacks.size,
       },
-      segmentController: this.segmentController.getDebugInfo()
+      segmentController: this.segmentController.getDebugInfo(),
     }
   }
 }

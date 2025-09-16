@@ -1,9 +1,5 @@
 import { useCallback, useRef } from 'react'
-import {
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-} from '@dnd-kit/core'
+import { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core'
 import { useEditorStore } from '../store'
 
 export function useGlobalWordDragAndDrop() {
@@ -114,11 +110,21 @@ export function useGlobalWordDragAndDrop() {
             // Find target position based on the target word
             const targetClip = clips.find((clip) => clip.id === targetClipId)
             if (targetClip) {
-              const targetWordIndex = targetClip.words.findIndex((word) => word.id === targetWordId)
+              const targetWordIndex = targetClip.words.findIndex(
+                (word) => word.id === targetWordId
+              )
               // Insert position depends on drop position (before or after)
               const { dropPosition } = useEditorStore.getState()
-              const insertPosition = dropPosition === 'before' ? targetWordIndex : targetWordIndex + 1
-              moveWordBetweenClips(sourceClipId, targetClipId, sourceWordId, insertPosition)
+              const insertPosition =
+                dropPosition === 'before'
+                  ? targetWordIndex
+                  : targetWordIndex + 1
+              moveWordBetweenClips(
+                sourceClipId,
+                targetClipId,
+                sourceWordId,
+                insertPosition
+              )
             }
           }
         }

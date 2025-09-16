@@ -90,9 +90,13 @@ export function convertSegmentToClip(
 // 전체 segments 배열을 clips 배열로 변환 (실제 비디오 타임라인 순서로 정렬)
 export function convertSegmentsToClips(segments: Segment[]): ClipItem[] {
   // 실제 비디오 타임라인 순서에 맞게 start_time 기준으로 정렬
-  const sortedSegments = [...segments].sort((a, b) => a.start_time - b.start_time)
-  
-  return sortedSegments.map((segment, index) => convertSegmentToClip(segment, index))
+  const sortedSegments = [...segments].sort(
+    (a, b) => a.start_time - b.start_time
+  )
+
+  return sortedSegments.map((segment, index) =>
+    convertSegmentToClip(segment, index)
+  )
 }
 
 // real.json 전체 데이터 구조

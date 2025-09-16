@@ -13,7 +13,7 @@ import {
   SplitOperation,
   DeleteOperation,
   MoveOperation,
-  VirtualFrameData
+  VirtualFrameData,
 } from './types'
 
 // 기존 PlaybackEngine의 PlaybackSegment와 유사한 구조
@@ -32,7 +32,10 @@ export class ECGTimelineMapper {
   private originalClips: ClipItem[] = []
   private deletedClipIds: Set<string> = new Set()
   private splitClipMapping: Map<string, string[]> = new Map() // 원본 -> 분할된 클립들
-  private wordMovements: Map<string, { fromClipId: string; toClipId: string; position: number }> = new Map()
+  private wordMovements: Map<
+    string,
+    { fromClipId: string; toClipId: string; position: number }
+  > = new Map()
 
   constructor(virtualTimeline: VirtualTimelineManager) {
     this.timelineManager = virtualTimeline
@@ -44,7 +47,7 @@ export class ECGTimelineMapper {
    */
   initialize(clips: ClipItem[]): void {
     log('ECGTimelineMapper', `Initializing with ${clips.length} clips`)
-    
+
     this.originalClips = [...clips]
     this.timelineManager.initializeFromClips(clips)
   }
@@ -62,7 +65,7 @@ export class ECGTimelineMapper {
       type: 'delete',
       targetClipId: clipId,
       timestamp: Date.now(),
-      originalSegment: this.findSegmentByClipId(clipId)!
+      originalSegment: this.findSegmentByClipId(clipId)!,
     }
 
     this.timelineManager.applyDeleteOperation(deleteOperation)
@@ -72,9 +75,12 @@ export class ECGTimelineMapper {
    * 기존 ClipSplitter의 splitClip 기능을 Virtual Timeline으로 통합
    */
   splitClip(clipId: string, splitVirtualTime: number): [string, string] {
-    log('ECGTimelineMapper', `Splitting clip ${clipId} at virtual time ${splitVirtualTime}`)
+    log(
+      'ECGTimelineMapper',
+      `Splitting clip ${clipId} at virtual time ${splitVirtualTime}`
+    )
 
-    const originalClip = this.originalClips.find(clip => clip.id === clipId)
+    const originalClip = this.originalClips.find((clip) => clip.id === clipId)
     if (!originalClip) {
       throw new Error(`Original clip not found: ${clipId}`)
     }
@@ -88,11 +94,19 @@ export class ECGTimelineMapper {
     const splitResult = this.calculateWordSplit(originalClip, splitVirtualTime)
 
     // 분할된 클립들 생성
-    const firstClip = this.createSplitClip(originalClip, firstClipId, splitResult.firstWords)
-    const secondClip = this.createSplitClip(originalClip, secondClipId, splitResult.secondWords)
+    const firstClip = this.createSplitClip(
+      originalClip,
+      firstClipId,
+      splitResult.firstWords
+    )
+    const secondClip = this.createSplitClip(
+      originalClip,
+      secondClipId,
+      splitResult.secondWords
+    )
 
     // 원본 클립 배열 업데이트
-    const clipIndex = this.originalClips.findIndex(clip => clip.id === clipId)
+    const clipIndex = this.originalClips.findIndex((clip) => clip.id === clipId)
     this.originalClips.splice(clipIndex, 1, firstClip, secondClip)
 
     // 분할 매핑 저장
@@ -105,7 +119,7 @@ export class ECGTimelineMapper {
       targetClipId: clipId,
       timestamp,
       splitPoint: splitVirtualTime,
-      resultClipIds: [firstClipId, secondClipId]
+      resultClipIds: [firstClipId, secondClipId],
     }
 
     this.timelineManager.applySplitOperation(splitOperation)
@@ -121,11 +135,11 @@ export class ECGTimelineMapper {
 
     // 각 클립의 이동을 MoveOperation으로 변환
     const currentOrder = this.getCurrentClipOrder()
-    
+
     for (let newIndex = 0; newIndex < newOrder.length; newIndex++) {
       const clipId = newOrder[newIndex]
-      const currentIndex = currentOrder.findIndex(id => id === clipId)
-      
+      const currentIndex = currentOrder.findIndex((id) => id === clipId)
+
       if (currentIndex !== newIndex) {
         const moveOperation: MoveOperation = {
           id: `move_${clipId}_${Date.now()}`,
@@ -133,7 +147,7 @@ export class ECGTimelineMapper {
           targetClipId: clipId,
           timestamp: Date.now(),
           fromPosition: currentIndex,
-          toPosition: newIndex
+          toPosition: newIndex,
         }
 
         this.timelineManager.applyMoveOperation(moveOperation)
@@ -150,13 +164,16 @@ export class ECGTimelineMapper {
     targetClipId: string,
     targetPosition: number
   ): void {
-    log('ECGTimelineMapper', `Moving word ${wordId} from ${sourceClipId} to ${targetClipId}`)
+    log(
+      'ECGTimelineMapper',
+      `Moving word ${wordId} from ${sourceClipId} to ${targetClipId}`
+    )
 
     // Word 이동 기록
     this.wordMovements.set(wordId, {
       fromClipId: sourceClipId,
       toClipId: targetClipId,
-      position: targetPosition
+      position: targetPosition,
     })
 
     // Virtual Timeline 재계산 트리거
@@ -183,15 +200,15 @@ export class ECGTimelineMapper {
    */
   getActivePlaybackSegments(virtualTime: number): ECGPlaybackSegment[] {
     const activeSegments = this.timelineManager.getActiveSegments(virtualTime)
-    
-    return activeSegments.map(segment => ({
+
+    return activeSegments.map((segment) => ({
       virtualStartTime: segment.virtualStartTime,
       virtualEndTime: segment.virtualEndTime,
       realStartTime: segment.realStartTime,
       realEndTime: segment.realEndTime,
       sourceClipId: segment.sourceClipId,
       sourceClip: this.findClipById(segment.sourceClipId)!,
-      isActive: true
+      isActive: true,
     }))
   }
 
@@ -204,12 +221,12 @@ export class ECGTimelineMapper {
     displayTime: DOMHighResTimeStamp
   ): VirtualFrameData {
     const activeSegments = this.timelineManager.getActiveSegments(virtualTime)
-    
+
     return {
       virtualTime,
       mediaTime,
       displayTime,
-      activeSegments
+      activeSegments,
     }
   }
 
@@ -230,11 +247,11 @@ export class ECGTimelineMapper {
 
     log('ECGTimelineMapper', `Restoring clip: ${clipId}`)
     this.deletedClipIds.delete(clipId)
-    
+
     // Virtual Timeline에서 세그먼트 재활성화
     const timeline = this.timelineManager.getTimeline()
-    const segment = timeline.segments.find(s => s.sourceClipId === clipId)
-    
+    const segment = timeline.segments.find((s) => s.sourceClipId === clipId)
+
     if (segment) {
       segment.isEnabled = true
       this.refreshVirtualTimeline()
@@ -250,7 +267,7 @@ export class ECGTimelineMapper {
 
     // 활성화된 세그먼트들만 시간순으로 정렬
     const activeSegments = timeline.segments
-      .filter(segment => segment.isEnabled)
+      .filter((segment) => segment.isEnabled)
       .sort((a, b) => a.virtualStartTime - b.virtualStartTime)
 
     for (const segment of activeSegments) {
@@ -263,7 +280,7 @@ export class ECGTimelineMapper {
           realEndTime: segment.realEndTime,
           sourceClipId: segment.sourceClipId,
           sourceClip,
-          isActive: true
+          isActive: true,
         })
       }
     }
@@ -280,7 +297,7 @@ export class ECGTimelineMapper {
       deletedClips: Array.from(this.deletedClipIds),
       splitMappings: Object.fromEntries(this.splitClipMapping),
       wordMovements: Object.fromEntries(this.wordMovements),
-      virtualTimeline: this.timelineManager.getTimeline()
+      virtualTimeline: this.timelineManager.getTimeline(),
     }
   }
 
@@ -288,14 +305,17 @@ export class ECGTimelineMapper {
 
   private findSegmentByClipId(clipId: string): VirtualSegment | null {
     const timeline = this.timelineManager.getTimeline()
-    return timeline.segments.find(s => s.sourceClipId === clipId) || null
+    return timeline.segments.find((s) => s.sourceClipId === clipId) || null
   }
 
   private findClipById(clipId: string): ClipItem | null {
-    return this.originalClips.find(clip => clip.id === clipId) || null
+    return this.originalClips.find((clip) => clip.id === clipId) || null
   }
 
-  private calculateWordSplit(clip: ClipItem, splitVirtualTime: number): {
+  private calculateWordSplit(
+    clip: ClipItem,
+    splitVirtualTime: number
+  ): {
     firstWords: typeof clip.words
     secondWords: typeof clip.words
   } {
@@ -307,19 +327,19 @@ export class ECGTimelineMapper {
 
     // 실제 시간 기준으로 단어 분할점 찾기
     const splitRealTime = mapping.realTime
-    const splitIndex = clip.words.findIndex(word => word.end > splitRealTime)
-    
+    const splitIndex = clip.words.findIndex((word) => word.end > splitRealTime)
+
     if (splitIndex === -1) {
       // 모든 단어가 분할점 이전인 경우
       return {
         firstWords: clip.words,
-        secondWords: []
+        secondWords: [],
       }
     }
 
     return {
       firstWords: clip.words.slice(0, splitIndex),
-      secondWords: clip.words.slice(splitIndex)
+      secondWords: clip.words.slice(splitIndex),
     }
   }
 
@@ -328,14 +348,14 @@ export class ECGTimelineMapper {
     newClipId: string,
     words: typeof originalClip.words
   ): ClipItem {
-    const subtitle = words.map(word => word.text).join(' ')
-    const duration = words.length > 0 ? 
-      (words[words.length - 1].end - words[0].start) : 0
+    const subtitle = words.map((word) => word.text).join(' ')
+    const duration =
+      words.length > 0 ? words[words.length - 1].end - words[0].start : 0
 
     // Word ID 업데이트
     const updatedWords = words.map((word, index) => ({
       ...word,
-      id: `${newClipId}_word_${index}`
+      id: `${newClipId}_word_${index}`,
     }))
 
     return {
@@ -346,7 +366,7 @@ export class ECGTimelineMapper {
       fullText: subtitle,
       duration: `${duration.toFixed(3)}초`,
       thumbnail: originalClip.thumbnail,
-      words: updatedWords
+      words: updatedWords,
     }
   }
 

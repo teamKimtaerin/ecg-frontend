@@ -117,11 +117,11 @@ export default function ClipWord({
 
         // Seek video player to word start time
         const videoPlayer = (
-          window as { 
-            videoPlayer?: { 
-              seekTo: (time: number) => void 
+          window as {
+            videoPlayer?: {
+              seekTo: (time: number) => void
               pauseAutoWordSelection?: () => void
-            } 
+            }
           }
         ).videoPlayer
         if (videoPlayer) {
@@ -252,7 +252,7 @@ export default function ClipWord({
         'text-black',
         'font-bold'
       )
-      
+
       // Dim words when other clips are playing
       if (isOtherClipPlaying) {
         classes.push('opacity-40')

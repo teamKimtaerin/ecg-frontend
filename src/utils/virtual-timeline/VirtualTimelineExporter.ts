@@ -14,7 +14,7 @@ import {
   SplitOperation,
   DeleteOperation,
   MoveOperation,
-  VirtualTimelineConfig
+  VirtualTimelineConfig,
 } from './types'
 
 /**
@@ -39,7 +39,13 @@ export interface ExportConfig {
  * Export 진행 상태
  */
 export interface ExportProgress {
-  phase: 'preparing' | 'rendering' | 'encoding' | 'finalizing' | 'completed' | 'error'
+  phase:
+    | 'preparing'
+    | 'rendering'
+    | 'encoding'
+    | 'finalizing'
+    | 'completed'
+    | 'error'
   progress: number // 0-100
   currentSegment: number
   totalSegments: number
@@ -79,7 +85,7 @@ export class VirtualTimelineExporter {
     phase: 'preparing',
     progress: 0,
     currentSegment: 0,
-    totalSegments: 0
+    totalSegments: 0,
   }
 
   // 콜백들
@@ -113,32 +119,35 @@ export class VirtualTimelineExporter {
         created: new Date().toISOString(),
         duration: timeline.duration,
         frameRate: this.config.frameRate,
-        totalSegments: exportSegments.length
+        totalSegments: exportSegments.length,
       },
       source: {
         videoPath: '', // 실제 export 시 설정
-        originalDuration: this.calculateOriginalDuration()
+        originalDuration: this.calculateOriginalDuration(),
       },
-      segments: exportSegments.map(segment => ({
+      segments: exportSegments.map((segment) => ({
         id: segment.id,
         virtualStart: segment.virtualStartTime,
         virtualEnd: segment.virtualEndTime,
         realStart: segment.realStartTime,
         realEnd: segment.realEndTime,
         sourceClipId: segment.sourceClipId,
-        type: this.getSegmentType(segment.sourceClipId, editHistory)
+        type: this.getSegmentType(segment.sourceClipId, editHistory),
       })),
       cutEdits: this.extractCutEdits(editHistory),
-      effects: exportSegments.flatMap(segment => 
-        segment.effects.map(effect => ({
+      effects: exportSegments.flatMap((segment) =>
+        segment.effects.map((effect) => ({
           segmentId: segment.id,
           pluginName: effect.pluginName,
-          parameters: effect.parameters
+          parameters: effect.parameters,
         }))
-      )
+      ),
     }
 
-    log('VirtualTimelineExporter', `Timeline JSON generated: ${exportSegments.length} segments`)
+    log(
+      'VirtualTimelineExporter',
+      `Timeline JSON generated: ${exportSegments.length} segments`
+    )
     return timelineJSON
   }
 
@@ -161,17 +170,21 @@ export class VirtualTimelineExporter {
       log('VirtualTimelineExporter', 'Starting frame-by-frame export')
 
       // Phase 1: 준비
-      this.updateProgress({ phase: 'preparing', progress: 0, message: 'Preparing export...' })
+      this.updateProgress({
+        phase: 'preparing',
+        progress: 0,
+        message: 'Preparing export...',
+      })
       const exportSegments = this.generateExportSegments()
       // Timeline JSON for metadata (optional)
-    // const timelineJSON = this.exportTimelineJSON()
+      // const timelineJSON = this.exportTimelineJSON()
 
       // Phase 2: 렌더링 준비
-      this.updateProgress({ 
-        phase: 'rendering', 
-        progress: 5, 
+      this.updateProgress({
+        phase: 'rendering',
+        progress: 5,
         totalSegments: exportSegments.length,
-        message: 'Initializing frame renderer...' 
+        message: 'Initializing frame renderer...',
       })
 
       // Canvas 및 렌더링 컨텍스트 준비
@@ -186,42 +199,51 @@ export class VirtualTimelineExporter {
       // Phase 3: 세그먼트별 프레임 렌더링
       for (let i = 0; i < exportSegments.length; i++) {
         const segment = exportSegments[i]
-        
+
         this.updateProgress({
           phase: 'rendering',
           progress: 10 + (i / exportSegments.length) * 70,
           currentSegment: i + 1,
-          message: `Rendering segment ${i + 1}/${exportSegments.length}`
+          message: `Rendering segment ${i + 1}/${exportSegments.length}`,
         })
 
-        await this.renderSegment(segment, videoElement, canvas, ctx, encoder, config)
+        await this.renderSegment(
+          segment,
+          videoElement,
+          canvas,
+          ctx,
+          encoder,
+          config
+        )
       }
 
       // Phase 4: 인코딩 완료
-      this.updateProgress({ 
-        phase: 'encoding', 
-        progress: 85, 
-        message: 'Finalizing video encoding...' 
+      this.updateProgress({
+        phase: 'encoding',
+        progress: 85,
+        message: 'Finalizing video encoding...',
       })
 
       await this.finalizeEncoding(encoder, outputPath)
 
       // Phase 5: 완료
-      this.updateProgress({ 
-        phase: 'completed', 
-        progress: 100, 
-        message: 'Export completed successfully' 
+      this.updateProgress({
+        phase: 'completed',
+        progress: 100,
+        message: 'Export completed successfully',
       })
 
-      log('VirtualTimelineExporter', 'Frame-by-frame export completed successfully')
-
+      log(
+        'VirtualTimelineExporter',
+        'Frame-by-frame export completed successfully'
+      )
     } catch (error) {
       this.updateProgress({
         phase: 'error',
         progress: 0,
-        error: error instanceof Error ? error.message : 'Unknown export error'
+        error: error instanceof Error ? error.message : 'Unknown export error',
       })
-      
+
       log('VirtualTimelineExporter', 'Export failed:', error)
       throw error
     } finally {
@@ -234,7 +256,7 @@ export class VirtualTimelineExporter {
    */
   private generateExportSegments(): ExportSegment[] {
     const playbackSegments = this.timelineMapper.generateExportSegments()
-    
+
     return playbackSegments.map((segment, index) => ({
       id: `export_segment_${index}`,
       virtualStartTime: segment.virtualStartTime,
@@ -244,7 +266,7 @@ export class VirtualTimelineExporter {
       sourceClipId: segment.sourceClipId,
       sourceClip: segment.sourceClip,
       effects: [], // 실제 구현에서는 플러그인 효과 추가
-      renderOrder: index
+      renderOrder: index,
     }))
   }
 
@@ -267,8 +289,8 @@ export class VirtualTimelineExporter {
     videoElement.currentTime = realStartTime
 
     for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
-      const frameTime = realStartTime + (frameIndex / config.frameRate)
-      
+      const frameTime = realStartTime + frameIndex / config.frameRate
+
       // 프레임 정확도를 위해 RVFC 사용 (가능한 경우)
       await this.seekAndWaitForFrame(videoElement, frameTime)
 
@@ -295,7 +317,9 @@ export class VirtualTimelineExporter {
   /**
    * VideoEncoder 생성
    */
-  private async createVideoEncoder(config: ExportConfig): Promise<VideoEncoder> {
+  private async createVideoEncoder(
+    config: ExportConfig
+  ): Promise<VideoEncoder> {
     // WebCodecs API 지원 확인
     if (typeof VideoEncoder === 'undefined') {
       throw new Error('WebCodecs API not supported')
@@ -304,12 +328,15 @@ export class VirtualTimelineExporter {
     const encoder = new VideoEncoder({
       output: (chunk: EncodedVideoChunk) => {
         // 인코딩된 청크 처리
-        log('VirtualTimelineExporter', `Encoded chunk: ${chunk.byteLength} bytes`)
+        log(
+          'VirtualTimelineExporter',
+          `Encoded chunk: ${chunk.byteLength} bytes`
+        )
       },
       error: (error: Error) => {
         log('VirtualTimelineExporter', 'Encoding error:', error)
         throw error
-      }
+      },
     })
 
     encoder.configure({
@@ -317,7 +344,7 @@ export class VirtualTimelineExporter {
       width: config.resolution.width,
       height: config.resolution.height,
       bitrate: config.videoBitrate,
-      framerate: config.frameRate
+      framerate: config.frameRate,
     })
 
     return encoder
@@ -333,7 +360,7 @@ export class VirtualTimelineExporter {
     return new Promise((resolve) => {
       const onSeeked = () => {
         video.removeEventListener('seeked', onSeeked)
-        
+
         // RVFC가 지원되는 경우 사용
         if (typeof video.requestVideoFrameCallback === 'function') {
           video.requestVideoFrameCallback(() => {
@@ -364,8 +391,8 @@ export class VirtualTimelineExporter {
 
     // 현재 시간에 활성화된 자막 찾기
     const clip = segment.sourceClip
-    const activeWords = clip.words.filter(word => 
-      currentTime >= word.start && currentTime <= word.end
+    const activeWords = clip.words.filter(
+      (word) => currentTime >= word.start && currentTime <= word.end
     )
 
     if (activeWords.length === 0) return
@@ -379,7 +406,7 @@ export class VirtualTimelineExporter {
     ctx.textBaseline = 'bottom'
 
     // 자막 텍스트 렌더링
-    const subtitleText = activeWords.map(word => word.text).join(' ')
+    const subtitleText = activeWords.map((word) => word.text).join(' ')
     const x = ctx.canvas.width / 2
     const y = ctx.canvas.height - 50
 
@@ -417,7 +444,7 @@ export class VirtualTimelineExporter {
     ctx.putImageData(frameData, 0, 0)
 
     const frame = new VideoFrame(canvas, {
-      timestamp: frameIndex * (1000000 / this.config.frameRate) // 마이크로초
+      timestamp: frameIndex * (1000000 / this.config.frameRate), // 마이크로초
     })
 
     encoder.encode(frame)
@@ -427,10 +454,13 @@ export class VirtualTimelineExporter {
   /**
    * 인코딩 완료 및 파일 저장
    */
-  private async finalizeEncoding(encoder: VideoEncoder, outputPath: string): Promise<void> {
+  private async finalizeEncoding(
+    encoder: VideoEncoder,
+    outputPath: string
+  ): Promise<void> {
     await encoder.flush()
     encoder.close()
-    
+
     // 실제 구현에서는 파일 시스템 API 또는 다운로드 처리
     log('VirtualTimelineExporter', `Export saved to: ${outputPath}`)
   }
@@ -439,9 +469,15 @@ export class VirtualTimelineExporter {
    * Cut Edit 추출
    */
   private extractCutEdits(editHistory: CutEditOperation[]) {
-    const splits = editHistory.filter(op => op.type === 'split') as SplitOperation[]
-    const deletions = editHistory.filter(op => op.type === 'delete') as DeleteOperation[]
-    const moves = editHistory.filter(op => op.type === 'move') as MoveOperation[]
+    const splits = editHistory.filter(
+      (op) => op.type === 'split'
+    ) as SplitOperation[]
+    const deletions = editHistory.filter(
+      (op) => op.type === 'delete'
+    ) as DeleteOperation[]
+    const moves = editHistory.filter(
+      (op) => op.type === 'move'
+    ) as MoveOperation[]
 
     return { splits, deletions, moves }
   }
@@ -449,11 +485,20 @@ export class VirtualTimelineExporter {
   /**
    * 세그먼트 타입 결정
    */
-  private getSegmentType(clipId: string, editHistory: CutEditOperation[]): string {
-    if (editHistory.some(op => op.type === 'split' && op.targetClipId === clipId)) {
+  private getSegmentType(
+    clipId: string,
+    editHistory: CutEditOperation[]
+  ): string {
+    if (
+      editHistory.some(
+        (op) => op.type === 'split' && op.targetClipId === clipId
+      )
+    ) {
       return 'split'
     }
-    if (editHistory.some(op => op.type === 'move' && op.targetClipId === clipId)) {
+    if (
+      editHistory.some((op) => op.type === 'move' && op.targetClipId === clipId)
+    ) {
       return 'moved'
     }
     return 'normal'
@@ -468,7 +513,7 @@ export class VirtualTimelineExporter {
 
     if (segments.length === 0) return 0
 
-    return Math.max(...segments.map(s => s.realEndTime))
+    return Math.max(...segments.map((s) => s.realEndTime))
   }
 
   /**
@@ -487,7 +532,7 @@ export class VirtualTimelineExporter {
       phase: 'preparing',
       progress: 0,
       currentSegment: 0,
-      totalSegments: 0
+      totalSegments: 0,
     }
   }
 
@@ -515,7 +560,7 @@ export class VirtualTimelineExporter {
       this.updateProgress({
         phase: 'error',
         progress: 0,
-        error: 'Export cancelled by user'
+        error: 'Export cancelled by user',
       })
       log('VirtualTimelineExporter', 'Export cancelled')
     }
@@ -533,7 +578,7 @@ export class VirtualTimelineExporter {
   // Private helper methods
 
   private notifyProgressCallbacks(): void {
-    this.progressCallbacks.forEach(callback => {
+    this.progressCallbacks.forEach((callback) => {
       try {
         callback(this.exportProgress)
       } catch (error) {

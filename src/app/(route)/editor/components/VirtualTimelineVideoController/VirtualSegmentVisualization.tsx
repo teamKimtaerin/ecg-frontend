@@ -15,7 +15,9 @@ interface VirtualSegmentVisualizationProps {
   showDeletedSegments?: boolean
 }
 
-export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationProps> = ({
+export const VirtualSegmentVisualization: React.FC<
+  VirtualSegmentVisualizationProps
+> = ({
   segments,
   currentTime,
   duration,
@@ -28,74 +30,90 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
   const [hoveredSegment, setHoveredSegment] = useState<string | null>(null)
 
   // Separate active and deleted segments
-  const activeSegments = segments.filter(segment => segment.isEnabled)
-  const deletedSegments = showDeletedSegments ? segments.filter(segment => !segment.isEnabled) : []
+  const activeSegments = segments.filter((segment) => segment.isEnabled)
+  const deletedSegments = showDeletedSegments
+    ? segments.filter((segment) => !segment.isEnabled)
+    : []
 
   // Calculate segment visual properties
-  const getSegmentProps = useCallback((segment: VirtualSegment, isDeleted = false) => {
-    if (duration === 0) return { left: 0, width: 0, percentage: 0 }
-    
-    const startPercentage = (segment.virtualStartTime / duration) * 100
-    const widthPercentage = ((segment.virtualEndTime - segment.virtualStartTime) / duration) * 100
-    
-    return {
-      left: startPercentage,
-      width: widthPercentage,
-      percentage: widthPercentage
-    }
-  }, [duration])
+  const getSegmentProps = useCallback(
+    (segment: VirtualSegment, isDeleted = false) => {
+      if (duration === 0) return { left: 0, width: 0, percentage: 0 }
+
+      const startPercentage = (segment.virtualStartTime / duration) * 100
+      const widthPercentage =
+        ((segment.virtualEndTime - segment.virtualStartTime) / duration) * 100
+
+      return {
+        left: startPercentage,
+        width: widthPercentage,
+        percentage: widthPercentage,
+      }
+    },
+    [duration]
+  )
 
   // Get segment styling based on type and state
-  const getSegmentStyling = useCallback((segment: VirtualSegment, isDeleted = false, isHovered = false) => {
-    const baseClasses = "absolute h-full rounded-sm transition-all duration-200 cursor-pointer border"
-    
-    if (isDeleted) {
+  const getSegmentStyling = useCallback(
+    (segment: VirtualSegment, isDeleted = false, isHovered = false) => {
+      const baseClasses =
+        'absolute h-full rounded-sm transition-all duration-200 cursor-pointer border'
+
+      if (isDeleted) {
+        return {
+          className: `${baseClasses} bg-red-200 border-red-400 opacity-40 hover:opacity-60`,
+          style: { zIndex: 1 },
+        }
+      }
+
+      const typeStyles = {
+        normal: {
+          bg: isHovered ? 'bg-blue-500' : 'bg-blue-400',
+          border: 'border-blue-600',
+          opacity: 'opacity-80 hover:opacity-100',
+        },
+        split: {
+          bg: isHovered ? 'bg-green-500' : 'bg-green-400',
+          border: 'border-green-600',
+          opacity: 'opacity-80 hover:opacity-100',
+        },
+        moved: {
+          bg: isHovered ? 'bg-purple-500' : 'bg-purple-400',
+          border: 'border-purple-600',
+          opacity: 'opacity-80 hover:opacity-100',
+        },
+      }
+
+      const style = typeStyles[segment.type] || typeStyles.normal
+
       return {
-        className: `${baseClasses} bg-red-200 border-red-400 opacity-40 hover:opacity-60`,
-        style: { zIndex: 1 }
+        className: `${baseClasses} ${style.bg} ${style.border} ${style.opacity}`,
+        style: { zIndex: isHovered ? 10 : 5 },
       }
-    }
-    
-    const typeStyles = {
-      normal: {
-        bg: isHovered ? 'bg-blue-500' : 'bg-blue-400',
-        border: 'border-blue-600',
-        opacity: 'opacity-80 hover:opacity-100'
-      },
-      split: {
-        bg: isHovered ? 'bg-green-500' : 'bg-green-400', 
-        border: 'border-green-600',
-        opacity: 'opacity-80 hover:opacity-100'
-      },
-      moved: {
-        bg: isHovered ? 'bg-purple-500' : 'bg-purple-400',
-        border: 'border-purple-600', 
-        opacity: 'opacity-80 hover:opacity-100'
-      }
-    }
-    
-    const style = typeStyles[segment.type] || typeStyles.normal
-    
-    return {
-      className: `${baseClasses} ${style.bg} ${style.border} ${style.opacity}`,
-      style: { zIndex: isHovered ? 10 : 5 }
-    }
-  }, [])
+    },
+    []
+  )
 
   // Handle segment click for seeking
-  const handleSegmentClick = useCallback((segment: VirtualSegment, e: React.MouseEvent) => {
-    e.stopPropagation()
-    // Seek to the start of the clicked segment
-    onSeek(segment.virtualStartTime)
-  }, [onSeek])
+  const handleSegmentClick = useCallback(
+    (segment: VirtualSegment, e: React.MouseEvent) => {
+      e.stopPropagation()
+      // Seek to the start of the clicked segment
+      onSeek(segment.virtualStartTime)
+    },
+    [onSeek]
+  )
 
   // Handle timeline click for seeking
-  const handleTimelineClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const clickPosition = (e.clientX - rect.left) / rect.width
-    const seekTime = Math.max(0, Math.min(duration, clickPosition * duration))
-    onSeek(seekTime)
-  }, [duration, onSeek])
+  const handleTimelineClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const clickPosition = (e.clientX - rect.left) / rect.width
+      const seekTime = Math.max(0, Math.min(duration, clickPosition * duration))
+      onSeek(seekTime)
+    },
+    [duration, onSeek]
+  )
 
   // Format time for tooltips
   const formatTime = useCallback((seconds: number): string => {
@@ -105,7 +123,8 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
   }, [])
 
   // Current time indicator position
-  const currentTimePercentage = duration > 0 ? (currentTime / duration) * 100 : 0
+  const currentTimePercentage =
+    duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
     <div className={`virtual-segment-visualization ${className}`}>
@@ -128,12 +147,20 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
         {/* Deleted segments (shown first, behind active segments) */}
         {deletedSegments.map((segment) => {
           const props = getSegmentProps(segment, true)
-          const styling = getSegmentStyling(segment, true, hoveredSegment === segment.id)
-          
+          const styling = getSegmentStyling(
+            segment,
+            true,
+            hoveredSegment === segment.id
+          )
+
           return (
             <Tooltip
               key={`deleted-${segment.id}`}
-              content={showTooltips ? `Deleted Segment - Clip: ${segment.sourceClipId}` : ''}
+              content={
+                showTooltips
+                  ? `Deleted Segment - Clip: ${segment.sourceClipId}`
+                  : ''
+              }
               disabled={!showTooltips}
             >
               <div
@@ -141,7 +168,7 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
                 style={{
                   left: `${props.left}%`,
                   width: `${props.width}%`,
-                  ...styling.style
+                  ...styling.style,
                 }}
                 onMouseEnter={() => setHoveredSegment(segment.id)}
                 onMouseLeave={() => setHoveredSegment(null)}
@@ -159,12 +186,20 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
         {/* Active segments */}
         {activeSegments.map((segment, index) => {
           const props = getSegmentProps(segment)
-          const styling = getSegmentStyling(segment, false, hoveredSegment === segment.id)
-          
+          const styling = getSegmentStyling(
+            segment,
+            false,
+            hoveredSegment === segment.id
+          )
+
           return (
             <Tooltip
               key={segment.id}
-              content={showTooltips ? `${segment.type} Segment - Clip: ${segment.sourceClipId}` : ''}
+              content={
+                showTooltips
+                  ? `${segment.type} Segment - Clip: ${segment.sourceClipId}`
+                  : ''
+              }
               disabled={!showTooltips}
             >
               <div
@@ -172,7 +207,7 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
                 style={{
                   left: `${props.left}%`,
                   width: `${props.width}%`,
-                  ...styling.style
+                  ...styling.style,
                 }}
                 onMouseEnter={() => setHoveredSegment(segment.id)}
                 onMouseLeave={() => setHoveredSegment(null)}
@@ -189,11 +224,15 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
 
                 {/* Segment type indicator */}
                 <div className="absolute top-0 left-0 w-2 h-2 rounded-br">
-                  <div className={`w-full h-full ${
-                    segment.type === 'split' ? 'bg-green-600' :
-                    segment.type === 'moved' ? 'bg-purple-600' :
-                    'bg-blue-600'
-                  }`}></div>
+                  <div
+                    className={`w-full h-full ${
+                      segment.type === 'split'
+                        ? 'bg-green-600'
+                        : segment.type === 'moved'
+                          ? 'bg-purple-600'
+                          : 'bg-blue-600'
+                    }`}
+                  ></div>
                 </div>
               </div>
             </Tooltip>
@@ -206,7 +245,7 @@ export const VirtualSegmentVisualization: React.FC<VirtualSegmentVisualizationPr
           style={{
             left: `${currentTimePercentage}%`,
             height: `${height}px`,
-            top: 0
+            top: 0,
           }}
         >
           {/* Current time marker head */}

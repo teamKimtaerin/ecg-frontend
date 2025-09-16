@@ -511,7 +511,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       if (state.playingClipId === clipId && state.playingWordId === wordId) {
         return state
       }
-      
+
       return {
         playingClipId: clipId,
         playingWordId: wordId,

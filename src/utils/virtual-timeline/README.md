@@ -48,7 +48,7 @@ import { createVirtualTimelineSystem } from '@/utils/virtual-timeline'
 const virtualTimelineSystem = createVirtualTimelineSystem({
   enableFramePrecision: true,
   frameRate: 30,
-  debugMode: process.env.NODE_ENV === 'development'
+  debugMode: process.env.NODE_ENV === 'development',
 })
 
 // 클립 데이터로 초기화
@@ -62,15 +62,18 @@ virtualTimelineSystem.attachVideo(videoElement)
 
 ```typescript
 // editorStore.ts에 VirtualTimelineSlice 추가
-import { createVirtualTimelineSlice, VirtualTimelineSlice } from '@/utils/virtual-timeline'
+import {
+  createVirtualTimelineSlice,
+  VirtualTimelineSlice,
+} from '@/utils/virtual-timeline'
 
-export interface EditorStore extends 
-  ClipSlice,
-  SelectionSlice,
-  UISlice,
-  SaveSlice,
-  VirtualTimelineSlice,  // 새로 추가
-  WordSlice {}
+export interface EditorStore
+  extends ClipSlice,
+    SelectionSlice,
+    UISlice,
+    SaveSlice,
+    VirtualTimelineSlice, // 새로 추가
+    WordSlice {}
 
 export const useEditorStore = create<EditorStore>()(
   immer((...a) => ({
@@ -78,7 +81,7 @@ export const useEditorStore = create<EditorStore>()(
     ...createSelectionSlice(...a),
     ...createUISlice(...a),
     ...createSaveSlice(...a),
-    ...createVirtualTimelineSlice(...a),  // 새로 추가
+    ...createVirtualTimelineSlice(...a), // 새로 추가
     ...createWordSlice(...a),
   }))
 )
@@ -91,20 +94,20 @@ export const useEditorStore = create<EditorStore>()(
 import { useEditorStore } from '@/app/(route)/editor/store/editorStore'
 
 export function VideoPlayer({ videoRef }: { videoRef: React.RefObject<HTMLVideoElement> }) {
-  const { 
+  const {
     attachVideoElement,
     play,
     pause,
     seek,
     currentVirtualTime,
-    isPlaying 
+    isPlaying
   } = useEditorStore()
 
   useEffect(() => {
     if (videoRef.current) {
       attachVideoElement(videoRef.current)
     }
-    
+
     return () => {
       detachVideoElement()
     }
@@ -112,7 +115,7 @@ export function VideoPlayer({ videoRef }: { videoRef: React.RefObject<HTMLVideoE
 
   return (
     <div className="video-player">
-      <video 
+      <video
         ref={videoRef}
         className="w-full h-full"
       />
@@ -148,12 +151,12 @@ export function VirtualSubtitleOverlay() {
 
   return (
     <div className="subtitle-overlay">
-      <div 
+      <div
         className="subtitle-text"
         style={{ opacity: currentSubtitle.opacity }}
       >
         {currentSubtitle.words.map(word => (
-          <span 
+          <span
             key={word.id}
             className={`subtitle-word ${word.isActive ? 'active' : ''}`}
           >
@@ -194,7 +197,12 @@ virtualReorderClips(newOrder)
 // 기존 word drag & drop과 통합
 const { moveWordBetweenClips } = useEditorStore()
 
-function handleWordDrop(wordId: string, sourceClipId: string, targetClipId: string, position: number) {
+function handleWordDrop(
+  wordId: string,
+  sourceClipId: string,
+  targetClipId: string,
+  position: number
+) {
   // Virtual Timeline에서 자동으로 timing 재계산됨
   moveWordBetweenClips(wordId, sourceClipId, targetClipId, position)
 }
@@ -206,7 +214,11 @@ function handleWordDrop(wordId: string, sourceClipId: string, targetClipId: stri
 // 기존 plugin system과 연동
 const { virtualPlayer } = useEditorStore()
 
-function applyAnimation(clipId: string, pluginName: string, parameters: object) {
+function applyAnimation(
+  clipId: string,
+  pluginName: string,
+  parameters: object
+) {
   if (virtualPlayer?.subtitleRenderer) {
     virtualPlayer.subtitleRenderer.setAnimation(clipId, pluginName, parameters)
   }
@@ -220,7 +232,11 @@ function applyAnimation(clipId: string, pluginName: string, parameters: object) 
 ```typescript
 import { VirtualTimelineExporter } from '@/utils/virtual-timeline'
 
-const exporter = new VirtualTimelineExporter(timelineManager, timelineMapper, config)
+const exporter = new VirtualTimelineExporter(
+  timelineManager,
+  timelineMapper,
+  config
+)
 
 // timeline.json 생성
 const timelineJSON = exporter.exportTimelineJSON()
@@ -245,7 +261,7 @@ const exportConfig = {
   resolution: { width: 1920, height: 1080 },
   includeSubtitles: true,
   includeEffects: true,
-  outputFormat: 'mp4' as const
+  outputFormat: 'mp4' as const,
 }
 
 await exporter.exportVideo(exportConfig, 'output.mp4', videoElement)
@@ -262,8 +278,8 @@ await exporter.exportVideo(exportConfig, 'output.mp4', videoElement)
   "name": "elastic",
   "version": "1.0.0",
   "pluginApi": "2.1",
-  "virtualTimelineSupport": true,  // 새로 추가
-  "frameCallback": true,           // RVFC 콜백 지원
+  "virtualTimelineSupport": true, // 새로 추가
+  "frameCallback": true, // RVFC 콜백 지원
   "schema": {
     // 기존 parameters...
   }
@@ -277,17 +293,17 @@ await exporter.exportVideo(exportConfig, 'output.mp4', videoElement)
 export default function createElasticPlugin(parameters) {
   return {
     // 기존 implementation...
-    
+
     // Virtual Timeline 지원을 위한 frame callback
     onVirtualFrame(frameData) {
       const { virtualTime, activeSegments } = frameData
       // Virtual time 기반 애니메이션 로직
     },
-    
+
     // Frame-by-frame export 지원
     renderToCanvas(ctx, frameData, parameters) {
       // Canvas에 직접 렌더링하는 로직
-    }
+    },
   }
 }
 ```
@@ -316,7 +332,7 @@ let lastTime = Date.now()
 virtualPlayer.onFrame((frameData) => {
   frameCount++
   const now = Date.now()
-  
+
   if (now - lastTime >= 1000) {
     console.log(`RVFC Frame Rate: ${frameCount} fps`)
     frameCount = 0
@@ -336,7 +352,11 @@ virtualPlayer.onFrame((frameData) => {
 const { timeline, currentTime, isPlaying } = useEditorStore()
 
 // 새 코드
-const { timeline: virtualTimeline, currentVirtualTime, isPlaying } = useEditorStore()
+const {
+  timeline: virtualTimeline,
+  currentVirtualTime,
+  isPlaying,
+} = useEditorStore()
 ```
 
 ### 2. Time 기준 변경
@@ -345,8 +365,8 @@ const { timeline: virtualTimeline, currentVirtualTime, isPlaying } = useEditorSt
 
 ```typescript
 // 기존: Real time 기준
-const activeClip = clips.find(clip => 
-  realTime >= clip.startTime && realTime <= clip.endTime
+const activeClip = clips.find(
+  (clip) => realTime >= clip.startTime && realTime <= clip.endTime
 )
 
 // 새: Virtual time 기준 + mapping
@@ -368,7 +388,11 @@ function exportVideo() {
 
 // 새 export
 function exportVideo() {
-  const exporter = new VirtualTimelineExporter(timelineManager, timelineMapper, config)
+  const exporter = new VirtualTimelineExporter(
+    timelineManager,
+    timelineMapper,
+    config
+  )
   return exporter.exportVideo(exportConfig, outputPath, videoElement)
 }
 ```
@@ -385,11 +409,11 @@ describe('VirtualTimelineManager', () => {
   it('should initialize timeline from clips', () => {
     const manager = new VirtualTimelineManager()
     manager.initializeFromClips(mockClips)
-    
+
     const timeline = manager.getTimeline()
     expect(timeline.segments).toHaveLength(mockClips.length)
   })
-  
+
   it('should handle virtual to real time mapping', () => {
     const mapping = manager.virtualToReal(30.5)
     expect(mapping.isValid).toBe(true)
@@ -406,12 +430,12 @@ describe('Virtual Timeline Integration', () => {
   it('should sync video playback with virtual timeline', async () => {
     const system = createVirtualTimelineSystem()
     system.initialize(mockClips)
-    
+
     const mockVideo = createMockVideoElement()
     system.attachVideo(mockVideo)
-    
+
     await system.virtualPlayer.play()
-    
+
     // RVFC 콜백이 정상 작동하는지 확인
     expect(mockVideo.currentTime).toBeGreaterThan(0)
   })
@@ -427,8 +451,8 @@ describe('Virtual Timeline Integration', () => {
 const config = {
   enableFramePrecision: true,
   frameRate: 60,
-  bufferSize: 5,        // 작은 버퍼로 메모리 절약
-  syncThreshold: 8.33   // 120fps 임계값
+  bufferSize: 5, // 작은 버퍼로 메모리 절약
+  syncThreshold: 8.33, // 120fps 임계값
 }
 ```
 

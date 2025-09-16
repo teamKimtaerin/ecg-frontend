@@ -2,7 +2,10 @@
  * 재생 엔진 - 타임라인 재생 및 비디오 동기화 처리
  */
 
-import { TimelineClip, TrackType } from '@/app/(route)/editor/store/slices/timelineSlice'
+import {
+  TimelineClip,
+  TrackType,
+} from '@/app/(route)/editor/store/slices/timelineSlice'
 import { timelineEngine } from './timelineEngine'
 import { ClipItem } from '@/app/(route)/editor/components/ClipComponent/types'
 
@@ -34,22 +37,27 @@ export class PlaybackEngine {
     videoSourceTime: 0,
     currentSourceClip: null,
   }
-  
+
   private timeUpdateCallbacks: Array<(state: PlaybackState) => void> = []
   private videoPlayer: HTMLVideoElement | null = null
 
   /**
    * 재생 엔진 초기화 (연속 재생 모드 지원)
    */
-  initialize(timelineClips: TimelineClip[], originalClips: ClipItem[], isSequentialMode: boolean = true, clipOrder?: string[]): void {
+  initialize(
+    timelineClips: TimelineClip[],
+    originalClips: ClipItem[],
+    isSequentialMode: boolean = true,
+    clipOrder?: string[]
+  ): void {
     this.clips = timelineClips
     this.originalClips = originalClips
     this.isSequentialMode = isSequentialMode
-    this.clipOrder = clipOrder || timelineClips.map(clip => clip.id)
+    this.clipOrder = clipOrder || timelineClips.map((clip) => clip.id)
     console.log('PlaybackEngine initialized:', {
       clips: timelineClips.length,
       mode: isSequentialMode ? 'Sequential' : 'Timeline',
-      order: this.clipOrder.length
+      order: this.clipOrder.length,
     })
   }
 
@@ -61,7 +69,9 @@ export class PlaybackEngine {
     if (clipOrder) {
       this.clipOrder = clipOrder
     }
-    console.log(`PlaybackEngine mode changed to: ${isSequential ? 'Sequential' : 'Timeline'}`)
+    console.log(
+      `PlaybackEngine mode changed to: ${isSequential ? 'Sequential' : 'Timeline'}`
+    )
   }
 
   /**
@@ -103,31 +113,37 @@ export class PlaybackEngine {
     this.playbackState.currentTime = timelineTime
 
     // 연속 재생 모드와 일반 모드에 따라 다르게 처리
-    const activeClips = this.isSequentialMode 
+    const activeClips = this.isSequentialMode
       ? this.getSequentialActiveClips(timelineTime)
       : timelineEngine.getActiveClipsAtTime(this.clips, timelineTime)
-    
+
     this.playbackState.activeClips = activeClips
 
     // 비디오 클립이 있다면 소스 시간으로 매핑
-    const videoClip = activeClips.find(clip => clip.track === 'video') || 
-                     activeClips.find(clip => clip.track === 'subtitle') // 자막 클립도 비디오 동기화에 사용
+    const videoClip =
+      activeClips.find((clip) => clip.track === 'video') ||
+      activeClips.find((clip) => clip.track === 'subtitle') // 자막 클립도 비디오 동기화에 사용
 
     if (videoClip) {
-      const mapping = this.isSequentialMode 
+      const mapping = this.isSequentialMode
         ? this.mapSequentialTimelineToSource(videoClip, timelineTime)
         : timelineEngine.mapTimelineToSource(videoClip, timelineTime)
-      
+
       if (mapping.isValid) {
         this.playbackState.videoSourceTime = mapping.sourceTime
-        
+
         // 해당 원본 클립 찾기
-        const sourceClip = this.originalClips.find(clip => clip.id === mapping.sourceClipId) || null
+        const sourceClip =
+          this.originalClips.find((clip) => clip.id === mapping.sourceClipId) ||
+          null
         this.playbackState.currentSourceClip = sourceClip
 
         // 비디오 플레이어 동기화
         if (this.videoPlayer) {
-          const actualVideoTime = this.calculateActualVideoTime(sourceClip, mapping.sourceTime)
+          const actualVideoTime = this.calculateActualVideoTime(
+            sourceClip,
+            mapping.sourceTime
+          )
           if (Math.abs(this.videoPlayer.currentTime - actualVideoTime) > 0.1) {
             this.videoPlayer.currentTime = actualVideoTime
           }
@@ -149,37 +165,45 @@ export class PlaybackEngine {
   private getSequentialActiveClips(timelineTime: number): TimelineClip[] {
     // clipOrder에 따라 정렬된 클립들에서 현재 시간에 해당하는 클립 찾기
     const orderedClips = this.clipOrder
-      .map(id => this.clips.find(clip => clip.id === id))
+      .map((id) => this.clips.find((clip) => clip.id === id))
       .filter(Boolean) as TimelineClip[]
 
-    return orderedClips.filter(clip => {
-      return timelineTime >= clip.startTime && 
-             timelineTime < clip.startTime + clip.duration && 
-             clip.enabled
+    return orderedClips.filter((clip) => {
+      return (
+        timelineTime >= clip.startTime &&
+        timelineTime < clip.startTime + clip.duration &&
+        clip.enabled
+      )
     })
   }
 
   /**
    * 연속 재생 모드에서 타임라인 시간을 소스 시간으로 매핑
    */
-  private mapSequentialTimelineToSource(clip: TimelineClip, timelineTime: number): { isValid: boolean; sourceTime: number; sourceClipId: string } {
+  private mapSequentialTimelineToSource(
+    clip: TimelineClip,
+    timelineTime: number
+  ): { isValid: boolean; sourceTime: number; sourceClipId: string } {
     // 클립 내에서의 상대 시간 계산
     const relativeTime = timelineTime - clip.startTime
-    
+
     // inPoint와 outPoint 사이로 매핑
     const sourceTime = clip.inPoint + relativeTime
-    
+
     return {
       isValid: sourceTime >= clip.inPoint && sourceTime <= clip.outPoint,
       sourceTime,
-      sourceClipId: clip.sourceClipId
+      sourceClipId: clip.sourceClipId,
     }
   }
 
   /**
    * 원본 클립의 상대 시간을 실제 비디오 시간으로 변환
    */
-  private calculateActualVideoTime(sourceClip: ClipItem | null, sourceTime: number): number {
+  private calculateActualVideoTime(
+    sourceClip: ClipItem | null,
+    sourceTime: number
+  ): number {
     if (!sourceClip || !sourceClip.words || sourceClip.words.length === 0) {
       return sourceTime
     }
@@ -196,9 +220,9 @@ export class PlaybackEngine {
    */
   play(): void {
     this.playbackState.isPlaying = true
-    
+
     if (this.videoPlayer && this.playbackState.currentSourceClip) {
-      this.videoPlayer.play().catch(error => {
+      this.videoPlayer.play().catch((error) => {
         console.warn('Failed to start video playback:', error)
       })
     }
@@ -211,7 +235,7 @@ export class PlaybackEngine {
    */
   pause(): void {
     this.playbackState.isPlaying = false
-    
+
     if (this.videoPlayer) {
       this.videoPlayer.pause()
     }
@@ -288,15 +312,15 @@ export class PlaybackEngine {
    */
   private nextSequentialClip(): boolean {
     const currentTime = this.playbackState.currentTime
-    
+
     // 현재 활성 클립 찾기
     const currentClip = this.getSequentialActiveClips(currentTime)[0]
     if (!currentClip) {
       // 현재 클립이 없으면 첫 번째 클립으로
       const firstClip = this.clipOrder
-        .map(id => this.clips.find(clip => clip.id === id))
+        .map((id) => this.clips.find((clip) => clip.id === id))
         .filter(Boolean)[0] as TimelineClip | undefined
-      
+
       if (firstClip) {
         this.setCurrentTime(firstClip.startTime)
         return true
@@ -308,8 +332,8 @@ export class PlaybackEngine {
     const currentIndex = this.clipOrder.indexOf(currentClip.id)
     if (currentIndex !== -1 && currentIndex < this.clipOrder.length - 1) {
       const nextClipId = this.clipOrder[currentIndex + 1]
-      const nextClip = this.clips.find(clip => clip.id === nextClipId)
-      
+      const nextClip = this.clips.find((clip) => clip.id === nextClipId)
+
       if (nextClip && nextClip.enabled) {
         this.setCurrentTime(nextClip.startTime)
         return true
@@ -324,7 +348,7 @@ export class PlaybackEngine {
    */
   private previousSequentialClip(): boolean {
     const currentTime = this.playbackState.currentTime
-    
+
     // 현재 활성 클립 찾기
     const currentClip = this.getSequentialActiveClips(currentTime)[0]
     if (!currentClip) {
@@ -335,8 +359,8 @@ export class PlaybackEngine {
     const currentIndex = this.clipOrder.indexOf(currentClip.id)
     if (currentIndex > 0) {
       const prevClipId = this.clipOrder[currentIndex - 1]
-      const prevClip = this.clips.find(clip => clip.id === prevClipId)
-      
+      const prevClip = this.clips.find((clip) => clip.id === prevClipId)
+
       if (prevClip && prevClip.enabled) {
         this.setCurrentTime(prevClip.startTime)
         return true
@@ -352,7 +376,7 @@ export class PlaybackEngine {
   private nextTimelineClip(): boolean {
     const currentTime = this.playbackState.currentTime
     const nextClip = this.clips
-      .filter(clip => clip.startTime > currentTime)
+      .filter((clip) => clip.startTime > currentTime)
       .sort((a, b) => a.startTime - b.startTime)[0]
 
     if (nextClip) {
@@ -369,7 +393,7 @@ export class PlaybackEngine {
   private previousTimelineClip(): boolean {
     const currentTime = this.playbackState.currentTime
     const prevClip = this.clips
-      .filter(clip => clip.startTime < currentTime)
+      .filter((clip) => clip.startTime < currentTime)
       .sort((a, b) => b.startTime - a.startTime)[0]
 
     if (prevClip) {
@@ -390,7 +414,9 @@ export class PlaybackEngine {
     // 모든 클립의 시작과 끝 시간을 검사
     for (const clip of this.clips) {
       const startDistance = Math.abs(timelineTime - clip.startTime)
-      const endDistance = Math.abs(timelineTime - (clip.startTime + clip.duration))
+      const endDistance = Math.abs(
+        timelineTime - (clip.startTime + clip.duration)
+      )
 
       if (startDistance < minDistance) {
         minDistance = startDistance
@@ -410,14 +436,18 @@ export class PlaybackEngine {
    * 현재 활성 자막 클립들 가져오기
    */
   getActiveSubtitleClips(): TimelineClip[] {
-    return this.playbackState.activeClips.filter(clip => clip.track === 'subtitle')
+    return this.playbackState.activeClips.filter(
+      (clip) => clip.track === 'subtitle'
+    )
   }
 
   /**
    * 현재 활성 비디오 클립 가져오기
    */
   getActiveVideoClip(): TimelineClip | null {
-    const videoClips = this.playbackState.activeClips.filter(clip => clip.track === 'video')
+    const videoClips = this.playbackState.activeClips.filter(
+      (clip) => clip.track === 'video'
+    )
     return videoClips.length > 0 ? videoClips[0] : null
   }
 
@@ -428,7 +458,9 @@ export class PlaybackEngine {
     const segments: PlaybackSegment[] = []
 
     // 비디오/자막 클립들을 시간순으로 정렬
-    const sortedClips = [...this.clips].sort((a, b) => a.startTime - b.startTime)
+    const sortedClips = [...this.clips].sort(
+      (a, b) => a.startTime - b.startTime
+    )
 
     for (const clip of sortedClips) {
       if (!clip.enabled) continue
@@ -465,7 +497,7 @@ export class PlaybackEngine {
     if (newOrder) {
       this.clipOrder = newOrder
     }
-    
+
     // 현재 시간에서 다시 계산
     this.setCurrentTime(this.playbackState.currentTime)
   }
@@ -480,9 +512,12 @@ export class PlaybackEngine {
 
     const currentTime = this.playbackState.currentTime
     const currentClip = this.getSequentialActiveClips(currentTime)[0]
-    
+
     // 현재 클립이 끝나면 자동으로 다음 클립으로
-    if (currentClip && currentTime >= currentClip.startTime + currentClip.duration - 0.1) {
+    if (
+      currentClip &&
+      currentTime >= currentClip.startTime + currentClip.duration - 0.1
+    ) {
       return this.nextSequentialClip()
     }
 
@@ -492,21 +527,23 @@ export class PlaybackEngine {
   /**
    * 연속 재생 모드 상태 확인
    */
-  getSequentialModeInfo(): { 
-    isSequentialMode: boolean; 
-    clipOrder: string[]; 
-    currentClipIndex: number;
-    totalClips: number;
+  getSequentialModeInfo(): {
+    isSequentialMode: boolean
+    clipOrder: string[]
+    currentClipIndex: number
+    totalClips: number
   } {
     const currentTime = this.playbackState.currentTime
     const currentClip = this.getSequentialActiveClips(currentTime)[0]
-    const currentClipIndex = currentClip ? this.clipOrder.indexOf(currentClip.id) : -1
+    const currentClipIndex = currentClip
+      ? this.clipOrder.indexOf(currentClip.id)
+      : -1
 
     return {
       isSequentialMode: this.isSequentialMode,
       clipOrder: [...this.clipOrder],
       currentClipIndex,
-      totalClips: this.clipOrder.length
+      totalClips: this.clipOrder.length,
     }
   }
 
@@ -517,18 +554,20 @@ export class PlaybackEngine {
     // 현재 활성 클립이 있다면 그것을 기준으로 계산
     if (this.playbackState.currentSourceClip) {
       const sourceClip = this.playbackState.currentSourceClip
-      const firstWordStart = sourceClip.words.length > 0 ? sourceClip.words[0].start : 0
-      
+      const firstWordStart =
+        sourceClip.words.length > 0 ? sourceClip.words[0].start : 0
+
       // 비디오 시간을 소스 클립의 상대 시간으로 변환
       const relativeSourceTime = videoTime - firstWordStart
-      
+
       // 해당 소스 시간에 대응하는 타임라인 클립 찾기
-      const timelineClip = this.clips.find(clip => 
-        clip.sourceClipId === sourceClip.id &&
-        relativeSourceTime >= clip.inPoint &&
-        relativeSourceTime <= clip.outPoint
+      const timelineClip = this.clips.find(
+        (clip) =>
+          clip.sourceClipId === sourceClip.id &&
+          relativeSourceTime >= clip.inPoint &&
+          relativeSourceTime <= clip.outPoint
       )
-      
+
       if (timelineClip) {
         const clipRelativeTime = relativeSourceTime - timelineClip.inPoint
         return timelineClip.startTime + clipRelativeTime
@@ -543,7 +582,7 @@ export class PlaybackEngine {
    */
   private notifyTimeUpdate(): void {
     const state = this.getPlaybackState()
-    this.timeUpdateCallbacks.forEach(callback => {
+    this.timeUpdateCallbacks.forEach((callback) => {
       try {
         callback(state)
       } catch (error) {

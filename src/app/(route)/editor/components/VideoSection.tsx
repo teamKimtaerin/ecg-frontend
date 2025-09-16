@@ -10,7 +10,10 @@ import VirtualTimelineVideoController from './VirtualTimelineVideoController'
 import { useEditorStore } from '../store'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
-import { VirtualPlayerController, type MotionTextSeekCallback } from '@/utils/virtual-timeline/VirtualPlayerController'
+import {
+  VirtualPlayerController,
+  type MotionTextSeekCallback,
+} from '@/utils/virtual-timeline/VirtualPlayerController'
 import { ECGTimelineMapper } from '@/utils/virtual-timeline/ECGTimelineMapper'
 import { VirtualTimelineManager } from '@/utils/virtual-timeline/VirtualTimeline'
 // import ScenarioJsonEditor from './ScenarioJsonEditor' // TODO: Re-enable when needed
@@ -36,16 +39,13 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   // Virtual Timeline 시스템
   const virtualTimelineManagerRef = useRef<VirtualTimelineManager | null>(null)
   const ecgTimelineMapperRef = useRef<ECGTimelineMapper | null>(null)
-  const virtualPlayerControllerRef = useRef<VirtualPlayerController | null>(null)
+  const virtualPlayerControllerRef = useRef<VirtualPlayerController | null>(
+    null
+  )
 
   // Store hooks
-  const {
-    clips,
-    timeline,
-    initializeTimeline,
-    setPlaybackPosition,
-    videoUrl,
-  } = useEditorStore()
+  const { clips, timeline, initializeTimeline, setPlaybackPosition, videoUrl } =
+    useEditorStore()
 
   const handleScenarioUpdate = useCallback((scenario: RendererConfig) => {
     setCurrentScenario(scenario)
@@ -68,7 +68,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
     // ECG Timeline Mapper 초기화
     if (!ecgTimelineMapperRef.current) {
-      ecgTimelineMapperRef.current = new ECGTimelineMapper(virtualTimelineManagerRef.current)
+      ecgTimelineMapperRef.current = new ECGTimelineMapper(
+        virtualTimelineManagerRef.current
+      )
     }
 
     // Virtual Player Controller 초기화
@@ -88,25 +90,29 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
       const timelineClips = timelineEngine.initializeFromClips(clips)
       playbackEngine.initialize(timelineClips, clips)
     }
-  }, []) // 한 번만 실행
+  }, [timeline.clips, clips, initializeTimeline]) // Dependencies needed for initialization logic
 
   // 클립 변경사항을 Virtual Timeline에 반영
   useEffect(() => {
     if (ecgTimelineMapperRef.current && clips.length >= 0) {
-      console.log('🔄 [VideoSection] Updating Virtual Timeline with clips:', clips.length)
-      
+      console.log(
+        '🔄 [VideoSection] Updating Virtual Timeline with clips:',
+        clips.length
+      )
+
       // Virtual Timeline 재초기화
       ecgTimelineMapperRef.current.initialize(clips)
-      
+
       // Virtual Player Controller에 타임라인 변경 알림
       if (virtualPlayerControllerRef.current) {
-        const timeline = ecgTimelineMapperRef.current.timelineManager.getTimeline()
+        const timeline =
+          ecgTimelineMapperRef.current.timelineManager.getTimeline()
         console.log('📊 [VideoSection] Timeline segments:', {
           total: timeline.segments.length,
-          enabled: timeline.segments.filter(s => s.isEnabled).length,
-          duration: timeline.duration
+          enabled: timeline.segments.filter((s) => s.isEnabled).length,
+          duration: timeline.duration,
         })
-        
+
         // 새로운 handleTimelineUpdate 메서드 사용
         virtualPlayerControllerRef.current.handleTimelineUpdate(timeline)
       }
@@ -130,31 +136,38 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   useEffect(() => {
     if (virtualPlayerControllerRef.current) {
       // MotionText Renderer의 seek 함수를 콜백으로 등록
-      const motionTextSeekCallback: MotionTextSeekCallback = (virtualTime: number) => {
+      const motionTextSeekCallback: MotionTextSeekCallback = (
+        virtualTime: number
+      ) => {
         // EditorMotionTextOverlay의 MotionText Renderer에 Virtual Time 전달
         // 현재는 currentTime 상태로 전달하지만, 직접 MotionText Renderer API 호출도 가능
         setCurrentTime(virtualTime)
       }
 
-      const cleanup = virtualPlayerControllerRef.current.onMotionTextSeek(motionTextSeekCallback)
-      
+      const cleanup = virtualPlayerControllerRef.current.onMotionTextSeek(
+        motionTextSeekCallback
+      )
+
       return cleanup
     }
-  }, [virtualPlayerControllerRef.current])
+  }, []) // virtualPlayerControllerRef.current is stable
 
   // Handle time update from video player
-  const handleTimeUpdate = useCallback((time: number) => {
-    setCurrentTime(time)
-    
-    // Virtual Timeline 시스템이 활성화된 경우 Virtual Player Controller에서 자동 처리
-    // 그렇지 않으면 기존 playbackEngine 사용
-    if (!virtualPlayerControllerRef.current) {
-      // 타임라인 재생 위치 업데이트 (기존 시스템)
-      setPlaybackPosition(time)
-      playbackEngine.setCurrentTime(time)
-    }
-    // Virtual Player Controller가 있으면 RVFC가 자동으로 시간 업데이트 처리
-  }, [setPlaybackPosition])
+  const handleTimeUpdate = useCallback(
+    (time: number) => {
+      setCurrentTime(time)
+
+      // Virtual Timeline 시스템이 활성화된 경우 Virtual Player Controller에서 자동 처리
+      // 그렇지 않으면 기존 playbackEngine 사용
+      if (!virtualPlayerControllerRef.current) {
+        // 타임라인 재생 위치 업데이트 (기존 시스템)
+        setPlaybackPosition(time)
+        playbackEngine.setCurrentTime(time)
+      }
+      // Virtual Player Controller가 있으면 RVFC가 자동으로 시간 업데이트 처리
+    },
+    [setPlaybackPosition]
+  )
 
   // Handle text click for selection
   const handleTextClick = useCallback((textId: string) => {
@@ -167,7 +180,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     console.log('📱 VideoSection handleTextDoubleClick:', textId)
     // Double click functionality disabled
   }, [])
-
 
   return (
     <div
@@ -219,7 +231,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
         {/* Text Edit Input Panel */}
         <TextEditInput />
-
       </div>
     </div>
   )
@@ -228,14 +239,14 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 // Cleanup on unmount
 VideoSection.displayName = 'VideoSection'
 
-// Virtual Timeline 정리 함수
-const cleanupVirtualTimeline = (
-  virtualPlayerControllerRef: React.MutableRefObject<VirtualPlayerController | null>
-) => {
-  if (virtualPlayerControllerRef.current) {
-    virtualPlayerControllerRef.current.cleanup()
-    virtualPlayerControllerRef.current = null
-  }
-}
+// Virtual Timeline 정리 함수 (현재 사용하지 않음)
+// const cleanupVirtualTimeline = (
+//   virtualPlayerControllerRef: React.MutableRefObject<VirtualPlayerController | null>
+// ) => {
+//   if (virtualPlayerControllerRef.current) {
+//     virtualPlayerControllerRef.current.cleanup()
+//     virtualPlayerControllerRef.current = null
+//   }
+// }
 
 export default VideoSection

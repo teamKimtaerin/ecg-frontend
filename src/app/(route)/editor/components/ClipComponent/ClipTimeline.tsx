@@ -6,7 +6,10 @@ interface ClipTimelineProps {
   timeline: string
 }
 
-export default function ClipTimeline({ index, clipId, timeline }: ClipTimelineProps) {
+export default function ClipTimeline({
+  index,
+  timeline,
+}: ClipTimelineProps) {
   return (
     <div className="flex items-center space-x-2 text-sm text-gray-700 bg-gray-50 p-2 rounded">
       <span className="font-medium">#{index}</span>

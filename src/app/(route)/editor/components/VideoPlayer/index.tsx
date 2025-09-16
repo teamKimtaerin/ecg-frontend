@@ -6,7 +6,10 @@ import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { log } from '@/utils/logger'
 import { VIDEO_PLAYER_CONSTANTS } from '@/lib/utils/constants'
 import { videoSegmentManager } from '@/utils/video/segmentManager'
-import { findCurrentWord, shouldUpdateWordSelection } from '@/utils/video/currentWordFinder'
+import {
+  findCurrentWord,
+  shouldUpdateWordSelection,
+} from '@/utils/video/currentWordFinder'
 import API_CONFIG from '@/config/api.config'
 
 interface VideoPlayerProps {

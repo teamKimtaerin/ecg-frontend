@@ -15,11 +15,11 @@ export function sortClipsByTimeline(clips: ClipItem[]): ClipItem[] {
     if (a.startTime !== undefined && b.startTime !== undefined) {
       return a.startTime - b.startTime
     }
-    
+
     // startTime이 없으면 timeline 문자열을 숫자로 변환해서 정렬
     const aTimeline = parseFloat(a.timeline) || parseInt(a.timeline, 10) || 0
     const bTimeline = parseFloat(b.timeline) || parseInt(b.timeline, 10) || 0
-    
+
     return aTimeline - bTimeline
   })
 }
@@ -31,7 +31,7 @@ export function sortClipsByTimeline(clips: ClipItem[]): ClipItem[] {
 export function reorderClipTimelines(clips: ClipItem[]): ClipItem[] {
   return clips.map((clip, index) => ({
     ...clip,
-    timeline: (index + 1).toString()
+    timeline: (index + 1).toString(),
   }))
 }
 
@@ -48,10 +48,12 @@ export function normalizeClipOrder(clips: ClipItem[]): ClipItem[] {
  * 클립의 실제 타임라인 정보가 유효한지 확인
  */
 export function hasValidTimelineInfo(clip: ClipItem): boolean {
-  return clip.startTime !== undefined && 
-         clip.endTime !== undefined && 
-         clip.startTime >= 0 && 
-         clip.endTime > clip.startTime
+  return (
+    clip.startTime !== undefined &&
+    clip.endTime !== undefined &&
+    clip.startTime >= 0 &&
+    clip.endTime > clip.startTime
+  )
 }
 
 /**
@@ -63,20 +65,26 @@ export function validateClipTimelines(clips: ClipItem[]): {
 } {
   const valid: ClipItem[] = []
   const invalid: ClipItem[] = []
-  
-  clips.forEach(clip => {
+
+  clips.forEach((clip) => {
     if (hasValidTimelineInfo(clip)) {
       valid.push(clip)
     } else {
       invalid.push(clip)
     }
   })
-  
+
   if (invalid.length > 0) {
-    console.warn(`Found ${invalid.length} clips with invalid timeline info:`, 
-      invalid.map(c => ({ id: c.id, timeline: c.timeline, startTime: c.startTime, endTime: c.endTime }))
+    console.warn(
+      `Found ${invalid.length} clips with invalid timeline info:`,
+      invalid.map((c) => ({
+        id: c.id,
+        timeline: c.timeline,
+        startTime: c.startTime,
+        endTime: c.endTime,
+      }))
     )
   }
-  
+
   return { valid, invalid }
 }
