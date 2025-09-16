@@ -13,6 +13,7 @@ import ExportModal from './Export/ExportModal'
 import YouTubeUploadModal from './Export/YouTubeUploadModal'
 import { ExportFormat, SocialPlatform, YouTubeUploadData } from './Export/ExportTypes'
 
+
 interface SimpleToolbarProps {
   activeClipId: string | null
   canUndo: boolean
@@ -55,14 +56,21 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
     }
   }, [forceOpenExportModal, isExportModalOpen, onExportModalStateChange])
 
+
   const handleExportClick = () => {
     setIsExportModalOpen(true)
     onExportModalStateChange?.(true)
   }
 
   const handleExportConfirm = (format: ExportFormat) => {
-    // TODO: Implement actual export functionality based on format
-    console.log('Exporting in format:', format)
+    if (format === 'gpu-render') {
+      // GPU 렌더링 모달 열기
+      setIsExportModalOpen(false)
+      setIsGpuExportModalOpen(true)
+    } else {
+      // TODO: Implement actual export functionality based on format
+      console.log('Exporting in format:', format)
+    }
   }
 
   const handleSocialShare = (platform: SocialPlatform) => {
@@ -85,6 +93,10 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   const handleCloseModal = () => {
     setIsExportModalOpen(false)
     onExportModalStateChange?.(false)
+  }
+
+  const handleCloseGpuModal = () => {
+    setIsGpuExportModalOpen(false)
   }
 
   const handleOpenProject = () => {
@@ -269,6 +281,12 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
         onClose={handleYouTubeModalClose}
         onUpload={handleYouTubeUpload}
         defaultTitle="202509142147"
+      />
+
+      {/* GPU Export Modal */}
+      <ServerVideoExportModal
+        isOpen={isGpuExportModalOpen}
+        onClose={handleCloseGpuModal}
       />
     </ToolbarBase>
   )

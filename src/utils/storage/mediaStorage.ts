@@ -3,14 +3,11 @@
  */
 
 import { getTimestamp } from '@/utils/logger'
+import { databaseManager, STORES } from './databaseManager'
 
-const DB_NAME = 'ECGMediaStorage'
-const DB_VERSION = 2 // Version bump for new project stores
-const MEDIA_STORE = 'media'
-const PROJECT_MEDIA_STORE = 'projectMedia'
-// New project data stores
-const PROJECTS_STORE = 'projects'
-const PROJECT_HISTORY_STORE = 'projectHistory'
+// Store names from DatabaseManager
+const MEDIA_STORE = STORES.MEDIA
+const PROJECT_MEDIA_STORE = STORES.PROJECT_MEDIA
 
 export interface MediaFile {
   id: string
@@ -45,74 +42,24 @@ export interface ProjectMediaInfo {
 }
 
 class MediaStorage {
-  private db: IDBDatabase | null = null
   private blobUrls: Map<string, string> = new Map()
 
   /**
-   * IndexedDB 초기화
+   * IndexedDB 초기화 (DatabaseManager 사용)
    */
   async initialize(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION)
-
-      request.onerror = () => {
-        console.error(
-          `[${getTimestamp()}] mediaStorage.ts Failed to open IndexedDB`
-        )
-        reject(new Error('Failed to open IndexedDB'))
-      }
-
-      request.onsuccess = () => {
-        this.db = request.result
-        console.log(
-          `[${getTimestamp()}] mediaStorage.ts IndexedDB initialized successfully`
-        )
-        resolve()
-      }
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result
-
-        // 미디어 파일 저장소
-        if (!db.objectStoreNames.contains(MEDIA_STORE)) {
-          const mediaStore = db.createObjectStore(MEDIA_STORE, {
-            keyPath: 'id',
-          })
-          mediaStore.createIndex('projectId', 'projectId', { unique: false })
-          mediaStore.createIndex('fileName', 'fileName', { unique: false })
-        }
-
-        // 프로젝트-미디어 연결 정보 저장소
-        if (!db.objectStoreNames.contains(PROJECT_MEDIA_STORE)) {
-          db.createObjectStore(PROJECT_MEDIA_STORE, {
-            keyPath: 'projectId',
-          })
-        }
-
-        // 프로젝트 데이터 저장소
-        if (!db.objectStoreNames.contains(PROJECTS_STORE)) {
-          const projectsStore = db.createObjectStore(PROJECTS_STORE, {
-            keyPath: 'id',
-          })
-          projectsStore.createIndex('name', 'name', { unique: false })
-          projectsStore.createIndex('updatedAt', 'updatedAt', { unique: false })
-          projectsStore.createIndex('createdAt', 'createdAt', { unique: false })
-        }
-
-        // 프로젝트 히스토리 저장소 (undo/redo)
-        if (!db.objectStoreNames.contains(PROJECT_HISTORY_STORE)) {
-          const historyStore = db.createObjectStore(PROJECT_HISTORY_STORE, {
-            keyPath: ['projectId', 'timestamp'],
-          })
-          historyStore.createIndex('projectId', 'projectId', { unique: false })
-          historyStore.createIndex('timestamp', 'timestamp', { unique: false })
-        }
-
-        console.log(
-          `[${getTimestamp()}] mediaStorage.ts Database schema created/updated`
-        )
-      }
-    })
+    try {
+      await databaseManager.initialize()
+      console.log(
+        `[${getTimestamp()}] mediaStorage.ts Database initialized successfully`
+      )
+    } catch (error) {
+      console.error(
+        `[${getTimestamp()}] mediaStorage.ts Failed to initialize database:`,
+        error
+      )
+      throw error
+    }
   }
 
   /**
@@ -123,7 +70,7 @@ class MediaStorage {
     file: File,
     metadata?: Partial<MediaFile>
   ): Promise<string> {
-    if (!this.db) await this.initialize()
+    await this.initialize()
 
     const mediaId = `media_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
 
@@ -139,8 +86,10 @@ class MediaStorage {
       ...metadata,
     }
 
+    const db = await databaseManager.getDatabase()
+
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([MEDIA_STORE], 'readwrite')
+      const transaction = db.transaction([MEDIA_STORE], 'readwrite')
       const store = transaction.objectStore(MEDIA_STORE)
       const request = store.add(mediaFile)
 
@@ -164,25 +113,25 @@ class MediaStorage {
    * 비디오 파일 로드
    */
   async loadMedia(mediaId: string): Promise<MediaFile | null> {
-    if (!this.db) await this.initialize()
+    await this.initialize()
+
+    const db = await databaseManager.getDatabase()
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([MEDIA_STORE], 'readonly')
+      const transaction = db.transaction([MEDIA_STORE], 'readonly')
       const store = transaction.objectStore(MEDIA_STORE)
       const request = store.get(mediaId)
 
       request.onsuccess = () => {
-        const media = request.result
+        const media = request.result as MediaFile | undefined
         if (media) {
-          // Update last accessed time
-          this.updateLastAccessed(mediaId)
           console.log(
             `[${getTimestamp()}] mediaStorage.ts Media loaded: ${media.fileName}`
           )
-          resolve(media)
-        } else {
-          resolve(null)
+          // 접근 시간 업데이트
+          this.updateMediaAccess(media.id)
         }
+        resolve(media || null)
       }
 
       request.onerror = () => {
@@ -198,19 +147,18 @@ class MediaStorage {
    * 프로젝트의 미디어 정보 저장
    */
   async saveProjectMedia(projectMediaInfo: ProjectMediaInfo): Promise<void> {
-    if (!this.db) await this.initialize()
+    await this.initialize()
+
+    const db = await databaseManager.getDatabase()
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [PROJECT_MEDIA_STORE],
-        'readwrite'
-      )
+      const transaction = db.transaction([PROJECT_MEDIA_STORE], 'readwrite')
       const store = transaction.objectStore(PROJECT_MEDIA_STORE)
       const request = store.put(projectMediaInfo)
 
       request.onsuccess = () => {
         console.log(
-          `[${getTimestamp()}] mediaStorage.ts Project media info saved for: ${projectMediaInfo.projectId}`
+          `[${getTimestamp()}] mediaStorage.ts Project media info saved for project: ${projectMediaInfo.projectId}`
         )
         resolve()
       }
@@ -228,24 +176,23 @@ class MediaStorage {
    * 프로젝트의 미디어 정보 로드
    */
   async loadProjectMedia(projectId: string): Promise<ProjectMediaInfo | null> {
-    if (!this.db) await this.initialize()
+    await this.initialize()
+
+    const db = await databaseManager.getDatabase()
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [PROJECT_MEDIA_STORE],
-        'readonly'
-      )
+      const transaction = db.transaction([PROJECT_MEDIA_STORE], 'readonly')
       const store = transaction.objectStore(PROJECT_MEDIA_STORE)
       const request = store.get(projectId)
 
       request.onsuccess = () => {
-        const projectMedia = request.result
-        if (projectMedia) {
+        const info = request.result as ProjectMediaInfo | undefined
+        if (info) {
           console.log(
-            `[${getTimestamp()}] mediaStorage.ts Project media info loaded for: ${projectId}`
+            `[${getTimestamp()}] mediaStorage.ts Project media info loaded for project: ${projectId}`
           )
         }
-        resolve(projectMedia || null)
+        resolve(info || null)
       }
 
       request.onerror = () => {
@@ -258,9 +205,9 @@ class MediaStorage {
   }
 
   /**
-   * Blob URL 생성 및 캐싱
+   * 비디오 파일을 Blob URL로 변환
    */
-  async createBlobUrl(mediaId: string): Promise<string | null> {
+  async getMediaUrl(mediaId: string): Promise<string | null> {
     // 이미 생성된 URL이 있으면 반환
     if (this.blobUrls.has(mediaId)) {
       return this.blobUrls.get(mediaId)!
@@ -269,26 +216,26 @@ class MediaStorage {
     const media = await this.loadMedia(mediaId)
     if (!media) return null
 
-    const blobUrl = URL.createObjectURL(media.blob)
-    this.blobUrls.set(mediaId, blobUrl)
+    const url = URL.createObjectURL(media.blob)
+    this.blobUrls.set(mediaId, url)
 
     console.log(
       `[${getTimestamp()}] mediaStorage.ts Blob URL created for: ${media.fileName}`
     )
 
-    return blobUrl
+    return url
   }
 
   /**
    * Blob URL 해제
    */
-  revokeBlobUrl(mediaId: string): void {
+  releaseBlobUrl(mediaId: string): void {
     const url = this.blobUrls.get(mediaId)
     if (url) {
       URL.revokeObjectURL(url)
       this.blobUrls.delete(mediaId)
       console.log(
-        `[${getTimestamp()}] mediaStorage.ts Blob URL revoked for media: ${mediaId}`
+        `[${getTimestamp()}] mediaStorage.ts Blob URL released for media: ${mediaId}`
       )
     }
   }
@@ -296,149 +243,170 @@ class MediaStorage {
   /**
    * 모든 Blob URL 해제
    */
-  revokeAllBlobUrls(): void {
-    this.blobUrls.forEach((url, mediaId) => {
+  releaseAllBlobUrls(): void {
+    this.blobUrls.forEach((url) => {
       URL.revokeObjectURL(url)
-      console.log(
-        `[${getTimestamp()}] mediaStorage.ts Blob URL revoked for media: ${mediaId}`
-      )
     })
     this.blobUrls.clear()
+    console.log(`[${getTimestamp()}] mediaStorage.ts All Blob URLs released`)
   }
 
   /**
-   * 마지막 접근 시간 업데이트
+   * 미디어 접근 시간 업데이트
    */
-  private async updateLastAccessed(mediaId: string): Promise<void> {
-    if (!this.db) return
+  async updateMediaAccess(mediaId: string): Promise<void> {
+    try {
+      const db = await databaseManager.getDatabase()
+      const transaction = db.transaction([MEDIA_STORE], 'readwrite')
+      const store = transaction.objectStore(MEDIA_STORE)
 
-    const transaction = this.db.transaction([MEDIA_STORE], 'readwrite')
-    const store = transaction.objectStore(MEDIA_STORE)
-    const request = store.get(mediaId)
-
-    request.onsuccess = () => {
-      const media = request.result
-      if (media) {
-        media.lastAccessed = new Date()
-        store.put(media)
+      const getRequest = store.get(mediaId)
+      getRequest.onsuccess = () => {
+        const media = getRequest.result as MediaFile
+        if (media) {
+          media.lastAccessed = new Date()
+          store.put(media)
+        }
       }
+    } catch (error) {
+      console.error(
+        `[${getTimestamp()}] mediaStorage.ts Failed to update media access time`,
+        error
+      )
     }
+  }
+
+  /**
+   * 모든 미디어 파일 목록 조회
+   */
+  async getAllMedia(): Promise<MediaFile[]> {
+    await this.initialize()
+
+    const db = await databaseManager.getDatabase()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([MEDIA_STORE], 'readonly')
+      const store = transaction.objectStore(MEDIA_STORE)
+      const request = store.getAll()
+
+      request.onsuccess = () => {
+        const files = request.result as MediaFile[]
+        console.log(
+          `[${getTimestamp()}] mediaStorage.ts Retrieved ${files.length} media files`
+        )
+        resolve(files)
+      }
+
+      request.onerror = () => {
+        console.error(
+          `[${getTimestamp()}] mediaStorage.ts Failed to get all media`
+        )
+        reject(new Error('Failed to get all media'))
+      }
+    })
+  }
+
+  /**
+   * 프로젝트별 미디어 파일 조회
+   */
+  async getProjectMedia(projectId: string): Promise<MediaFile[]> {
+    await this.initialize()
+
+    const db = await databaseManager.getDatabase()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([MEDIA_STORE], 'readonly')
+      const store = transaction.objectStore(MEDIA_STORE)
+      const index = store.index('projectId')
+      const request = index.getAll(projectId)
+
+      request.onsuccess = () => {
+        const files = request.result as MediaFile[]
+        console.log(
+          `[${getTimestamp()}] mediaStorage.ts Retrieved ${files.length} media files for project: ${projectId}`
+        )
+        resolve(files)
+      }
+
+      request.onerror = () => {
+        console.error(
+          `[${getTimestamp()}] mediaStorage.ts Failed to get project media`
+        )
+        reject(new Error('Failed to get project media'))
+      }
+    })
+  }
+
+  /**
+   * 미디어 파일 삭제
+   */
+  async deleteMedia(mediaId: string): Promise<void> {
+    await this.initialize()
+
+    // 먼저 Blob URL 해제
+    this.releaseBlobUrl(mediaId)
+
+    const db = await databaseManager.getDatabase()
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([MEDIA_STORE], 'readwrite')
+      const store = transaction.objectStore(MEDIA_STORE)
+      const request = store.delete(mediaId)
+
+      request.onsuccess = () => {
+        console.log(
+          `[${getTimestamp()}] mediaStorage.ts Media deleted: ${mediaId}`
+        )
+        resolve()
+      }
+
+      request.onerror = () => {
+        console.error(
+          `[${getTimestamp()}] mediaStorage.ts Failed to delete media`
+        )
+        reject(new Error('Failed to delete media'))
+      }
+    })
   }
 
   /**
    * 프로젝트의 모든 미디어 삭제
    */
   async deleteProjectMedia(projectId: string): Promise<void> {
-    if (!this.db) await this.initialize()
+    const files = await this.getProjectMedia(projectId)
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(
-        [MEDIA_STORE, PROJECT_MEDIA_STORE],
-        'readwrite'
-      )
+    for (const file of files) {
+      await this.deleteMedia(file.id)
+    }
 
-      // Delete all media files for the project
-      const mediaStore = transaction.objectStore(MEDIA_STORE)
-      const index = mediaStore.index('projectId')
-      const request = index.openCursor(IDBKeyRange.only(projectId))
-
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result
-        if (cursor) {
-          const mediaId = cursor.value.id
-          // Revoke blob URL if exists
-          this.revokeBlobUrl(mediaId)
-          cursor.delete()
-          cursor.continue()
-        }
-      }
-
-      // Delete project media info
-      const projectMediaStore = transaction.objectStore(PROJECT_MEDIA_STORE)
-      projectMediaStore.delete(projectId)
-
-      transaction.oncomplete = () => {
-        console.log(
-          `[${getTimestamp()}] mediaStorage.ts All media deleted for project: ${projectId}`
-        )
-        resolve()
-      }
-
-      transaction.onerror = () => {
-        console.error(
-          `[${getTimestamp()}] mediaStorage.ts Failed to delete project media`
-        )
-        reject(new Error('Failed to delete project media'))
-      }
-    })
+    console.log(
+      `[${getTimestamp()}] mediaStorage.ts All media deleted for project: ${projectId}`
+    )
   }
 
   /**
-   * 저장 용량 정보 가져오기
+   * 스토리지 용량 정보
    */
-  async getStorageInfo(): Promise<{ used: number; quota: number }> {
+  async getStorageInfo(): Promise<{
+    used: number
+    available: number
+    total: number
+  }> {
     if ('storage' in navigator && 'estimate' in navigator.storage) {
       const estimate = await navigator.storage.estimate()
-      return {
-        used: estimate.usage || 0,
-        quota: estimate.quota || 0,
-      }
+      const used = estimate.usage || 0
+      const total = estimate.quota || 0
+      const available = total - used
+
+      console.log(
+        `[${getTimestamp()}] mediaStorage.ts Storage: ${(used / 1024 / 1024).toFixed(2)}MB used of ${(total / 1024 / 1024).toFixed(2)}MB`
+      )
+
+      return { used, available, total }
     }
-    return { used: 0, quota: 0 }
-  }
 
-  /**
-   * 오래된 미디어 정리 (30일 이상 접근하지 않은 파일)
-   */
-  async cleanupOldMedia(daysOld: number = 30): Promise<void> {
-    if (!this.db) await this.initialize()
-
-    const cutoffDate = new Date()
-    cutoffDate.setDate(cutoffDate.getDate() - daysOld)
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([MEDIA_STORE], 'readwrite')
-      const store = transaction.objectStore(MEDIA_STORE)
-      const request = store.openCursor()
-
-      let deletedCount = 0
-
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result
-        if (cursor) {
-          const media = cursor.value as MediaFile
-          if (media.lastAccessed < cutoffDate) {
-            this.revokeBlobUrl(media.id)
-            cursor.delete()
-            deletedCount++
-          }
-          cursor.continue()
-        }
-      }
-
-      transaction.oncomplete = () => {
-        console.log(
-          `[${getTimestamp()}] mediaStorage.ts Cleanup completed. Deleted ${deletedCount} old media files`
-        )
-        resolve()
-      }
-
-      transaction.onerror = () => {
-        console.error(
-          `[${getTimestamp()}] mediaStorage.ts Failed to cleanup old media`
-        )
-        reject(new Error('Failed to cleanup old media'))
-      }
-    })
+    return { used: 0, available: 0, total: 0 }
   }
 }
 
-// Singleton instance
 export const mediaStorage = new MediaStorage()
-
-// Cleanup blob URLs when page unloads
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    mediaStorage.revokeAllBlobUrls()
-  })
-}

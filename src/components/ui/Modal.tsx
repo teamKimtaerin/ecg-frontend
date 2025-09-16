@@ -29,6 +29,7 @@ export interface ModalActionConfig {
   variant?: 'primary' | 'secondary' | 'accent' | 'negative'
   disabled?: boolean
   closeModal?: boolean // 모달을 자동으로 닫을지 여부
+  isblind?: boolean // 화면 리더 전용
 }
 
 export interface ModalProps extends Omit<BaseComponentProps, 'size'> {
@@ -73,6 +74,7 @@ export interface ModalProps extends Omit<BaseComponentProps, 'size'> {
   // Test support
   'data-testid'?: string
   id?: string
+  isblind?: boolean // 화면 리더 전용
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -118,6 +120,7 @@ const Modal: React.FC<ModalProps> = ({
   className,
   id,
   'data-testid': dataTestId,
+  isblind = true,
 }) => {
   const [isMounted, setIsMounted] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -247,10 +250,11 @@ const Modal: React.FC<ModalProps> = ({
   const buttonSize = getButtonSize(size)
 
   // Overlay classes with blur backdrop
+  // Overlay classes with optional blur backdrop
   const overlayClasses = cn(
     'fixed inset-0 flex p-4 items-center justify-center',
     'bg-black bg-opacity-50',
-    'backdrop-blur-sm',
+    isblind && 'backdrop-blur-sm', // ← 여기 조건부 적용
     'transition-all duration-300 ease-out',
     isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
   )

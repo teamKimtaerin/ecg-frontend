@@ -59,7 +59,7 @@ const CustomEditingSection: React.FC<CustomEditingSectionProps> = ({
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [colors.length, subtitles.length])
   return (
     <section className="py-20 px-4 bg-white">
       <div className="container mx-auto text-center max-w-7xl">

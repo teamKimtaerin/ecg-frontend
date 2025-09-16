@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { ClipComponentProps } from './types'
-import ClipTimeline from './ClipTimeline'
 import ClipCheckbox from './ClipCheckbox'
 import ClipSpeaker from './ClipSpeaker'
 import ClipWords from './ClipWords'
@@ -47,16 +46,18 @@ export default function ClipComponent({
       isDragging,
     })
 
-  const handleClick = (e: React.MouseEvent) => {
-    // Stop propagation to prevent selection box from triggering
-    e.stopPropagation()
-    onSelect(clip.id)
-  }
-
   const handleSidebarClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (onCheck) {
+    // Check if the click was on the checkbox area
+    const target = e.target as HTMLElement
+    const isCheckboxClick = target.closest('.clip-checkbox') !== null
+
+    if (isCheckboxClick && onCheck) {
+      // Handle checkbox toggle
       onCheck(clip.id, !isChecked)
+    } else {
+      // Handle clip selection (clicking on sidebar but not checkbox)
+      onSelect(clip.id)
     }
   }
 
@@ -65,7 +66,6 @@ export default function ClipComponent({
       {...dragProps}
       className={`sortable-clip ${containerClassName}`}
       data-clip-id={clip.id}
-      onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -75,7 +75,13 @@ export default function ClipComponent({
           className={`${sidebarClassName} ${isExpanded ? 'self-stretch' : ''} cursor-pointer`}
           onClick={handleSidebarClick}
         >
-          <ClipTimeline index={index} />
+          {/* 넘버링 표시 */}
+          <div className="flex flex-col items-center pt-1 px-1">
+            <span className="text-xs text-gray-600 font-mono font-bold mb-1">
+              #{index}
+            </span>
+          </div>
+
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="pointer-events-auto">
               <ClipCheckbox

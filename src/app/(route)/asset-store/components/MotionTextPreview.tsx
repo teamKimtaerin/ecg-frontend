@@ -136,7 +136,7 @@ export const MotionTextPreview = React.forwardRef<
       if (containerRef.current && videoRef.current) {
         initializeRenderer()
       }
-    }, []) // Empty dependency array - this should only run once on mount
+    }, [containerRef, videoRef, initializeRenderer]) // Include required dependencies
 
     /**
      * 시나리오 업데이트 및 로드
@@ -259,6 +259,9 @@ export const MotionTextPreview = React.forwardRef<
       rotationDeg,
       loadScenario,
       onError,
+      containerRef,
+      play,
+      showControls,
     ])
 
     /**
@@ -285,7 +288,15 @@ export const MotionTextPreview = React.forwardRef<
           updateTimerRef.current = null
         }
       }
-    }, [manifest, parameters, position, size, rotationDeg, isDragging]) // Added isDragging to prevent updates
+    }, [
+      manifest,
+      parameters,
+      position,
+      size,
+      rotationDeg,
+      isDragging,
+      updateScenario,
+    ]) // Include updateScenario dependency
 
     /**
      * 텍스트 변경은 별도로 더 긴 디바운스 적용 (드래그 중이 아닐 때만)
@@ -302,7 +313,7 @@ export const MotionTextPreview = React.forwardRef<
       return () => {
         window.clearTimeout(textUpdateTimerRef)
       }
-    }, [text, isDragging]) // Added isDragging check
+    }, [text, isDragging, updateScenario]) // Include updateScenario dependency
 
     /**
      * 컨테이너 크기 관찰하여 반응형 처리

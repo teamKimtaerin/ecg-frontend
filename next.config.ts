@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   }),
   trailingSlash: true, // S3용 URL 형식
 
+
   // ES Module 패키지 transpile 설정
   transpilePackages: ['motiontext-renderer'],
 

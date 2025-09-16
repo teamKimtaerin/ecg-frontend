@@ -31,6 +31,9 @@ export interface WordDragState {
   wordTimingHistoryIndex: Map<string, number>
   // Animation tracks per word (max 3 tracks)
   wordAnimationTracks: Map<string, AnimationTrack[]>
+  // Video playback synchronization
+  playingWordId: string | null // Currently playing word from video timeline
+  playingClipId: string | null // Currently playing clip from video timeline
 }
 
 // State priority levels (higher number = higher priority)
@@ -110,6 +113,11 @@ export interface WordSlice extends WordDragState {
   ) => void
   clearAnimationTracks: (wordId: string) => void
 
+  // Video playback synchronization
+  setPlayingWord: (clipId: string | null, wordId: string | null) => void
+  clearPlayingWord: () => void
+  isWordPlaying: (wordId: string) => boolean
+
   // Utility
   isWordFocused: (wordId: string) => boolean
   isWordInGroup: (wordId: string) => boolean
@@ -141,6 +149,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
   wordTimingHistory: new Map(),
   wordTimingHistoryIndex: new Map(),
   wordAnimationTracks: new Map(),
+  playingWordId: null,
+  playingClipId: null,
 
   // Focus management
   setFocusedWord: (clipId, wordId) =>
@@ -493,6 +503,31 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       newTracks.delete(wordId)
       return { wordAnimationTracks: newTracks }
     }),
+
+  // Video playback synchronization
+  setPlayingWord: (clipId, wordId) =>
+    set((state) => {
+      // Only update if the playing word has actually changed
+      if (state.playingClipId === clipId && state.playingWordId === wordId) {
+        return state
+      }
+
+      return {
+        playingClipId: clipId,
+        playingWordId: wordId,
+      }
+    }),
+
+  clearPlayingWord: () =>
+    set({
+      playingWordId: null,
+      playingClipId: null,
+    }),
+
+  isWordPlaying: (wordId) => {
+    const state = get()
+    return state.playingWordId === wordId
+  },
 
   // Utility functions
   isWordFocused: (wordId) => {
