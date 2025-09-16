@@ -69,7 +69,14 @@ export async function POST(request: NextRequest) {
       title: title || 'ECG 생성 영상',
       description: description || 'ECG로 생성된 자막 영상입니다.',
       privacy,
-      videoPath
+      videoPath,
+      settings: {
+        title: title || 'ECG 생성 영상',
+        resolution: '1080p',
+        quality: '추천 품질',
+        frameRate: '30fps',
+        format: 'MP4'
+      }
     })
 
     if (uploadResult.success) {
