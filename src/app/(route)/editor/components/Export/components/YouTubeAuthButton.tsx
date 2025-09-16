@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   FaGoogle,
   FaSpinner,
@@ -8,8 +8,14 @@ import {
   FaExclamationTriangle,
 } from 'react-icons/fa'
 
+interface UserInfo {
+  email?: string
+  name?: string
+  channelId?: string
+}
+
 interface YouTubeAuthButtonProps {
-  onAuthChange?: (isAuthenticated: boolean, userInfo?: any) => void
+  onAuthChange?: (isAuthenticated: boolean, userInfo?: UserInfo) => void
   sessionId?: string
 }
 
@@ -17,11 +23,7 @@ interface AuthStatus {
   isAuthenticated: boolean
   isLoading: boolean
   error?: string
-  userInfo?: {
-    email?: string
-    name?: string
-    channelId?: string
-  }
+  userInfo?: UserInfo
   channelInfo?: {
     id: string
     title: string
@@ -70,9 +72,9 @@ export default function YouTubeAuthButton({
       // URL 파라미터 제거
       window.history.replaceState({}, '', window.location.pathname)
     }
-  }, [onAuthChange])
+  }, [onAuthChange, checkAuthStatus])
 
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     console.log('[AUTH_BUTTON] 인증 상태 확인 시작')
     try {
       // 쿠키에 토큰이 있는지 확인
@@ -134,7 +136,7 @@ export default function YouTubeAuthButton({
       })
       onAuthChange?.(false)
     }
-  }
+  }, [onAuthChange])
 
   const handleAuth = async () => {
     try {

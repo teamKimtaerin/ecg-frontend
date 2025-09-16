@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { FaPlay } from 'react-icons/fa'
 import { YouTubeUploadData } from '../ExportTypes'
 
@@ -18,10 +19,13 @@ export default function YouTubeUploadComplete({
       {/* 좌측 - 완료된 비디오 */}
       <div className="w-2/5 p-6 flex items-center justify-center">
         <div className="relative bg-black rounded-lg overflow-hidden w-full max-w-sm">
-          <img
+          <Image
             src="/youtube-upload/sample-thumbnail.png"
             alt="Uploaded video"
+            width={320}
+            height={180}
             className="w-full h-auto"
+            unoptimized
           />
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
             <div className="flex items-center text-white text-sm">
@@ -92,10 +96,13 @@ export default function YouTubeUploadComplete({
                 커버로 사용할 이미지를 선택하세요.
               </p>
               <div className="w-24 h-16 bg-gray-200 rounded border-2 border-blue-500 overflow-hidden">
-                <img
+                <Image
                   src="/youtube-upload/sample-thumbnail.png"
                   alt="Video thumbnail"
+                  width={96}
+                  height={64}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               </div>
             </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { FaExpand, FaPause, FaPlay } from 'react-icons/fa'
 
 interface YouTubeVideoPreviewProps {
@@ -14,10 +15,13 @@ export default function YouTubeVideoPreview({
 }: YouTubeVideoPreviewProps) {
   return (
     <div className="relative bg-black rounded-lg overflow-hidden w-full">
-      <img
+      <Image
         src="/youtube-upload/sample-thumbnail.png"
         alt="Video preview"
+        width={320}
+        height={180}
         className="w-full h-auto"
+        unoptimized
       />
       <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
         <button

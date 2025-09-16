@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { AlertIcon, InfoIcon } from '@/components/icons'
 
 interface YouTubeStatusCheckerProps {
@@ -32,7 +32,7 @@ export default function YouTubeStatusChecker({
   const [status, setStatus] = useState<StatusResult | null>(null)
   const [lastChecked, setLastChecked] = useState<Date | null>(null)
 
-  const checkStatus = async () => {
+  const checkStatus = useCallback(async () => {
     setIsChecking(true)
 
     try {
@@ -84,12 +84,12 @@ export default function YouTubeStatusChecker({
     } finally {
       setIsChecking(false)
     }
-  }
+  }, [onStatusChange])
 
   useEffect(() => {
     // 컴포넌트 마운트 시 자동 체크
     checkStatus()
-  }, [])
+  }, [checkStatus])
 
   const getStatusIcon = () => {
     if (isChecking) {

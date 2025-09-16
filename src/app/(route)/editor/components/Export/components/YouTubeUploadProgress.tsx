@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { YouTubeUploadData, UploadProgress } from '../ExportTypes'
 
 interface YouTubeUploadProgressProps {
@@ -16,7 +17,6 @@ export default function YouTubeUploadProgress({
   data,
   currentStatus,
   onCancel,
-  sessionId,
 }: YouTubeUploadProgressProps) {
   const [estimatedTimeLeft, setEstimatedTimeLeft] = useState<string | null>(
     null
@@ -89,10 +89,13 @@ export default function YouTubeUploadProgress({
       {/* 좌측 - 비디오 미리보기 */}
       <div className="w-2/5 p-6 flex items-center justify-center">
         <div className="relative bg-black rounded-lg overflow-hidden w-full max-w-sm">
-          <img
+          <Image
             src="/youtube-upload/sample-thumbnail.png"
             alt="Uploading video"
+            width={320}
+            height={180}
             className="w-full h-auto"
+            unoptimized
           />
           <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
             {/* 진행률 표시 */}
@@ -206,10 +209,13 @@ export default function YouTubeUploadProgress({
                 커버로 사용할 이미지를 선택하세요.
               </p>
               <div className="w-24 h-16 bg-gray-200 rounded border-2 border-cyan-400 overflow-hidden">
-                <img
+                <Image
                   src="/youtube-upload/sample-thumbnail.png"
                   alt="Video thumbnail"
+                  width={96}
+                  height={64}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               </div>
               {/* 진행 표시 */}

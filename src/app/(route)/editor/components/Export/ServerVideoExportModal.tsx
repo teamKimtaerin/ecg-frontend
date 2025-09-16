@@ -6,7 +6,7 @@ import { useEditorStore } from '../../store'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import ProgressBar from '@/components/ui/ProgressBar'
-import { FaRocket, FaDownload, FaTimes } from 'react-icons/fa'
+import { FaRocket, FaDownload } from 'react-icons/fa'
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
 
 interface ServerVideoExportModalProps {

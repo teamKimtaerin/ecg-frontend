@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { FaArrowLeft, FaChevronDown } from 'react-icons/fa'
 import { YouTubeUploadSettings } from '../ExportTypes'
 
@@ -37,10 +38,13 @@ export default function YouTubeExportSettings({
         <div className="mb-6">
           <h3 className="text-sm font-medium text-black mb-3">동영상 커버</h3>
           <div className="w-full h-20 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 overflow-hidden">
-            <img
+            <Image
               src="/youtube-upload/sample-thumbnail.png"
               alt="Video thumbnail"
+              width={320}
+              height={80}
               className="w-full h-full object-cover"
+              unoptimized
             />
           </div>
         </div>

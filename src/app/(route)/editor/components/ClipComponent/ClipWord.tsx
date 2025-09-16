@@ -43,7 +43,7 @@ export default function ClipWord({
     expandClip,
     playingWordId,
     playingClipId,
-    isWordPlaying,
+    // isWordPlaying, // 사용되지 않음
   } = useEditorStore()
 
   const isFocused = focusedWordId === word.id && focusedClipId === clipId

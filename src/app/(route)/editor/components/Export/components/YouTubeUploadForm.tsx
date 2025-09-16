@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
+import Image from 'next/image'
 import { FaChevronDown } from 'react-icons/fa'
 import { YouTubePrivacy, YouTubeUploadData } from '../ExportTypes'
 import YouTubeStatusChecker from './YouTubeStatusChecker'
@@ -20,7 +21,7 @@ export default function YouTubeUploadForm({
   onPrivacyChange,
   onReadyStateChange,
 }: YouTubeUploadFormProps) {
-  const [uploadReady, setUploadReady] = useState(false)
+  // const uploadReady = false // 사용되지 않음
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [channelInfo, setChannelInfo] = useState<{
     id: string
@@ -32,7 +33,16 @@ export default function YouTubeUploadForm({
     type: 'login' | 'browser' | 'network' | 'unknown'
   } | null>(null)
 
-  const handleAuthChange = (authenticated: boolean, userInfo?: any) => {
+  const handleAuthChange = (authenticated: boolean, userInfo?: {
+    email?: string
+    name?: string
+    channelId?: string
+    channelInfo?: {
+      id: string
+      title: string
+      thumbnailUrl?: string
+    }
+  }) => {
     setIsAuthenticated(authenticated)
 
     // 채널 정보 업데이트
@@ -53,11 +63,11 @@ export default function YouTubeUploadForm({
   }
 
   // 내보내기 준비 상태 확인 함수
-  const updateReadyState = (authState: boolean = isAuthenticated) => {
+  const updateReadyState = useCallback((authState: boolean = isAuthenticated) => {
     // 인증된 상태이고 제목이 있으면 준비 완료
     const ready = authState && data.title.trim().length > 0
     onReadyStateChange?.(ready)
-  }
+  }, [isAuthenticated, data.title, onReadyStateChange])
 
   const handleStatusChange = (status: {
     isReady: boolean
@@ -93,7 +103,7 @@ export default function YouTubeUploadForm({
   // 제목이 변경될 때마다 준비 상태 업데이트
   React.useEffect(() => {
     updateReadyState()
-  }, [data.title, isAuthenticated])
+  }, [data.title, isAuthenticated, updateReadyState])
 
   const handleRetryStatus = async () => {
     // 상태 재확인 트리거 (YouTubeStatusChecker에서 처리)
@@ -207,10 +217,13 @@ export default function YouTubeUploadForm({
           </p>
           <div className="flex gap-2">
             <div className="w-20 h-12 bg-gray-200 rounded border-2 border-blue-500 overflow-hidden">
-              <img
+              <Image
                 src="/youtube-upload/sample-thumbnail.png"
                 alt="Selected thumbnail"
+                width={80}
+                height={48}
                 className="w-full h-full object-cover"
+                unoptimized
               />
             </div>
             <button className="w-20 h-12 bg-gray-100 rounded border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-xs">

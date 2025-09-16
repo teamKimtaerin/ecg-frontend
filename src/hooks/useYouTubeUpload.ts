@@ -54,17 +54,13 @@ export const useYouTubeUpload = (): UseYouTubeUploadReturn => {
           message: '업로드 준비 중...',
         })
 
-        // 동적 import로 서비스 로드
-        const { YouTubeApiUploader } = await import(
-          '@/services/youtube/YouTubeApiUploader'
-        )
-        serviceRef.current = { abortUpload: () => true } // 임시 객체
-
         // 업로드 ID 생성
         uploadIdRef.current = `upload_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-        // 진행 상황 콜백
-        const progressCallback = (newProgress: UploadProgress) => {
+        serviceRef.current = { abortUpload: () => true } // 임시 객체
+
+        // 진행 상황 콜백 (현재 사용되지 않음)
+        // const progressCallback = (newProgress: UploadProgress) => {
           setProgress(newProgress)
 
           // 에러 상태 처리
@@ -77,7 +73,7 @@ export const useYouTubeUpload = (): UseYouTubeUploadReturn => {
           if (newProgress.status === 'completed') {
             setIsUploading(false)
           }
-        }
+        // }
 
         // 실제 업로드 실행
         setProgress({
