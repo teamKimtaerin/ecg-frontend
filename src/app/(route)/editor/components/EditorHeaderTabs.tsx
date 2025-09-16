@@ -198,7 +198,8 @@ export default function EditorHeaderTabs({
           <button
             ref={navButtonRef}
             onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
+            // className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-all duration-200 cursor-pointer"
+            className="p-2 text-white hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
             title="메뉴"
           >
             <LuMenu className="w-5 h-5" />
