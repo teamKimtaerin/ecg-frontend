@@ -354,7 +354,8 @@ export const createClipSlice: StateCreator<
     const updatedState = get()
     if (
       'timeline' in updatedState &&
-      (updatedState as Record<string, { isSequentialMode?: boolean }>).timeline?.isSequentialMode
+      (updatedState as Record<string, { isSequentialMode?: boolean }>).timeline
+        ?.isSequentialMode
     ) {
       const newOrder = updatedState.clips.map((clip) => clip.id)
       const timelineState = updatedState as Record<string, unknown>
@@ -424,7 +425,8 @@ export const createClipSlice: StateCreator<
     const updatedState = get()
     if (
       'timeline' in updatedState &&
-      (updatedState as Record<string, { isSequentialMode?: boolean }>).timeline?.isSequentialMode
+      (updatedState as Record<string, { isSequentialMode?: boolean }>).timeline
+        ?.isSequentialMode
     ) {
       console.log(
         '[clipSlice] Calling recalculateSequentialTimeline after clip timing update'

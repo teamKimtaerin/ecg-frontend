@@ -163,7 +163,9 @@ export const VirtualTimeControls: React.FC<VirtualTimeControlsProps> = ({
           <input
             type="text"
             value={timeInput}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTimeInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setTimeInput(e.target.value)
+            }
             onBlur={handleTimeInputSubmit}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'Enter') {

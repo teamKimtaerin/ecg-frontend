@@ -400,7 +400,9 @@ export default function EditorMotionTextOverlay({
     }
 
     // Debug logging to check plugin chain structure
-    const firstCueChildren = cues[0]?.root?.children as Array<Record<string, unknown>> | undefined
+    const firstCueChildren = cues[0]?.root?.children as
+      | Array<Record<string, unknown>>
+      | undefined
     const firstCuePluginChain = firstCueChildren?.[0]?.pluginChain as
       | Array<Record<string, unknown>>
       | undefined
@@ -413,8 +415,12 @@ export default function EditorMotionTextOverlay({
 
     // Safety check: ensure all cues have valid plugin chains
     const validCues = cues.filter((cue, index) => {
-      const children = cue.root?.children as Array<Record<string, unknown>> | undefined
-      const pluginChain = children?.[0]?.pluginChain as Array<Record<string, unknown>> | undefined
+      const children = cue.root?.children as
+        | Array<Record<string, unknown>>
+        | undefined
+      const pluginChain = children?.[0]?.pluginChain as
+        | Array<Record<string, unknown>>
+        | undefined
       const firstPlugin = pluginChain?.[0] as Record<string, unknown>
 
       // Enhanced validation
@@ -426,7 +432,10 @@ export default function EditorMotionTextOverlay({
         return false
       }
 
-      if (!firstPlugin.name || (typeof firstPlugin.name === 'string' && firstPlugin.name.trim() === '')) {
+      if (
+        !firstPlugin.name ||
+        (typeof firstPlugin.name === 'string' && firstPlugin.name.trim() === '')
+      ) {
         console.warn(
           '[EditorMotionTextOverlay] Skipping cue with invalid plugin name:',
           {
