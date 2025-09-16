@@ -33,16 +33,19 @@ export default function YouTubeUploadForm({
     type: 'login' | 'browser' | 'network' | 'unknown'
   } | null>(null)
 
-  const handleAuthChange = (authenticated: boolean, userInfo?: {
-    email?: string
-    name?: string
-    channelId?: string
-    channelInfo?: {
-      id: string
-      title: string
-      thumbnailUrl?: string
+  const handleAuthChange = (
+    authenticated: boolean,
+    userInfo?: {
+      email?: string
+      name?: string
+      channelId?: string
+      channelInfo?: {
+        id: string
+        title: string
+        thumbnailUrl?: string
+      }
     }
-  }) => {
+  ) => {
     setIsAuthenticated(authenticated)
 
     // 채널 정보 업데이트
@@ -63,11 +66,14 @@ export default function YouTubeUploadForm({
   }
 
   // 내보내기 준비 상태 확인 함수
-  const updateReadyState = useCallback((authState: boolean = isAuthenticated) => {
-    // 인증된 상태이고 제목이 있으면 준비 완료
-    const ready = authState && data.title.trim().length > 0
-    onReadyStateChange?.(ready)
-  }, [isAuthenticated, data.title, onReadyStateChange])
+  const updateReadyState = useCallback(
+    (authState: boolean = isAuthenticated) => {
+      // 인증된 상태이고 제목이 있으면 준비 완료
+      const ready = authState && data.title.trim().length > 0
+      onReadyStateChange?.(ready)
+    },
+    [isAuthenticated, data.title, onReadyStateChange]
+  )
 
   const handleStatusChange = (status: {
     isReady: boolean

@@ -97,7 +97,6 @@ export default function ExportModal({
                 selectedFormat === 'mp4'
                   ? 'bg-gray-100 border border-gray-300'
                   : 'hover:bg-gray-50 hover:scale-105 hover:shadow-md'
-
               }`}
               onClick={() => handleExport('gpu-render')}
             >
@@ -108,7 +107,6 @@ export default function ExportModal({
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-black text-sm">
                     {defaultOption.label}({defaultOption.description})
-
                   </span>
                   <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
                     최근 사용

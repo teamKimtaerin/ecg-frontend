@@ -18,7 +18,6 @@ import {
   YouTubeUploadData,
 } from './Export/ExportTypes'
 
-
 interface SimpleToolbarProps {
   activeClipId: string | null
   canUndo: boolean
@@ -61,7 +60,6 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
       onExportModalStateChange?.(true)
     }
   }, [forceOpenExportModal, isExportModalOpen, onExportModalStateChange])
-
 
   const handleExportClick = () => {
     setIsExportModalOpen(true)
