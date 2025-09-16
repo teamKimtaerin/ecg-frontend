@@ -75,7 +75,7 @@ export default function YouTubeUploadForm({
     isLoggedIn: boolean
     message: string
   }) => {
-    setUploadReady(status.isReady)
+    // setUploadReady(status.isReady) // 사용되지 않음
 
     // 에러 상태 설정 (인증되지 않은 경우 제외)
     if (!status.isReady && isAuthenticated) {

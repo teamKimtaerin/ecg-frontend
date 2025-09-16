@@ -52,6 +52,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
 }) => {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isYouTubeModalOpen, setIsYouTubeModalOpen] = useState(false)
+  const [isGpuExportModalOpen, setIsGpuExportModalOpen] = useState(false)
 
   // 강제 모달 오픈 처리
   useEffect(() => {

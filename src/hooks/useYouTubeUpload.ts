@@ -61,18 +61,18 @@ export const useYouTubeUpload = (): UseYouTubeUploadReturn => {
 
         // 진행 상황 콜백 (현재 사용되지 않음)
         // const progressCallback = (newProgress: UploadProgress) => {
-          setProgress(newProgress)
-
-          // 에러 상태 처리
-          if (newProgress.status === 'error') {
-            setError(newProgress.error || newProgress.message)
-            setIsUploading(false)
-          }
-
-          // 완료 상태 처리
-          if (newProgress.status === 'completed') {
-            setIsUploading(false)
-          }
+        //   setProgress(newProgress)
+        //
+        //   // 에러 상태 처리
+        //   if (newProgress.status === 'error') {
+        //     setError(newProgress.error || newProgress.message)
+        //     setIsUploading(false)
+        //   }
+        //
+        //   // 완료 상태 처리
+        //   if (newProgress.status === 'completed') {
+        //     setIsUploading(false)
+        //   }
         // }
 
         // 실제 업로드 실행

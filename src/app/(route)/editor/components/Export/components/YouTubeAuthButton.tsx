@@ -40,40 +40,6 @@ export default function YouTubeAuthButton({
     isLoading: true,
   })
 
-  // 페이지 로드 시 인증 상태 확인
-  useEffect(() => {
-    console.log('[AUTH_BUTTON] useEffect 실행 - 초기 인증 상태 확인')
-    checkAuthStatus()
-
-    // URL 파라미터에서 인증 결과 확인
-    const urlParams = new URLSearchParams(window.location.search)
-    const authResult = urlParams.get('auth')
-    console.log('[AUTH_BUTTON] URL 파라미터 인증 결과:', authResult)
-
-    if (authResult === 'success') {
-      console.log('[AUTH_BUTTON] OAuth 성공 - 채널 정보 재확인 예약')
-      // 인증 성공 시 채널 정보를 다시 확인
-      setTimeout(() => {
-        console.log('[AUTH_BUTTON] 지연된 인증 상태 재확인')
-        checkAuthStatus()
-      }, 1000)
-      // URL 파라미터 제거
-      window.history.replaceState({}, '', window.location.pathname)
-    } else if (authResult === 'error' || authResult === 'cancelled') {
-      console.log('[AUTH_BUTTON] OAuth 실패/취소:', authResult)
-      const message = urlParams.get('message') || '인증 실패'
-      setAuthStatus((prev) => ({
-        ...prev,
-        isAuthenticated: false,
-        isLoading: false,
-        error: decodeURIComponent(message),
-      }))
-      onAuthChange?.(false)
-      // URL 파라미터 제거
-      window.history.replaceState({}, '', window.location.pathname)
-    }
-  }, [onAuthChange, checkAuthStatus])
-
   const checkAuthStatus = useCallback(async () => {
     console.log('[AUTH_BUTTON] 인증 상태 확인 시작')
     try {
@@ -137,6 +103,40 @@ export default function YouTubeAuthButton({
       onAuthChange?.(false)
     }
   }, [onAuthChange])
+
+  // 페이지 로드 시 인증 상태 확인
+  useEffect(() => {
+    console.log('[AUTH_BUTTON] useEffect 실행 - 초기 인증 상태 확인')
+    checkAuthStatus()
+
+    // URL 파라미터에서 인증 결과 확인
+    const urlParams = new URLSearchParams(window.location.search)
+    const authResult = urlParams.get('auth')
+    console.log('[AUTH_BUTTON] URL 파라미터 인증 결과:', authResult)
+
+    if (authResult === 'success') {
+      console.log('[AUTH_BUTTON] OAuth 성공 - 채널 정보 재확인 예약')
+      // 인증 성공 시 채널 정보를 다시 확인
+      setTimeout(() => {
+        console.log('[AUTH_BUTTON] 지연된 인증 상태 재확인')
+        checkAuthStatus()
+      }, 1000)
+      // URL 파라미터 제거
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (authResult === 'error' || authResult === 'cancelled') {
+      console.log('[AUTH_BUTTON] OAuth 실패/취소:', authResult)
+      const message = urlParams.get('message') || '인증 실패'
+      setAuthStatus((prev) => ({
+        ...prev,
+        isAuthenticated: false,
+        isLoading: false,
+        error: decodeURIComponent(message),
+      }))
+      onAuthChange?.(false)
+      // URL 파라미터 제거
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [onAuthChange, checkAuthStatus])
 
   const handleAuth = async () => {
     try {

@@ -52,8 +52,6 @@ import SubtitleEditList from './components/SubtitleEditList'
 import TemplateSidebar from './components/TemplateSidebar'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
-import { ChevronDownIcon } from '@/components/icons'
-import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 
 // Utils
