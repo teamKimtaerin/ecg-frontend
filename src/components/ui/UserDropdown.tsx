@@ -60,7 +60,7 @@ const UserDropdown: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center text-gray-500 text-sm">
+      <div className="flex items-center text-white text-sm">
         <span>로그인이 필요합니다</span>
       </div>
     )
