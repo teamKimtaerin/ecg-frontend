@@ -274,15 +274,66 @@ export const VirtualTimelineVideoController: React.FC<VirtualTimelineVideoContro
             onSeek={handleVirtualSeek}
             className="mx-4"
           />
-
- 
         </div>
 
+        {/* Right Side - Volume Controls */}
+        {showVolumeControls && (
+          <div className="flex items-center gap-3">
+            {/* Volume Button */}
+            <Button
+              variant="primary"
+              size="small"
+              onClick={toggleMute}
+              className="text-gray-700 hover:bg-gray-100"
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeOffIcon className="w-5 h-5" />
+              ) : (
+                <VolumeIcon className="w-5 h-5" />
+              )}
+            </Button>
 
+            {/* Volume Slider */}
+            <div className="w-20">
+              <Slider
+                value={isMuted ? 0 : volume}
+                onChange={(newVolume: number) => handleVolumeChange(newVolume)}
+                maxValue={1}
+                step={0.01}
+                className="cursor-pointer"
+              />
+            </div>
+
+            {/* Playback Rate */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-gray-500 whitespace-nowrap">속도:</span>
+              <select
+                value={playbackRate}
+                onChange={(e) => handlePlaybackRateChange(Number(e.target.value))}
+                className="border border-gray-300 rounded px-2 py-1 text-sm bg-white"
+              >
+                {playbackRateOptions.map((rate) => (
+                  <option key={rate} value={rate}>
+                    {rate}x
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Virtual Timeline Info */}
-
+      <div className="flex items-center justify-between text-xs text-gray-500 mt-2 pt-2 border-t border-gray-100">
+        <div className="flex items-center gap-4">
+          <span>총 세그먼트: {segments.length}</span>
+          <span>활성 세그먼트: {segments.filter(s => s.isEnabled).length}</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span>{formatVirtualTime(virtualTime)} / {formatVirtualTime(virtualDuration)}</span>
+          <span>재생 속도: {playbackRate}x</span>
+        </div>
+      </div>
     </div>
   )
 }
