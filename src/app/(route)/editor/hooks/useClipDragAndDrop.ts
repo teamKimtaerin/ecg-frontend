@@ -13,6 +13,10 @@ export function useClipDragAndDrop(clipId: string, enabled: boolean = false) {
     id: clipId,
     disabled: !enabled,
     animateLayoutChanges: () => false, // 레이아웃 애니메이션 비활성화로 성능 개선
+    data: {
+      type: 'clip',
+      clipId: clipId,
+    },
   })
 
   // Y축으로만 이동하도록 transform 제한

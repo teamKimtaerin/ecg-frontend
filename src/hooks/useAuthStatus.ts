@@ -3,19 +3,7 @@
 import { useAuth } from './useAuth'
 
 export const useAuthStatus = () => {
-  const {
-    user,
-    token,
-    isLoading,
-    logout: authLogout,
-    isAuthenticated,
-  } = useAuth()
-
-  console.log('Auth status check:', {
-    token: !!token,
-    user: !!user,
-    isAuthenticated,
-  })
+  const { user, isLoading, logout: authLogout, isAuthenticated } = useAuth()
 
   const logout = () => {
     authLogout()

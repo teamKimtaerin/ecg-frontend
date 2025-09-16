@@ -66,7 +66,6 @@ const LOCAL_PLUGINS = [
 ]
 
 export function configurePluginLoader() {
-  console.log('[PluginLoader] Configuring plugin source for local mode')
   configurePluginSource({ mode: 'local', localBase: '/plugin/' })
 }
 
@@ -107,11 +106,8 @@ export async function loadLocalPlugin(
         manifest: manifest,
       })
       registeredPlugins.add(key)
-      console.log(
-        `[PluginLoader] Registered plugin with motiontext-renderer: ${key}@${manifest.version}`
-      )
-    } catch (error) {
-      console.error(`[PluginLoader] Failed to register plugin ${key}:`, error)
+    } catch {
+      // Ignore plugin registration errors
     }
   }
 
@@ -119,15 +115,13 @@ export async function loadLocalPlugin(
 }
 
 export async function preloadAllPlugins() {
-  console.log('[PluginLoader] Preloading all local plugins...')
   for (const pluginName of LOCAL_PLUGINS) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch (error) {
-      console.warn(`[PluginLoader] Failed to load plugin ${pluginName}:`, error)
+    } catch {
+      // Ignore plugin loading errors
     }
   }
-  console.log('[PluginLoader] Plugin preloading complete')
 }
 
 function extractPluginNames(scenario: RendererConfig): Set<string> {
@@ -150,26 +144,13 @@ function extractPluginNames(scenario: RendererConfig): Set<string> {
 }
 
 export async function preloadPluginsForScenario(scenario: RendererConfig) {
-  console.log('[PluginLoader] Preloading plugins for scenario...')
   const requiredPlugins = extractPluginNames(scenario)
-  console.log('[PluginLoader] Required plugins:', Array.from(requiredPlugins))
   for (const pluginName of requiredPlugins) {
     try {
       await loadLocalPlugin(pluginName)
-    } catch (error) {
-      console.warn(
-        `[PluginLoader] Failed to load required plugin ${pluginName}:`,
-        error
-      )
+    } catch {
+      // Ignore plugin loading errors
     }
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (typeof window !== 'undefined' && (window as any).__motionTextPlugins) {
-    console.log(
-      '[PluginLoader] Available plugins:',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      Object.keys((window as any).__motionTextPlugins)
-    )
   }
 }
 

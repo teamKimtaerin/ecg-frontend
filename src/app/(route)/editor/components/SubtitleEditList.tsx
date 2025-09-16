@@ -82,7 +82,7 @@ export default function SubtitleEditList({
                 isSelected={activeClipId === clip.id} // 포커스 상태
                 isChecked={selectedClipIds.has(clip.id)} // 체크박스 상태 (분리됨)
                 isMultiSelected={selectedClipIds.has(clip.id)}
-                enableDragAndDrop={selectedClipIds.has(clip.id)} // 체크된 클립만 드래그 가능
+                enableDragAndDrop={true} // 모든 클립 드래그 가능
                 speakers={speakers}
                 speakerColors={speakerColors}
                 onSelect={onClipSelect}

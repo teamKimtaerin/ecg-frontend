@@ -74,19 +74,29 @@ export function convertSegmentToClip(
 
   return {
     id: clipId,
-    timeline: formatTime(segment.start_time),
+    timeline: (index + 1).toString(), // 순서 번호 (1부터 시작)
     speaker: segment.speaker.speaker_id, // Keep original speaker ID for now
     subtitle: text,
     fullText: text,
     duration: `${segment.duration.toFixed(1)}초`,
     thumbnail: '/placeholder-thumb.jpg',
     words,
+    // 실제 타임라인 정보를 별도 필드로 추가 (향후 virtual timeline에서 활용)
+    startTime: segment.start_time,
+    endTime: segment.end_time,
   }
 }
 
-// 전체 segments 배열을 clips 배열로 변환
+// 전체 segments 배열을 clips 배열로 변환 (실제 비디오 타임라인 순서로 정렬)
 export function convertSegmentsToClips(segments: Segment[]): ClipItem[] {
-  return segments.map((segment, index) => convertSegmentToClip(segment, index))
+  // 실제 비디오 타임라인 순서에 맞게 start_time 기준으로 정렬
+  const sortedSegments = [...segments].sort(
+    (a, b) => a.start_time - b.start_time
+  )
+
+  return sortedSegments.map((segment, index) =>
+    convertSegmentToClip(segment, index)
+  )
 }
 
 // real.json 전체 데이터 구조

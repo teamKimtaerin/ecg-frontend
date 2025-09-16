@@ -10,14 +10,12 @@ import {
 } from 'react-icons/io5'
 import { useRef } from 'react'
 import React, { useCallback } from 'react'
-import { DndContext, closestCenter, DragOverlay } from '@dnd-kit/core'
 import {
   SortableContext,
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { Word } from './types'
 import ClipWord from './ClipWord'
-import { useWordDragAndDrop } from '../../hooks/useWordDragAndDrop'
 import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
 
@@ -69,22 +67,12 @@ export default function ClipWords({
     Array<{ id: string; title: string }>
   >([])
 
-  // Setup drag and drop for words (from dev)
-  const {
-    sensors,
-    handleWordDragStart,
-    handleWordDragOver,
-    handleWordDragEnd,
-    handleWordDragCancel,
-  } = useWordDragAndDrop(clipId)
-
   // Setup grouping functionality (from dev)
   const {
     containerRef,
     isDragging: isGroupDragging,
     handleMouseDown,
     handleKeyDown,
-    groupedWordIds,
   } = useWordGrouping({
     clipId,
     onGroupChange: () => {
@@ -126,6 +114,23 @@ export default function ClipWords({
         return
       }
       lastClickTimeRef.current = now
+
+      // Seek video player to word start time
+      const videoPlayer = (
+        window as {
+          videoPlayer?: {
+            seekTo: (time: number) => void
+            pauseAutoWordSelection?: () => void
+          }
+        }
+      ).videoPlayer
+      if (videoPlayer) {
+        videoPlayer.seekTo(word.start)
+        // Pause auto word selection for a few seconds when user manually selects a word
+        if (videoPlayer.pauseAutoWordSelection) {
+          videoPlayer.pauseAutoWordSelection()
+        }
+      }
 
       if (isCenter) {
         // Batch all state updates for center click
@@ -181,76 +186,56 @@ export default function ClipWords({
   const draggedWord = words.find((w) => w.id === draggedWordId)
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleWordDragStart}
-      onDragOver={handleWordDragOver}
-      onDragEnd={handleWordDragEnd}
-      onDragCancel={handleWordDragCancel}
+    <SortableContext
+      items={sortableItems}
+      strategy={horizontalListSortingStrategy}
     >
-      <SortableContext
-        items={sortableItems}
-        strategy={horizontalListSortingStrategy}
+      <div
+        ref={containerRef}
+        className="flex flex-wrap gap-1 relative cursor-pointer"
+        onMouseDown={handleMouseDown}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
       >
-        <div
-          ref={containerRef}
-          className="flex flex-wrap gap-1 relative cursor-pointer"
-          onMouseDown={handleMouseDown}
-          onKeyDown={handleKeyDown}
-          tabIndex={0}
-        >
-          {words.map((word) => {
-            const appliedAssets = word.appliedAssets || []
+        {words.map((word) => {
+          const appliedAssets = word.appliedAssets || []
 
-            return (
-              <React.Fragment key={word.id}>
-                <ClipWord
-                  word={word}
-                  clipId={clipId}
-                  onWordClick={handleWordClick}
-                  onWordEdit={onWordEdit}
-                />
+          return (
+            <React.Fragment key={word.id}>
+              <ClipWord
+                word={word}
+                clipId={clipId}
+                onWordClick={handleWordClick}
+                onWordEdit={onWordEdit}
+              />
 
-                {/* Render asset icons after each word (from feat/editor-asset-sidebar-clean) */}
-                {appliedAssets.length > 0 && (
-                  <div className="flex gap-1 items-center">
-                    {appliedAssets.map((assetId: string) => {
-                      const assetName = getAssetNameById(assetId)
-                      const IconComponent = getAssetIcon(assetName)
-                      return IconComponent ? (
-                        <div
-                          key={assetId}
-                          className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
-                          title={assetName}
-                        >
-                          <IconComponent size={10} className="text-slate-300" />
-                        </div>
-                      ) : null
-                    })}
-                  </div>
-                )}
-              </React.Fragment>
-            )
-          })}
+              {/* Render asset icons after each word (from feat/editor-asset-sidebar-clean) */}
+              {appliedAssets.length > 0 && (
+                <div className="flex gap-1 items-center">
+                  {appliedAssets.map((assetId: string) => {
+                    const assetName = getAssetNameById(assetId)
+                    const IconComponent = getAssetIcon(assetName)
+                    return IconComponent ? (
+                      <div
+                        key={assetId}
+                        className="w-3 h-3 bg-slate-600/50 rounded-sm flex items-center justify-center"
+                        title={assetName}
+                      >
+                        <IconComponent size={10} className="text-slate-300" />
+                      </div>
+                    ) : null
+                  })}
+                </div>
+              )}
+            </React.Fragment>
+          )
+        })}
 
-          {/* Visual feedback for group selection (from dev) */}
-          {isGroupDragging && (
-            <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
-          )}
-        </div>
-      </SortableContext>
-
-      {/* Drag overlay for better visual feedback (from dev) */}
-      <DragOverlay>
-        {draggedWord && (
-          <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
-            {groupedWordIds.size > 1
-              ? `${groupedWordIds.size} words`
-              : draggedWord.text}
-          </div>
+        {/* Visual feedback for group selection (from dev) */}
+        {isGroupDragging && (
+          <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded" />
         )}
-      </DragOverlay>
-    </DndContext>
+      </div>
+    </SortableContext>
   )
 }

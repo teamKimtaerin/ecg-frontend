@@ -18,6 +18,9 @@ export interface ClipItem {
   duration: string
   thumbnail: string
   words: Word[]
+  // 실제 비디오 타임라인 정보 (virtual timeline 지원용)
+  startTime?: number
+  endTime?: number
 }
 
 // UI related types

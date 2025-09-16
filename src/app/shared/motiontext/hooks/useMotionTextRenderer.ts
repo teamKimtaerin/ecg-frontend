@@ -156,7 +156,7 @@ export function useMotionTextRenderer(
         currentConfigRef.current = config
         if (autoPlayRef.current) {
           try {
-            await play()
+            void play()
           } catch {}
         }
         updateState({
@@ -169,6 +169,7 @@ export function useMotionTextRenderer(
         handleError(error as Error)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [initializeRenderer, updateState, handleError]
   )
 

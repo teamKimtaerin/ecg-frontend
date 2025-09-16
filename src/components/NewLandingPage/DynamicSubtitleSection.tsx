@@ -37,7 +37,7 @@ const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = (
     }, 4000)
 
     return () => clearInterval(interval)
-  }, [selectedAnimation])
+  }, [selectedAnimation, subtitleTexts.length])
 
   const getAnimationClass = (animationType: string) => {
     const baseClasses = 'inline-block'
