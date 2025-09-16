@@ -107,9 +107,9 @@ const TabItem: React.FC<TabItemProps> = ({
       if (isSelected) {
         classes.push('text-white')
         if (orientation === 'horizontal') {
-          classes.push('border-b-2', 'border-black')
+          classes.push('border-b-2', 'border-white')
         } else {
-          classes.push('border-l-2', 'border-black')
+          classes.push('border-l-2', 'border-white')
         }
       } else {
         classes.push(
