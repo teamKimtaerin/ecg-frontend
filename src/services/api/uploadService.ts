@@ -96,7 +96,7 @@ class UploadService {
   ): Promise<ServiceResponse<PresignedUrlResponse>> {
     // 백엔드 API 스펙에 맞게 필드명 조정
     const request = {
-      filename: filename,        // 백엔드는 'filename' 기대 (언더스코어 없음)
+      filename: filename, // 백엔드는 'filename' 기대 (언더스코어 없음)
       content_type: contentType, // 백엔드는 'content_type' 기대
     }
 
@@ -235,9 +235,12 @@ class UploadService {
   async checkProcessingStatus(
     jobId: string
   ): Promise<ServiceResponse<ProcessingStatus>> {
-    return this.makeRequest<ProcessingStatus>(`/api/upload-video/status/${jobId}`, {
-      method: 'GET',
-    })
+    return this.makeRequest<ProcessingStatus>(
+      `/api/upload-video/status/${jobId}`,
+      {
+        method: 'GET',
+      }
+    )
   }
 
   /**
