@@ -14,11 +14,7 @@ import {
 import { useAuthStore } from '@/lib/store/authStore'
 import { API_CONFIG } from '@/config/api.config'
 
-// 개발 환경에서는 프록시 경로 사용 (CORS 문제 해결)
-const GPU_RENDER_API_BASE =
-  process.env.NODE_ENV === 'development'
-    ? '/api/render' // 프록시 사용 (next.config.ts의 rewrites)
-    : `${API_CONFIG.FASTAPI_BASE_URL}/render`
+const GPU_RENDER_API_BASE = `${API_CONFIG.FASTAPI_BASE_URL}/api/render`
 
 class RenderService {
   private abortControllers = new Map<string, AbortController>()

@@ -13,11 +13,7 @@ import {
 import { useAuthStore } from '@/lib/store/authStore'
 import { API_CONFIG } from '@/config/api.config'
 
-// API Base URL - 개발 환경에서는 프록시 사용 (CORS 우회)
-const API_BASE_URL =
-  process.env.NODE_ENV === 'development'
-    ? '' // 개발 환경: Next.js 프록시 사용 (/api/* 경로가 백엔드로 라우팅)
-    : API_CONFIG.FASTAPI_BASE_URL // 프로덕션: CloudFront 통해 직접 호출
+const API_BASE_URL = API_CONFIG.FASTAPI_BASE_URL
 
 class UploadService {
   private abortControllers = new Map<string, AbortController>()

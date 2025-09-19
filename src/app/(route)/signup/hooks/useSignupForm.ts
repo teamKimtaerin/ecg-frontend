@@ -68,7 +68,7 @@ export const useSignupForm = () => {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateForm()) {
@@ -78,7 +78,7 @@ export const useSignupForm = () => {
     setIsLoading(true)
     try {
       await signup({
-        name: formData.name,
+        username: formData.name,
         email: formData.email,
         password: formData.password,
       })
