@@ -7,7 +7,6 @@ import { useEditorStore } from '../store'
 import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
-import TextInsertionDebugSidebar from './TextInsertion/TextInsertionDebugSidebar'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
 import VirtualTimelineVideoController from './VirtualTimelineVideoController'
 import VirtualTimelineController from './VirtualTimelineController'
@@ -57,12 +56,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
     setPlaybackPosition,
     videoUrl,
     videoDuration,
-    // Text insertion state for debugging
-    insertedTexts,
-    selectedTextId,
-    getActiveTexts,
-    currentScenario: insertedTextScenario,
-    isScenarioMode,
   } = useEditorStore()
 
   const handleScenarioUpdate = useCallback((scenario: RendererConfig) => {
@@ -301,18 +294,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
         {/* Text Edit Input Panel */}
         <TextEditInput />
 
-        {/* Text Insertion Debug Sidebar - 실제 영상 시간 기준 */}
-        <div className="mt-4">
-          <TextInsertionDebugSidebar
-            currentTime={realVideoTime}
-            activeTexts={getActiveTexts(realVideoTime)}
-            insertedTexts={insertedTexts}
-            selectedTextId={selectedTextId}
-            isScenarioMode={isScenarioMode}
-            currentScenario={insertedTextScenario}
-            renderer={null} // TODO: Get renderer from TextInsertionOverlay
-          />
-        </div>
 
         {/* Scenario JSON Editor - Show only when DEBUG_UI is enabled */}
         {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && currentScenario && (
