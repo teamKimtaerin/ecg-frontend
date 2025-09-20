@@ -14,9 +14,10 @@ import { useAuthStore } from '@/lib/store/authStore'
 import { API_CONFIG } from '@/config/api.config'
 
 // 개발 환경에서 프록시 사용하여 CORS 문제 해결
-const API_BASE_URL = process.env.NODE_ENV === 'development'
-  ? '' // 프록시 사용 (next.config.ts의 rewrites: /api/* → https://ho-it.site/api/*)
-  : API_CONFIG.FASTAPI_BASE_URL // 직접 호출
+const API_BASE_URL =
+  process.env.NODE_ENV === 'development'
+    ? '' // 프록시 사용 (next.config.ts의 rewrites: /api/* → https://ho-it.site/api/*)
+    : API_CONFIG.FASTAPI_BASE_URL // 직접 호출
 
 class UploadService {
   private abortControllers = new Map<string, AbortController>()

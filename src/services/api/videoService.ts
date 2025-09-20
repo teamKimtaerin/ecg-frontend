@@ -22,9 +22,10 @@ class VideoService {
 
   constructor() {
     // 개발 환경에서 프록시 사용하여 CORS 문제 해결
-    this.baseUrl = process.env.NODE_ENV === 'development'
-      ? '' // 프록시 사용 (next.config.ts의 rewrites: /api/* → https://ho-it.site/api/*)
-      : API_CONFIG.FASTAPI_BASE_URL // 직접 호출
+    this.baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? '' // 프록시 사용 (next.config.ts의 rewrites: /api/* → https://ho-it.site/api/*)
+        : API_CONFIG.FASTAPI_BASE_URL // 직접 호출
     this.useMockData = API_CONFIG.USE_MOCK_DATA
   }
 

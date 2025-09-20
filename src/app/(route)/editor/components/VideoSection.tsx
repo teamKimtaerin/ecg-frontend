@@ -294,7 +294,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
         {/* Text Edit Input Panel */}
         <TextEditInput />
 
-
         {/* Scenario JSON Editor - Show only when DEBUG_UI is enabled */}
         {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && currentScenario && (
           <ScenarioJsonEditor
