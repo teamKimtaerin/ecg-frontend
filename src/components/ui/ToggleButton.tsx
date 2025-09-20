@@ -46,15 +46,15 @@ const ToggleButton: React.FC<ToggleButtonProps> = ({
   const variantClasses = {
     default: {
       base: 'border bg-white text-gray-800',
-      pressed: 'bg-blue-500 border-blue-500 text-white',
+      pressed: 'bg-purple-500 border-purple-500 text-white',
       hover: 'hover:bg-gray-50 hover:border-gray-400',
-      pressedHover: 'hover:bg-blue-600',
+      pressedHover: 'hover:bg-purple-600',
     },
     toolbar: {
       base: 'border text-slate-300',
-      pressed: 'bg-blue-500 border-blue-500 text-white',
+      pressed: 'bg-purple-500 border-purple-500 text-white',
       hover: 'hover:bg-slate-700/50',
-      pressedHover: 'hover:bg-blue-600',
+      pressedHover: 'hover:bg-purple-600',
     },
   }
 

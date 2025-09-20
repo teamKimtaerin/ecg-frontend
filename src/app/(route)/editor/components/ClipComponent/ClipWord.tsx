@@ -240,7 +240,7 @@ export default function ClipWord({
         'text-white',
         'shadow-md',
         'ring-2',
-        'ring-blue-300',
+        'ring-purple-300',
         'ring-opacity-50',
         'transform',
         'scale-105',
@@ -341,7 +341,7 @@ export default function ClipWord({
     >
       {/* Drop indicator before word */}
       {isDropTarget && dropPosition === 'before' && !isEditing && (
-        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 -translate-x-1 animate-pulse" />
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-purple-500 -translate-x-1 animate-pulse" />
       )}
 
       {isEditing ? (
@@ -362,7 +362,7 @@ export default function ClipWord({
 
       {/* Drop indicator after word */}
       {isDropTarget && dropPosition === 'after' && !isEditing && (
-        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-blue-500 translate-x-1 animate-pulse" />
+        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-purple-500 translate-x-1 animate-pulse" />
       )}
     </div>
   )

@@ -390,7 +390,7 @@ export default function WordDetailEditor({
           <div className="space-y-2">
             <label className="text-sm text-[#9999A6]">애니메이션 트랙</label>
             <div className="grid grid-cols-2 gap-2">
-              <button className="px-3 py-2 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">
+              <button className="px-3 py-2 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 transition-colors">
                 UP
               </button>
               <button className="px-3 py-2 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition-colors">

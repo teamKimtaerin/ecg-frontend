@@ -137,7 +137,7 @@ const TextEditInput: React.FC<TextEditInputProps> = ({ className = '' }) => {
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
           placeholder="텍스트를 입력하세요"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
         />
 
         <div className="flex justify-between items-center text-xs text-gray-500">

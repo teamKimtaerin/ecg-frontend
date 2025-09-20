@@ -17,7 +17,7 @@ input[type='range']::-webkit-slider-track {
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  background: #3b82f6;
+  background: #7c3aed;
   height: 16px;
   width: 16px;
   border-radius: 50%;
@@ -32,7 +32,7 @@ input[type='range']::-moz-range-track {
 }
 
 input[type='range']::-moz-range-thumb {
-  background: #3b82f6;
+  background: #7c3aed;
   height: 16px;
   width: 16px;
   border-radius: 50%;

@@ -21,7 +21,7 @@ const EditingModeToggle: React.FC = () => {
       <div className="relative bg-gray-200 rounded-full p-1 flex items-center">
         {/* Background slider */}
         <div
-          className={`absolute top-1 bottom-1 bg-blue-500 rounded-full transition-all duration-300 ease-in-out ${
+          className={`absolute top-1 bottom-1 bg-purple-500 rounded-full transition-all duration-300 ease-in-out ${
             editingMode === 'simple'
               ? 'left-1 right-[50%]'
               : 'left-[50%] right-1'

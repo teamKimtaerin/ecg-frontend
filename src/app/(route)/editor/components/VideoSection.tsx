@@ -8,7 +8,6 @@ import EditorMotionTextOverlay from './EditorMotionTextOverlay'
 import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
-import VirtualTimelineVideoController from './VirtualTimelineVideoController'
 import VirtualTimelineController from './VirtualTimelineController'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
@@ -21,13 +20,9 @@ import { VirtualTimelineManager } from '@/utils/virtual-timeline/VirtualTimeline
 
 interface VideoSectionProps {
   width?: number
-  onCurrentTimeChange?: (currentTime: number) => void
 }
 
-const VideoSection: React.FC<VideoSectionProps> = ({
-  width = 300,
-  onCurrentTimeChange,
-}) => {
+const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   const videoContainerRef = useRef<HTMLDivElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
@@ -209,7 +204,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
     (time: number) => {
       // 실제 영상 시간만 업데이트 (텍스트 삽입용)
       setRealVideoTime(time)
-      onCurrentTimeChange?.(time)
 
       // 가상 타임라인이 비활성화된 경우에만 currentTime도 업데이트
       if (!virtualPlayerControllerRef.current) {
@@ -220,7 +214,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({
       }
       // Virtual Player Controller가 있으면 RVFC가 자동으로 시간 업데이트 처리
     },
-    [onCurrentTimeChange, setPlaybackPosition]
+    [setPlaybackPosition]
   )
 
   // Handle text click for selection
@@ -268,21 +262,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({
             onTextDoubleClick={handleTextDoubleClick}
           />
         </div>
-
-        {/* Virtual Timeline Video Controller - Show only when DEBUG_UI is enabled */}
-        {process.env.NEXT_PUBLIC_DEBUG_UI === 'true' && (
-          <div className="mb-4">
-            <VirtualTimelineVideoController
-              virtualPlayerController={virtualPlayerControllerRef.current}
-              onVirtualTimeUpdate={() => {
-                // Virtual Time은 이미 RVFC 콜백을 통해 자동으로 MotionText Renderer에 전달됨
-              }}
-              showSegmentVisualization={true}
-              showVolumeControls={true}
-              className="rounded-lg border border-gray-200 bg-white shadow-sm"
-            />
-          </div>
-        )}
 
         {/* Virtual Timeline Controller */}
         <div className="mb-4">

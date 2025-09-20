@@ -51,8 +51,6 @@ import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
 import TemplateSidebar from './components/TemplateSidebar'
-import TimelineController from './components/TimelineController'
-import VirtualTimelineController from './components/VirtualTimelineController'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
 
@@ -446,8 +444,8 @@ function TimelineClipCard({
                 </button>
                 <button
                   onClick={() => handleRenameChoice(true)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded
-                          hover:bg-blue-700 transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded
+                          hover:bg-purple-700 transition-colors cursor-pointer"
                 >
                   예 (모든 클립)
                 </button>
@@ -487,12 +485,6 @@ export default function EditorPage() {
     // isAssetSidebarOpen,
     assetSidebarWidth,
     setAssetSidebarWidth,
-    // Text insertion state for debugging
-    insertedTexts,
-    selectedTextId,
-    getActiveTexts,
-    currentScenario,
-    isScenarioMode,
     editingMode,
     isMultipleWordsSelected,
     deleteSelectedWords,
@@ -522,7 +514,6 @@ export default function EditorPage() {
   const [clipboard, setClipboard] = useState<ClipItem[]>([]) // 클립보드 상태
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
-  const [currentTime, setCurrentTime] = useState(0) // 현재 비디오 시간 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
 
   // Get media actions from store
@@ -1916,10 +1907,7 @@ export default function EditorPage() {
                   : 'h-[calc(100vh-120px)]'
               }`}
             >
-              <VideoSection
-                width={videoPanelWidth}
-                onCurrentTimeChange={setCurrentTime}
-              />
+              <VideoSection width={videoPanelWidth} />
             </div>
 
             <ResizablePanelDivider
@@ -2155,7 +2143,7 @@ export default function EditorPage() {
               if (!draggedWord) return null
 
               return (
-                <div className="bg-blue-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
+                <div className="bg-purple-500 text-white px-2 py-1 rounded text-sm shadow-lg opacity-90">
                   {groupedWordIds.size > 1
                     ? `${groupedWordIds.size} words`
                     : draggedWord.text}

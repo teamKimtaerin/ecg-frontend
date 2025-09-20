@@ -60,10 +60,10 @@ export function getTailwindColor(
  * Color palette for consistent theming
  */
 export const colorPalette = {
-  primary: '#146ef5',
-  'primary-dark': '#0a57d4',
-  'primary-light': '#3bb2f6',
-  'primary-very-light': '#dbeafe',
+  primary: '#7c3aed',
+  'primary-dark': '#5b21b6',
+  'primary-light': '#a855f7',
+  'primary-very-light': '#f3e8ff',
 
   secondary: '#76797d',
   accent: '#10b981',
@@ -72,7 +72,7 @@ export const colorPalette = {
   positive: '#10b981',
   negative: '#dc2626',
   notice: '#f59e0b',
-  informative: '#146ef5',
+  informative: '#7c3aed',
 
   white: '#ffffff',
   black: '#080808',
