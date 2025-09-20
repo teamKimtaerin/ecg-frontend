@@ -21,11 +21,21 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
     return document.querySelector('video')
   }
 
-  // 총 재생 시간 계산
+  // 총 재생 시간 계산 (Virtual Timeline 우선)
   const calculateTotalDuration = useCallback((): number => {
+    if (virtualPlayerController) {
+      try {
+        const duration = virtualPlayerController.getDuration()
+        return duration || 0
+      } catch (error) {
+        console.warn('Failed to get Virtual Timeline duration:', error)
+      }
+    }
+    
+    // Fallback: HTML video element
     const video = getVideoElement()
     return video?.duration || 0
-  }, [])
+  }, [virtualPlayerController])
 
   // 시간 포맷팅 (mm:ss.f)
   const formatTime = useCallback((seconds: number): string => {
@@ -60,6 +70,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
 
       // 초기값 설정
       setCurrentTime(virtualPlayerController.getCurrentTime())
+      setTotalDuration(calculateTotalDuration())
 
       return () => {
         timeUpdateCleanup()
@@ -103,10 +114,23 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
     }
   }, [virtualPlayerController, calculateTotalDuration])
 
-  // 비디오 duration 업데이트
+  // VirtualPlayerController 변경 시 duration 업데이트
   useEffect(() => {
-    setTotalDuration(calculateTotalDuration())
-  }, [calculateTotalDuration])
+    const updateDuration = () => {
+      const newDuration = calculateTotalDuration()
+      setTotalDuration(newDuration)
+      console.log('🎬 VirtualTimelineController duration updated:', newDuration)
+    }
+
+    // 즉시 업데이트
+    updateDuration()
+
+    // VirtualPlayerController가 있다면 약간의 지연 후 재확인 (timeline 초기화 대기)
+    if (virtualPlayerController) {
+      const timeoutId = setTimeout(updateDuration, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [virtualPlayerController, calculateTotalDuration])
 
   // 슬라이더로 재생 위치 이동
   const handleSeek = useCallback(
@@ -250,9 +274,10 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
           <div
             className="relative h-2 bg-gray-200 rounded-full cursor-pointer"
             onClick={(e) => {
+              if (totalDuration <= 0) return
               const rect = e.currentTarget.getBoundingClientRect()
               const clickX = e.clientX - rect.left
-              const percentage = clickX / rect.width
+              const percentage = Math.max(0, Math.min(1, clickX / rect.width))
               const newTime = percentage * totalDuration
               handleSeek(newTime)
             }}
@@ -274,6 +299,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
                 borderRadius: '2px',
               }}
               onMouseDown={(e) => {
+                if (totalDuration <= 0) return
                 e.preventDefault()
                 const startX = e.clientX
                 const startTime = currentTime
@@ -281,7 +307,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
                   e.currentTarget.parentElement?.getBoundingClientRect()
 
                 const handleMouseMove = (moveEvent: MouseEvent) => {
-                  if (!trackRect) return
+                  if (!trackRect || totalDuration <= 0) return
                   const deltaX = moveEvent.clientX - startX
                   const deltaPercentage = deltaX / trackRect.width
                   const deltaTime = deltaPercentage * totalDuration
