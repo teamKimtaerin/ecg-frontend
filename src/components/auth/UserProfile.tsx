@@ -49,7 +49,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogin, className }) => {
     <div className={`relative flex items-center gap-3 ${className}`}>
       {/* 사용자 정보 */}
       <div className="hidden md:block text-right">
-        <div className="text-sm font-medium text-white">{user.name}</div>
+        <div className="text-sm font-medium text-white">{user.username}</div>
         <div className="text-xs text-gray-400">{user.email}</div>
       </div>
 
@@ -61,11 +61,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ onLogin, className }) => {
         >
           {/* 아바타 */}
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-            {user.name.charAt(0).toUpperCase()}
+            {user.username.charAt(0).toUpperCase()}
           </div>
           {/* 모바일에서 사용자명 */}
           <span className="md:hidden text-sm font-medium text-white">
-            {user.name}
+            {user.username}
           </span>
         </button>
 

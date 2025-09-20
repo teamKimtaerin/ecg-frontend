@@ -162,11 +162,11 @@ export const useUploadModal = () => {
         sessionStorage.setItem('currentVideoUrl', blobUrl)
         console.log('[VIDEO DEBUG] Saved videoUrl to sessionStorage:', blobUrl)
 
-        // DEBUG MODE: 서버 업로드/처리 플로우를 생략하고 로컬 friends_result.json 사용
-        if (API_CONFIG.DEBUG_MODE) {
+        // MOCK DATA MODE: 서버 업로드/처리 플로우를 생략하고 로컬 friends_result.json 사용
+        if (API_CONFIG.USE_MOCK_DATA) {
           log(
             'useUploadModal',
-            '🐞 DEBUG_MODE enabled: using local friends_result.json'
+            '🐞 USE_MOCK_DATA enabled: using local friends_result.json'
           )
           // 간단한 진행률 시뮬레이션 + 상태 업데이트
           updateState({ step: 'processing', processingProgress: 0 })

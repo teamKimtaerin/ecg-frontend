@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/lib/store/authStore'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 import { API_CONFIG } from '@/config/api.config'
 
 function AuthCallbackContent() {
@@ -22,8 +22,7 @@ function AuthCallbackContent() {
     const handleAuthCallback = async () => {
       setIsProcessed(true)
       try {
-        // URL에서 토큰 파라미터 확인
-        const token = searchParams.get('token')
+        // URL에서 에러 파라미터 확인
         const error = searchParams.get('error')
 
         if (error) {
@@ -35,35 +34,26 @@ function AuthCallbackContent() {
           return
         }
 
-        if (!token) {
-          setStatus('error')
-          setMessage('토큰이 없습니다. 다시 로그인해주세요.')
-          setTimeout(() => {
-            router.push('/auth?mode=login')
-          }, 3000)
-          return
-        }
-
-        // 사용자 정보 가져오기
+        // 성공 파라미터가 있거나 에러가 없는 경우 사용자 정보 조회
+        // HttpOnly 쿠키의 토큰으로 사용자 정보 가져오기
         const userResponse = await fetch(
           `${API_CONFIG.FASTAPI_BASE_URL}${API_CONFIG.endpoints.auth.me}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            method: 'GET',
+            credentials: 'include', // HttpOnly 쿠키 포함
           }
         )
 
         if (userResponse.ok) {
           const userData = await userResponse.json()
 
-          // Zustand store에 토큰과 사용자 정보 저장
-          authStore.setAuthData(userData, token)
+          // Zustand store에 사용자 정보 저장 (토큰은 쿠키에 있으므로 null)
+          authStore.setAuthData(userData, null)
 
-          console.log('✅ Google OAuth 로그인 성공:', userData.name)
+          console.log('✅ Google OAuth 로그인 성공:', userData.username)
 
           setStatus('success')
-          setMessage(`환영합니다, ${userData.name}님!`)
+          setMessage(`환영합니다, ${userData.username}님!`)
 
           // 성공 시 홈페이지로 리디렉션
           setTimeout(() => {

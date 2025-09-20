@@ -10,7 +10,7 @@ export default function MyPage() {
   const { user, logout } = useAuthStatus()
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
-    name: user?.name || '',
+    name: user?.username || '',
     email: user?.email || '',
   })
 
@@ -18,7 +18,7 @@ export default function MyPage() {
     if (isEditing) {
       // 편집 취소 시 원래 값으로 되돌리기
       setEditForm({
-        name: user?.name || '',
+        name: user?.username || '',
         email: user?.email || '',
       })
     }
@@ -134,7 +134,7 @@ export default function MyPage() {
                   />
                 ) : (
                   <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                    {user.name}
+                    {user.username}
                   </div>
                 )}
               </div>

@@ -5,17 +5,17 @@
 
 export const API_CONFIG = {
   // Feature flags
-  // Global debug mode: when true, mock upload + transcription using local data
-  DEBUG_MODE:
-    (typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
-    false,
-
-  // Legacy flag kept for compatibility; derived from DEBUG_MODE when set
+  // Mock data flag: Toggle between mock and real API
   USE_MOCK_DATA:
     (typeof process !== 'undefined' &&
-      process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
-    false, // Toggle between mock and real API
+      process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
+    false,
+
+  // Debug UI flag: Show/hide debug components
+  DEBUG_UI:
+    (typeof process !== 'undefined' &&
+      process.env.NEXT_PUBLIC_DEBUG_UI === 'true') ||
+    false,
 
   // API Base URL (환경변수에서 가져오기)
   FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL!,
@@ -69,7 +69,7 @@ export const API_CONFIG = {
   MOCK_VIDEO_PATH: '/friends.mp4',
   MOCK_TRANSCRIPTION_PATH:
     typeof process !== 'undefined' &&
-    process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
+    process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true'
       ? '/friends_result.json'
       : '/real.json',
 }

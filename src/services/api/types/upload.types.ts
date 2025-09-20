@@ -16,7 +16,7 @@ export interface PresignedUrlResponse {
 
 // ML 처리 요청/응답
 export interface MLProcessingRequest {
-  file_key: string
+  fileKey: string
   language: string
   whisper_model?: string
 }
