@@ -1,3 +1,5 @@
+import chroma from 'chroma-js'
+
 // 화자별 고유 색상 생성을 위한 공유 유틸리티
 export const SPEAKER_COLORS = [
   '#EF4444', // red
@@ -11,6 +13,37 @@ export const SPEAKER_COLORS = [
   '#EC4899', // pink
   '#6366F1', // indigo
 ]
+
+/**
+ * SpeakerManagementSidebar와 동일한 색상환 색상 생성
+ * HSV 색상 공간에서 12개 색상 (30도씩)
+ */
+export const generateSpeakerWheelColors = (): string[] => {
+  const colors: string[] = []
+  const saturation = 0.8
+  const value = 0.9
+
+  // 12개 색상으로 색상환 생성 (30도씩)
+  for (let i = 0; i < 12; i++) {
+    const hue = (i * 30) % 360
+    const chromaColor = chroma.hsv(hue, saturation, value)
+    colors.push(chromaColor.hex())
+  }
+
+  return colors
+}
+
+// 색상환 색상 배열 (캐시됨)
+export const SPEAKER_WHEEL_COLORS = generateSpeakerWheelColors()
+
+/**
+ * 화자 인덱스 기반으로 색상환에서 색상 할당
+ * @param index - 화자 인덱스 (0부터 시작)
+ * @returns 색상환 색상 (hex)
+ */
+export const getSpeakerColorByIndex = (index: number): string => {
+  return SPEAKER_WHEEL_COLORS[index % SPEAKER_WHEEL_COLORS.length]
+}
 
 /**
  * 화자 이름을 기반으로 고유한 색상을 생성합니다.

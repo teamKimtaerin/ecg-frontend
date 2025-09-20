@@ -17,6 +17,7 @@ import { projectStorage } from '@/utils/storage/projectStorage'
 import { log } from '@/utils/logger'
 import API_CONFIG from '@/config/api.config'
 import { useProgressStore } from '@/lib/store/progressStore'
+import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
 
 export interface UploadModalState {
   isOpen: boolean
@@ -32,8 +33,14 @@ export interface UploadModalState {
 
 export const useUploadModal = () => {
   const router = useRouter()
-  const { setMediaInfo, setClips, clearMedia, setCurrentProject } =
-    useEditorStore()
+  const {
+    setMediaInfo,
+    setClips,
+    clearMedia,
+    setCurrentProject,
+    setSpeakerColors,
+    setSpeakers,
+  } = useEditorStore()
 
   // Progress store integration
   const { addTask, updateTask, removeTask } = useProgressStore()
@@ -276,6 +283,22 @@ export const useUploadModal = () => {
               }
             ) as SegmentData[]
 
+            // JSON speakers 섹션에서 화자 정보 추출
+            const speakersFromJson = json.speakers
+              ? Object.keys(json.speakers)
+              : []
+
+            // 화자 매핑 (SPEAKER_XX -> 화자X)
+            const speakerMapping: Record<string, string> = {}
+            const mappedSpeakers: string[] = []
+
+            // 화자 ID를 정렬해서 일관된 순서로 매핑
+            speakersFromJson.sort().forEach((speakerId, index) => {
+              const mappedName = `화자${index + 1}`
+              speakerMapping[speakerId] = mappedName
+              mappedSpeakers.push(mappedName)
+            })
+
             // ProcessingResult 형태로 포장해서 기존 완료 핸들러 재사용
             const mockResult: ProcessingResult = {
               job_id: 'debug_job_local',
@@ -288,6 +311,9 @@ export const useUploadModal = () => {
                   model: String(json?.metadata?.unified_model ?? 'mock'),
                   processing_time: Number(json?.metadata?.processing_time ?? 0),
                 },
+                // 화자 정보 추가
+                speakers: mappedSpeakers,
+                speakerMapping,
               },
             }
 
@@ -580,8 +606,11 @@ export const useUploadModal = () => {
         }
 
         // 정상적인 결과 처리
-        // 세그먼트를 클립으로 변환
-        const clips = convertSegmentsToClips(result.result.segments)
+        // 세그먼트를 클립으로 변환 (화자 매핑 적용)
+        const clips = convertSegmentsToClips(
+          result.result.segments,
+          result.result.speakerMapping
+        )
 
         // duration 계산 (metadata에 없으면 segments에서 계산)
         let videoDuration = result.result.metadata?.duration
@@ -615,6 +644,26 @@ export const useUploadModal = () => {
           videoType: 'video/mp4', // 타입 명시
         })
         setClips(clips)
+
+        // 화자 정보 초기화 및 색상환 기반 자동 색상 할당
+        if (result.result.speakers && result.result.speakers.length > 0) {
+          const speakerColors: Record<string, string> = {}
+
+          // 각 화자에게 색상환의 색상을 순서대로 할당
+          result.result.speakers.forEach((speaker, index) => {
+            speakerColors[speaker] = getSpeakerColorByIndex(index)
+          })
+
+          // Store에 화자 목록과 색상 설정
+          setSpeakers(result.result.speakers)
+          setSpeakerColors(speakerColors)
+
+          log(
+            'useUploadModal',
+            `🎨 Initialized ${result.result.speakers.length} speakers with color wheel colors:`,
+            speakerColors
+          )
+        }
 
         // 프로젝트 생성 및 저장 (Blob URL 포함)
         const newProject: ProjectData = {
@@ -680,7 +729,10 @@ export const useUploadModal = () => {
 
   // 세그먼트 → 클립 변환 함수
   const convertSegmentsToClips = useCallback(
-    (segments: SegmentData[]): ClipItem[] => {
+    (
+      segments: SegmentData[],
+      speakerMapping?: Record<string, string>
+    ): ClipItem[] => {
       return segments.map((segment, index) => {
         // segment.id가 없으면 index 사용
         const segmentId = segment.id || index
@@ -696,6 +748,11 @@ export const useUploadModal = () => {
           } else if (typeof segment.speaker === 'string') {
             speakerValue = segment.speaker
           }
+        }
+
+        // speakerMapping이 있으면 매핑 적용 (SPEAKER_XX -> 화자X)
+        if (speakerMapping && speakerMapping[speakerValue]) {
+          speakerValue = speakerMapping[speakerValue]
         }
 
         // 세그먼트 타이밍 계산 (ML이 0을 반환한 경우 자동 생성)

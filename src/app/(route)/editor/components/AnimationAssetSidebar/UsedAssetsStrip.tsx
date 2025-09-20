@@ -67,7 +67,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     const fetchAssets = async () => {
       try {
         setLoading(true)
-        console.log('Fetching assets from /asset-store/assets-database.json')
+        // console.log('Fetching assets from /asset-store/assets-database.json')
 
         const response = await fetch('/asset-store/assets-database.json', {
           cache: 'no-cache',
@@ -76,7 +76,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
           },
         })
 
-        console.log('Response status:', response.status, response.statusText)
+        // console.log('Response status:', response.status, response.statusText)
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
@@ -87,7 +87,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
           process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
           'http://localhost:3300'
         ).replace(/\/$/, '')
-        console.log('Assets loaded successfully:', data.assets.length, 'assets')
+        // console.log('Assets loaded successfully:', data.assets.length, 'assets')
 
         // Transform JSON data to AssetItem format
         const transformedAssets: AssetItem[] = data.assets.map((asset) => {
@@ -185,9 +185,9 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     if (isMultiSelection && targetWordIds.length > 1) {
       // Remove animation from all selected words
       removeAnimationFromMultipleWords(targetWordIds, assetId)
-      console.log(
-        `Removed animation ${assetId} from ${targetWordIds.length} selected words`
-      )
+      // console.log(
+      //   `Removed animation ${assetId} from ${targetWordIds.length} selected words`
+      // )
     } else {
       // Single word removal (existing behavior)
       const newAssets = currentWordAssets.filter((id) => id !== assetId)
@@ -219,7 +219,7 @@ const UsedAssetsStrip: React.FC<UsedAssetsStripProps> = ({
     setExpandedAssetId(newExpandedId)
     onExpandedAssetChange?.(newExpandedId, newExpandedId ? asset.name : null)
 
-    console.log('Opening parameter panel for:', asset.name)
+    // console.log('Opening parameter panel for:', asset.name)
   }
 
   if (loading) {

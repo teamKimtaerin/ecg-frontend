@@ -286,7 +286,7 @@ const ObjectControl: React.FC<ControlProps> = ({
       JSON.parse(newValue)
       setIsValid(true)
       onChange(newValue)
-    } catch (_error) {
+    } catch {
       setIsValid(false)
       // Don't call onChange for invalid JSON
     }

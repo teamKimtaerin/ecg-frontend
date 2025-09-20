@@ -257,11 +257,11 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       } catch {}
     }
 
-    console.log(
-      'Asset toggled:',
-      asset.name,
-      isCurrentlySelected ? 'removed' : 'added'
-    )
+    // console.log(
+    //   'Asset toggled:',
+    //   asset.name,
+    //   isCurrentlySelected ? 'removed' : 'added'
+    // )
     onAssetSelect?.(asset)
     // Note: addAnimationTrackAsync and removeAnimationTrack handle refreshWordPluginChain internally
   }

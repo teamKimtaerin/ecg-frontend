@@ -17,6 +17,11 @@ import {
   getCommonAnimationParams,
   getExistingTrackParams as getExistingTrackParamsHelper,
 } from '../../utils/animationHelpers'
+import {
+  getAutofillData,
+  extractAutofillSources,
+  type AutofillContext,
+} from '../../utils/autofillDataProvider'
 // import { useAnimationParams } from '../../hooks/useAnimationParams' // Available for future use
 
 interface AssetControlPanelProps {
@@ -279,8 +284,74 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
           )
         }
 
-        // Merge: existing params take priority, defaults fill missing keys
-        const initialParams = { ...defaultParams, ...existingParams }
+        // Apply autofill data if available
+        const autofillSources = extractAutofillSources(loadedManifest.schema)
+        const store = useEditorStore.getState()
+        const autofillContext: AutofillContext = {
+          store,
+          targetWordId,
+          targetClipId: targetWordId
+            ? targetWordId.match(/^word-(\d+)-\d+$/)?.[1]
+            : null,
+        }
+
+        // Autofill 디버깅 시작
+        console.log('🔍 [AUTOFILL DEBUG] =====================================')
+        console.log('🔍 [AUTOFILL] Target Word ID:', targetWordId)
+        console.log('🔍 [AUTOFILL] Store State:', {
+          expandedWordId: store.expandedWordId,
+          focusedWordId: store.focusedWordId,
+          selectedWordId: store.selectedWordId,
+          multiSelectedWordIds: Array.from(store.multiSelectedWordIds || []),
+        })
+        console.log('🔍 [AUTOFILL] Extracted Sources:', autofillSources)
+
+        const autofillData: Record<string, unknown> = {}
+        Object.entries(autofillSources).forEach(([paramKey, source]) => {
+          const data = getAutofillData(source, autofillContext)
+          console.log(`🔍 [AUTOFILL] Getting data for ${paramKey}:`, {
+            source,
+            result: data,
+          })
+          if (data !== null && data !== undefined) {
+            autofillData[paramKey] = data
+          }
+        })
+
+        // Merge parameters with proper priority handling
+        const initialParams = { ...defaultParams }
+
+        // Apply autofill data first
+        Object.entries(autofillData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            initialParams[key] = value
+          }
+        })
+
+        // Apply existing params only if they are not empty
+        Object.entries(existingParams).forEach(([key, value]) => {
+          // Only override autofill if existing value is meaningful
+          if (
+            value !== '' &&
+            value !== null &&
+            value !== undefined &&
+            !(
+              typeof value === 'object' &&
+              Object.keys(value as Record<string, unknown>).length === 0
+            )
+          ) {
+            initialParams[key] = value
+          }
+        })
+
+        console.log('🔍 [AUTOFILL] Merge Details:', {
+          defaultParams,
+          autofillData,
+          existingParams,
+          finalMerged: initialParams,
+        })
+        console.log('🔍 [AUTOFILL DEBUG] =====================================')
+
         setParameters(initialParams)
       } catch (error) {
         console.error(`Failed to load manifest for ${pluginKey}:`, error)
@@ -355,7 +426,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
       await onSettingsChange(parameters as AssetSettings)
 
       // Show success feedback and close panel
-      console.log('Settings applied successfully')
+      // console.log('Settings applied successfully')
       onClose()
     } catch (error) {
       console.error('Failed to apply settings:', error)

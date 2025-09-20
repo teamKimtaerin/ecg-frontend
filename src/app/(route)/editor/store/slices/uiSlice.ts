@@ -66,6 +66,16 @@ export interface UISlice {
   // Rendering mode state (for Playwright capture)
   isRenderingMode: boolean
   setIsRenderingMode: (mode: boolean) => void
+
+  // Speaker colors state
+  speakerColors: Record<string, string>
+  setSpeakerColors: (colors: Record<string, string>) => void
+  setSpeakerColor: (speakerName: string, color: string) => void
+  removeSpeakerColor: (speakerName: string) => void
+
+  // Speakers list state
+  speakers: string[]
+  setSpeakers: (speakers: string[]) => void
 }
 
 export const createUISlice: StateCreator<UISlice> = (set) => ({
@@ -149,4 +159,25 @@ export const createUISlice: StateCreator<UISlice> = (set) => ({
   // Rendering mode state (for Playwright capture)
   isRenderingMode: false,
   setIsRenderingMode: (mode) => set({ isRenderingMode: mode }),
+
+  // Speaker colors state
+  speakerColors: {},
+  setSpeakerColors: (colors) => set({ speakerColors: colors }),
+  setSpeakerColor: (speakerName, color) =>
+    set((state) => ({
+      speakerColors: {
+        ...state.speakerColors,
+        [speakerName]: color,
+      },
+    })),
+  removeSpeakerColor: (speakerName) =>
+    set((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [speakerName]: removed, ...rest } = state.speakerColors
+      return { speakerColors: rest }
+    }),
+
+  // Speakers list state
+  speakers: [],
+  setSpeakers: (speakers) => set({ speakers }),
 })
