@@ -274,11 +274,11 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
                   <span className="text-xs text-gray-500">클립 1</span>
                 </div>
                 <div
-                  className={`bg-blue-100 rounded-md p-2 transition-all duration-1000 ${
+                  className={`bg-purple-100 rounded-md p-2 transition-all duration-1000 ${
                     showSlideAnimation ? 'opacity-30 transform scale-95' : ''
                   }`}
                 >
-                  <span className="text-sm text-blue-800">
+                  <span className="text-sm text-purple-800">
                     안녕하세요, 오늘은
                   </span>
                 </div>
@@ -287,8 +287,8 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
               {/* Sliding Text Block */}
               {showSlideAnimation && (
                 <div className="absolute left-1/2 transform -translate-x-1/2 z-10 animate-slide-down">
-                  <div className="bg-blue-100 rounded-md p-2 border-2 border-blue-400 shadow-lg">
-                    <span className="text-sm text-blue-800">
+                  <div className="bg-purple-100 rounded-md p-2 border-2 border-brand-sub shadow-lg">
+                    <span className="text-sm text-purple-800">
                       안녕하세요, 오늘은
                     </span>
                   </div>
@@ -299,7 +299,7 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
               <div className="flex justify-center py-1">
                 <div className="animate-bounce">
                   <svg
-                    className="w-5 h-5 text-blue-500"
+                    className="w-5 h-5 text-brand-main"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -315,20 +315,20 @@ const TutorialModal: React.FC<TutorialModalProps> = ({
               </div>
 
               {/* Second Clip */}
-              <div className="bg-white rounded-lg p-3 border-2 border-blue-400 shadow-sm">
+              <div className="bg-white rounded-lg p-3 border-2 border-brand-sub shadow-sm">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs text-gray-500">00:08 - 00:12</span>
                   <span className="text-xs text-gray-500">클립 2</span>
                 </div>
                 <div className="space-y-2">
                   <div
-                    className={`bg-blue-100 rounded-md p-2 border-2 border-blue-400 border-dashed transition-all duration-500 ${
+                    className={`bg-purple-100 rounded-md p-2 border-2 border-brand-sub border-dashed transition-all duration-500 ${
                       showSlideAnimation
                         ? 'opacity-100 transform scale-100'
                         : 'opacity-0 transform scale-95'
                     }`}
                   >
-                    <span className="text-sm text-blue-800">
+                    <span className="text-sm text-purple-800">
                       안녕하세요, 오늘은
                     </span>
                   </div>

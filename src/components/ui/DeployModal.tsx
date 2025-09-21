@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  LuX,
-  LuGlobe,
-  LuCopy,
   LuCheck,
+  LuCopy,
   LuExternalLink,
+  LuGlobe,
   LuPlay,
+  LuX,
 } from 'react-icons/lu'
 
 export interface DeployTask {
@@ -160,14 +160,14 @@ const DeployModal: React.FC<DeployModalProps> = ({
       }}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <LuGlobe className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <LuGlobe className="w-4 h-4 text-brand-main" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900">
               프로젝트 배포
@@ -185,7 +185,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Project Info */}
           <div className="mb-6">
             <div className="flex items-center space-x-3 mb-4">
@@ -273,7 +273,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
                       }))
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      deployConfig.isPublic ? 'bg-blue-600' : 'bg-gray-200'
+                      deployConfig.isPublic ? 'bg-brand-main' : 'bg-gray-200'
                     }`}
                   >
                     <span
@@ -303,7 +303,9 @@ const DeployModal: React.FC<DeployModalProps> = ({
                       }))
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      deployConfig.allowDownload ? 'bg-blue-600' : 'bg-gray-200'
+                      deployConfig.allowDownload
+                        ? 'bg-brand-main'
+                        : 'bg-gray-200'
                     }`}
                   >
                     <span
@@ -321,8 +323,8 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
           {currentStep === 'deploying' && (
             <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
               </div>
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -334,7 +336,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-brand-main h-2 rounded-full transition-all duration-300"
                     style={{ width: `${deployProgress}%` }}
                   ></div>
                 </div>
@@ -360,7 +362,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
                 <div className="bg-gray-50 rounded-lg p-3 mb-4">
                   <div className="flex items-center justify-between">
-                    <code className="text-sm text-blue-600 font-mono truncate">
+                    <code className="text-sm text-brand-main font-mono truncate">
                       {deployUrl}
                     </code>
                     <button
@@ -378,11 +380,16 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => window.open(deployUrl, '_blank')}
+                    onClick={() =>
+                      window.open(
+                        'https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Dko%26next%3Dhttps%253A%252F%252Fstudio.youtube.com%252F%26feature%3Dredirect_login&hl=ko&ifkv=AfYwgwV60hq6GwtJHfuCQ2DsY9YA6GggwGxABs6J4GIu5YYKRW9CTj8SrwikevHGhDm6CopJihVKiQ&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S706189090%3A1758390747331598',
+                        '_blank'
+                      )
+                    }
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 text-base font-bold bg-black text-white border-2 border-black rounded-full hover:bg-gray-800 hover:border-gray-800 transition-all shadow-md hover:shadow-lg cursor-pointer"
                   >
                     <LuExternalLink className="w-4 h-4" />
-                    <span>보기</span>
+                    <span>YouTube로 이동</span>
                   </button>
                   <button
                     onClick={handleCopyUrl}
@@ -399,7 +406,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
 
         {/* Footer */}
         {currentStep === 'config' && (
-          <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+          <div className="flex-shrink-0 flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
             <button
               onClick={handleClose}
               className="px-6 py-2.5 text-base font-medium text-black border-2 border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm hover:shadow-md cursor-pointer"
@@ -424,7 +431,7 @@ const DeployModal: React.FC<DeployModalProps> = ({
         )}
 
         {currentStep === 'completed' && (
-          <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
+          <div className="flex-shrink-0 flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
             <button
               onClick={handleCompleteClose}
               className="px-6 py-2.5 text-base font-bold bg-black text-white border-2 border-black rounded-full hover:bg-gray-800 hover:border-gray-800 transition-all shadow-md hover:shadow-lg cursor-pointer"

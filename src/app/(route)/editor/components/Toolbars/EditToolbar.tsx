@@ -1,11 +1,10 @@
 'use client'
 
-import React from 'react'
+import { type ToolbarVariant } from '../../constants/colors'
+import { ClipItem } from '../../types'
+import ClipSelectionDropdown from './shared/ClipSelectionDropdown'
 import ToolbarButton from './shared/ToolbarButton'
 import ToolbarDivider from './shared/ToolbarDivider'
-import ClipSelectionDropdown from './shared/ClipSelectionDropdown'
-import { ClipItem } from '../../types'
-import { type ToolbarVariant } from '../../constants/colors'
 
 interface EditToolbarProps {
   clips: ClipItem[]
@@ -113,7 +112,8 @@ export default function EditToolbar({
         label="잘라내기"
         onClick={onCut}
         shortcut="Ctrl+X"
-        disabled={selectedClipIds.size === 0}
+        // disabled={selectedClipIds.size === 0}
+        disabled={true}
         variant={variant}
       />
 

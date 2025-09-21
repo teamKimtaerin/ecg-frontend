@@ -208,7 +208,7 @@ const S3UploadDemo = () => {
                   ? 'bg-green-600'
                   : uploadStatus.status === 'error'
                     ? 'bg-red-600'
-                    : 'bg-blue-600'
+                    : 'bg-brand-main'
               }`}
               style={{ width: `${uploadStatus.progress}%` }}
             />
@@ -224,7 +224,7 @@ const S3UploadDemo = () => {
               ? 'bg-green-50 text-green-800'
               : uploadStatus.status === 'error'
                 ? 'bg-red-50 text-red-800'
-                : 'bg-blue-50 text-blue-800'
+                : 'bg-purple-50 text-purple-800'
           }`}
         >
           <p className="text-sm">{uploadStatus.message}</p>
@@ -244,7 +244,7 @@ const S3UploadDemo = () => {
                 href={uploadStatus.s3Url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline ml-1"
+                className="text-brand-main hover:underline ml-1"
               >
                 {uploadStatus.s3Url}
               </a>

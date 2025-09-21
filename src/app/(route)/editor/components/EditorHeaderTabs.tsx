@@ -23,6 +23,7 @@ export interface EditorHeaderTabsProps {
   isToolbarVisible?: boolean
   onToolbarToggle?: () => void
   onShowToolbar?: () => void
+  onPlatformSelectionOpen?: (task: { id: number; filename: string }) => void
 }
 
 const TAB_LABELS: Record<string, string> = {
@@ -39,6 +40,7 @@ export default function EditorHeaderTabs({
   isToolbarVisible = true,
   onToolbarToggle,
   onShowToolbar,
+  onPlatformSelectionOpen,
 }: EditorHeaderTabsProps = {}) {
   // Use store values as defaults, but allow prop overrides
   const store = useEditorStore()
@@ -66,10 +68,16 @@ export default function EditorHeaderTabs({
   const { exportTasks, uploadTasks } = useProgressTasks()
 
   const handleDeployClick = (task: { id: number; filename: string }) => {
-    openDeployModal({
-      id: task.id,
-      filename: task.filename,
-    })
+    // 플랫폼 선택 모달을 먼저 열기 (상위 컴포넌트에서 처리)
+    if (onPlatformSelectionOpen) {
+      onPlatformSelectionOpen(task)
+    } else {
+      // fallback: 직접 배포 모달 열기 (기존 동작)
+      openDeployModal({
+        id: task.id,
+        filename: task.filename,
+      })
+    }
   }
 
   // If props are provided, use them; otherwise fall back to store

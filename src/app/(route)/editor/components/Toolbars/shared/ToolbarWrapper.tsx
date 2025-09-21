@@ -136,7 +136,7 @@ export default function ToolbarWrapper({
           <ToolbarButton
             icon={<AiOutlineFolderAdd className="w-5 h-5" />}
             label="다른 프로젝트로 저장"
-            onClick={handleSaveAs}
+            disabled={true}
             variant={variant}
           />
 

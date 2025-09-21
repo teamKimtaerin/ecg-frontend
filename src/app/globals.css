@@ -43,7 +43,7 @@ input[type='range']::-moz-range-thumb {
 /* Custom scrollbar styles for dark dropdown */
 .dropdown-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #64748b #475569;
+  scrollbar-color: var(--color-brand-sub) var(--color-brand-main);
 }
 
 .dropdown-scrollbar::-webkit-scrollbar {
@@ -51,17 +51,17 @@ input[type='range']::-moz-range-thumb {
 }
 
 .dropdown-scrollbar::-webkit-scrollbar-track {
-  background: #475569;
+  background: var(--color-brand-main);
   border-radius: 3px;
 }
 
 .dropdown-scrollbar::-webkit-scrollbar-thumb {
-  background: #64748b;
+  background: var(--color-brand-sub);
   border-radius: 3px;
 }
 
 .dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-primary-light);
 }
 
 /* Slide animations */
@@ -93,7 +93,7 @@ input[type='range']::-moz-range-thumb {
 /* Custom scrollbar with position indicator */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #9ca3af #ffffff;
+  scrollbar-color: var(--color-brand-sub) #ffffff;
   position: relative;
 }
 
@@ -109,14 +109,14 @@ input[type='range']::-moz-range-thumb {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #9ca3af;
+  background: var(--color-brand-sub);
   border-radius: 6px;
   border: 2px solid #ffffff;
   position: relative;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--color-brand-main);
 }
 
 /* Scroll position indicator */
@@ -140,11 +140,17 @@ input[type='range']::-moz-range-thumb {
      COLOR SYSTEM
      ======================================== */
 
-  /* Primary Colors */
-  --color-primary: #146ef5;
-  --color-primary-dark: #0a57d4;
-  --color-primary-light: #3bb2f6;
-  --color-primary-very-light: #dbeafe;
+  /* Primary Colors - Brand Purple */
+  --color-primary: #7c3aed;
+  --color-primary-dark: #5b21b6;
+  --color-primary-light: #a855f7;
+  --color-primary-very-light: #f3e8ff;
+
+  /* Brand Colors */
+  --color-brand-main: #7c3aed;
+  --color-brand-sub: #a855f7;
+  --color-brand-dark: #5b21b6;
+  --color-brand-light: #f3e8ff;
 
   /* Neutral Colors */
   --color-black: #080808;
@@ -242,6 +248,11 @@ input[type='range']::-moz-range-thumb {
   --font-size-h3: clamp(1.25rem, 2vw, 1.5rem);
   --font-size-body: clamp(1rem, 1.5vw, 1.125rem);
   --font-size-caption: clamp(0.75rem, 1vw, 0.875rem);
+
+  /* Animation Sidebar Typography (based on AssetCard patterns) */
+  --font-size-sidebar-title: 0.875rem; /* text-sm */
+  --font-size-sidebar-body: 0.875rem; /* text-sm */
+  --font-size-sidebar-caption: 0.75rem; /* text-xs */
 
   /* Font Weights */
   --font-weight-light: 300;
@@ -1118,5 +1129,213 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   BRAND COLOR UTILITIES
+   ======================================== */
+
+/* Brand Background Colors */
+.bg-brand-main {
+  background-color: var(--color-brand-main);
+}
+.bg-brand-sub {
+  background-color: var(--color-brand-sub);
+}
+.bg-brand-dark {
+  background-color: var(--color-brand-dark);
+}
+.bg-brand-light {
+  background-color: var(--color-brand-light);
+}
+
+/* Brand Text Colors */
+.text-brand-main {
+  color: var(--color-brand-main);
+}
+.text-brand-sub {
+  color: var(--color-brand-sub);
+}
+.text-brand-dark {
+  color: var(--color-brand-dark);
+}
+
+/* Brand Border Colors */
+.border-brand-main {
+  border-color: var(--color-brand-main);
+}
+.border-brand-sub {
+  border-color: var(--color-brand-sub);
+}
+.border-brand-dark {
+  border-color: var(--color-brand-dark);
+}
+
+/* Brand Hover States */
+.hover\:bg-brand-main:hover {
+  background-color: var(--color-brand-main);
+}
+.hover\:bg-brand-sub:hover {
+  background-color: var(--color-brand-sub);
+}
+.hover\:text-brand-main:hover {
+  color: var(--color-brand-main);
+}
+.hover\:text-brand-sub:hover {
+  color: var(--color-brand-sub);
+}
+
+/* ========================================
+   ANIMATION SIDEBAR TYPOGRAPHY UTILITIES
+   ======================================== */
+
+/* Based on AssetCard and AssetGrid patterns */
+.text-sidebar-title {
+  font-size: var(--font-size-sidebar-title);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.text-sidebar-body {
+  font-size: var(--font-size-sidebar-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+.text-sidebar-caption {
+  font-size: var(--font-size-sidebar-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+}
+
+/* ========================================
+   MODERN BUTTON STYLES (Based on proposed designs)
+   ======================================== */
+
+/* Modern pill-shaped buttons with brand colors */
+.btn-modern-primary {
+  background-color: var(--color-brand-main);
+  color: white;
+  border: none;
+  border-radius: 9999px; /* fully rounded */
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-modern-primary:hover {
+  background-color: var(--color-brand-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+}
+
+.btn-modern-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);
+}
+
+.btn-modern-secondary {
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-modern-secondary:hover {
+  background-color: #f1f5f9;
+  color: #475569;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-modern-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-modern-dark {
+  background-color: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-modern-dark:hover {
+  background-color: #0f172a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-modern-dark:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Size variations for modern buttons */
+.btn-modern-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.btn-modern-lg {
+  padding: 16px 32px;
+  font-size: 16px;
+}
+
+/* Disabled state for modern buttons */
+.btn-modern-primary:disabled,
+.btn-modern-secondary:disabled,
+.btn-modern-dark:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Loading state for modern buttons */
+.btn-modern-loading {
+  pointer-events: none;
+  position: relative;
+}
+
+.btn-modern-loading::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }

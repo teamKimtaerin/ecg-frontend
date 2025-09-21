@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import ToolbarButton from './shared/ToolbarButton'
-import { IoLayers, IoShapes, IoPerson, IoText } from 'react-icons/io5'
+import { IoLayers, IoPerson, IoShapes, IoText } from 'react-icons/io5'
 import { useEditorStore } from '../../store'
+import ToolbarButton from './shared/ToolbarButton'
 
 interface InsertToolbarProps {
   onNewClick: () => void
@@ -66,6 +66,7 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
       <ToolbarButton
         icon={<IoShapes />}
         label="도형"
+        disabled={true}
         shortcut="Alt+S"
         onClick={handleShapesClick}
       />
@@ -73,6 +74,7 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
       <ToolbarButton
         icon={<IoPerson />}
         label="캐릭터"
+        disabled={true}
         shortcut="Alt+C"
         onClick={handleCharacterClick}
       />

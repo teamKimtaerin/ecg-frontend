@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import { exportOptions, getIconComponent } from './exportOptions'
 import { ExportModalProps, ExportFormat, SocialPlatform } from './ExportTypes'
 import Portal from './Portal'
-import SocialMediaSection from './SocialMediaSection'
 
 export default function ExportModal({
   isOpen,
@@ -14,6 +13,9 @@ export default function ExportModal({
 }: ExportModalProps) {
   const [selectedFormat, setSelectedFormat] =
     useState<ExportFormat>('gpu-render')
+
+  // 비활성화할 옵션들
+  const disabledOptions = ['srt', 'txt', 'mp3']
 
   // 모달이 열릴 때 기본 선택값 설정
   useEffect(() => {
@@ -91,34 +93,22 @@ export default function ExportModal({
 
           {/* 콘텐츠 */}
           <div className="p-4">
-            {/* 기본 선택 옵션 - GPU 고속 렌더링 */}
+            {/* 기본 선택 옵션 - 영상 파일 */}
             <div
-              className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 ${
-                selectedFormat === 'mp4'
-                  ? 'bg-gray-100 border border-gray-300'
-                  : 'hover:bg-gray-50 hover:scale-105 hover:shadow-md'
-              }`}
+              className="flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 bg-blue-50 border border-blue-200"
               onClick={() => handleExport('gpu-render')}
             >
               <div className="flex items-center flex-1">
-                <div className="w-6 h-6 mr-3 text-gray-600 flex items-center justify-center bg-gray-200 rounded p-1">
+                <div className="w-6 h-6 mr-3 text-white flex items-center justify-center bg-blue-500 rounded p-1">
                   <DefaultIcon className="w-full h-full" />
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-black text-sm">
                     {defaultOption.label}({defaultOption.description})
                   </span>
-                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                    최근 사용
-                  </span>
                 </div>
               </div>
             </div>
-
-            {/* 소셜 미디어에 공유 */}
-            {onSocialShare && (
-              <SocialMediaSection onSocialShare={handleSocialShare} />
-            )}
 
             {/* 다른 형식으로 내보내기 */}
             <div className="mb-4">
@@ -129,27 +119,39 @@ export default function ExportModal({
               <div className="space-y-1">
                 {otherOptions.map((option) => {
                   const IconComponent = getIconComponent(option.icon)
-                  const isSelected = selectedFormat === option.id
+                  const isDisabled = disabledOptions.includes(option.id)
 
                   return (
                     <div
                       key={option.id}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                        isSelected
-                          ? 'bg-gray-100 border border-gray-300'
-                          : 'hover:bg-gray-50 hover:scale-105 hover:shadow-md'
+                      className={`flex items-center p-3 rounded-lg transition-all duration-200 ${
+                        isDisabled
+                          ? 'cursor-default opacity-50'
+                          : 'cursor-pointer hover:bg-gray-50'
                       }`}
-                      onClick={() => handleExport(option.id)}
+                      onClick={
+                        isDisabled ? undefined : () => handleExport(option.id)
+                      }
                     >
                       <div className="flex items-center flex-1">
-                        <div className="w-5 h-5 mr-3 text-gray-600 flex items-center justify-center bg-gray-200 rounded p-1">
+                        <div
+                          className={`w-5 h-5 mr-3 flex items-center justify-center rounded p-1 ${
+                            isDisabled
+                              ? 'text-gray-400 bg-gray-100'
+                              : 'text-gray-600 bg-gray-200'
+                          }`}
+                        >
                           <IconComponent className="w-full h-full" />
                         </div>
                         <div>
-                          <span className="text-sm text-black">
+                          <span
+                            className={`text-sm ${isDisabled ? 'text-gray-400' : 'text-black'}`}
+                          >
                             {option.label}
                           </span>
-                          <span className="text-sm text-gray-500 ml-1">
+                          <span
+                            className={`text-sm ml-1 ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}
+                          >
                             ({option.description})
                           </span>
                         </div>

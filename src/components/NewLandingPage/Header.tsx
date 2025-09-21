@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuthStatus } from '@/hooks/useAuthStatus'
 import { type User } from '@/lib/api/auth'
 import HoitLogo from '@/components/ui/HoitLogo'
@@ -28,6 +29,7 @@ const Header: React.FC<HeaderProps> = ({
   isLoading = false,
 }) => {
   const {} = useAuthStatus()
+  const router = useRouter()
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
   const { openDeployModal, deployModalProps } = useDeployModal()
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -76,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({
               className="relative text-sm font-medium text-gray-700 hover:text-black transition-colors cursor-pointer"
             >
               베타
-              <span className="absolute -top-2 left-full ml-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+              <span className="absolute -top-2 left-full ml-1 bg-brand-main text-white text-xs px-1.5 py-0.5 rounded-full">
                 βeta
               </span>
             </Link>
@@ -99,10 +101,11 @@ const Header: React.FC<HeaderProps> = ({
               onClose={() => setIsDocumentModalOpen(false)}
               buttonRef={buttonRef}
               onDeployClick={(task) => {
-                openDeployModal({
-                  id: task.id,
-                  filename: task.filename,
-                })
+                // 에디터 페이지로 리다이렉트하면서 배포 모달 파라미터 전달
+                router.push(
+                  `/editor?deploy=true&taskId=${task.id}&filename=${encodeURIComponent(task.filename)}`
+                )
+                setIsDocumentModalOpen(false) // 현재 모달 닫기
               }}
             />
           </div>

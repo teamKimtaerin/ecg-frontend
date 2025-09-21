@@ -285,7 +285,7 @@ const VideoProcessingDemo: React.FC = () => {
                   ? 'bg-green-600'
                   : processingStatus.stage === 'error'
                     ? 'bg-red-600'
-                    : 'bg-blue-600'
+                    : 'bg-brand-main'
               }`}
               style={{ width: `${processingStatus.progress}%` }}
             />
@@ -323,7 +323,7 @@ const VideoProcessingDemo: React.FC = () => {
                       </div>
                       <p className="font-medium">{segment.text}</p>
                       {segment.emotion && (
-                        <p className="text-xs text-blue-600">
+                        <p className="text-xs text-brand-main">
                           Emotion: {segment.emotion.emotion} (
                           {(segment.emotion.confidence * 100).toFixed(0)}%)
                         </p>
@@ -389,11 +389,11 @@ const VideoProcessingDemo: React.FC = () => {
       </div>
 
       {/* Instructions */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-semibold text-blue-900 mb-2">
+      <div className="mt-8 p-4 bg-purple-50 rounded-lg">
+        <h3 className="font-semibold text-purple-900 mb-2">
           How it works (Demo):
         </h3>
-        <ol className="text-sm text-blue-800 space-y-1">
+        <ol className="text-sm text-purple-800 space-y-1">
           <li>1. Select a video or audio file</li>
           <li>2. Click &quot;Start Processing&quot; to upload and process</li>
           <li>3. File gets uploaded to S3 with presigned URL</li>

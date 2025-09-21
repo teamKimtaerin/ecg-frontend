@@ -4,8 +4,15 @@
 
 // Component size type definitions
 export type ComponentSize = 'small' | 'medium' | 'large' | 'extra-large'
-export type ComponentVariant = 'accent' | 'primary' | 'secondary' | 'negative'
-export type ComponentStyle = 'fill' | 'outline'
+export type ComponentVariant =
+  | 'accent'
+  | 'primary'
+  | 'secondary'
+  | 'negative'
+  | 'modern-primary'
+  | 'modern-secondary'
+  | 'modern-dark'
+export type ComponentStyle = 'fill' | 'outline' | 'modern'
 export type StaticColor = 'none' | 'white' | 'black'
 
 // Common base interface
@@ -248,7 +255,21 @@ export const SIZE_CLASSES = {
 } as const
 
 // Utility functions for components
-export const getSizeClasses = (size: ComponentSize = 'medium') => {
+export const getSizeClasses = (
+  size: ComponentSize = 'medium',
+  variant?: ComponentVariant
+) => {
+  // Modern buttons use their own size classes
+  if (variant?.startsWith('modern-')) {
+    const modernSizes = {
+      small: 'btn-modern-sm',
+      medium: '',
+      large: 'btn-modern-lg',
+      'extra-large': 'btn-modern-lg',
+    }
+    return modernSizes[size]
+  }
+
   return SIZE_CLASSES.padding[size]
 }
 
@@ -257,6 +278,21 @@ export const getVariantClasses = (
   style: ComponentStyle = 'fill',
   staticColor: StaticColor = 'none'
 ) => {
+  // Modern button variants use their own CSS classes
+  if (variant.startsWith('modern-')) {
+    const modernVariants = {
+      'modern-primary': 'btn-modern-primary',
+      'modern-secondary': 'btn-modern-secondary',
+      'modern-dark': 'btn-modern-dark',
+    }
+    return (
+      modernVariants[
+        variant as 'modern-primary' | 'modern-secondary' | 'modern-dark'
+      ] || 'btn-modern-primary'
+    )
+  }
+
+  // Traditional variants
   const baseVariants = {
     accent:
       style === 'fill'
@@ -282,7 +318,7 @@ export const getVariantClasses = (
     none: '',
   }
 
-  return `${baseVariants[variant]} ${staticColor !== 'none' ? colorOverrides[staticColor] : ''}`
+  return `${baseVariants[variant as keyof typeof baseVariants]} ${staticColor !== 'none' ? colorOverrides[staticColor] : ''}`
 }
 
 export const getDisabledClasses = () => {

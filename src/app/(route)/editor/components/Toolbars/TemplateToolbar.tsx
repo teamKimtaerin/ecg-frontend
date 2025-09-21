@@ -52,6 +52,7 @@ export default function TemplateToolbar({
           </svg>
         }
         label="템플릿 만들기"
+        disabled={true}
         onClick={handleCreateTemplate}
       />
     </>

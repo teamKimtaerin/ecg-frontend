@@ -55,21 +55,25 @@ const Button: React.FC<ButtonProps> = ({
 
   // Build button classes
   const buttonClasses = cn(
-    // Base interactive styles
-    getBaseInteractiveClasses(),
-
-    // Size-based styles
-    getSizeClasses(size),
-
-    // Variant and color styles
-    getVariantClasses(variant, style, staticColor),
-
-    // State-based styles
-    isDisabled && getDisabledClasses(),
-    justified && 'w-full',
-
-    // Custom classes
-    className
+    // For modern variants, use different class building logic
+    variant?.startsWith('modern-')
+      ? // Modern button base classes
+        cn(
+          getVariantClasses(variant, style, staticColor),
+          getSizeClasses(size, variant),
+          isPending && 'btn-modern-loading',
+          justified && 'w-full',
+          className
+        )
+      : // Traditional button classes
+        cn(
+          getBaseInteractiveClasses(),
+          getSizeClasses(size),
+          getVariantClasses(variant, style, staticColor),
+          isDisabled && getDisabledClasses(),
+          justified && 'w-full',
+          className
+        )
   )
 
   // Event handlers - 기존 onClick 시그니처 유지를 위해 직접 구현
@@ -85,12 +89,12 @@ const Button: React.FC<ButtonProps> = ({
   const renderContent = () => {
     const hasLabel = label || children
     const showIcon = icon && !isPending
-    const showSpinner = isPending
+    const showSpinner = isPending && !variant?.startsWith('modern-') // Modern buttons handle loading internally
     const iconSize = SIZE_CLASSES.iconSize[size]
 
     return (
       <>
-        {/* Loading Spinner */}
+        {/* Loading Spinner (only for non-modern buttons) */}
         {showSpinner && (
           <div
             className={cn(

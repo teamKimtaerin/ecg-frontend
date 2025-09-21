@@ -106,8 +106,8 @@ const DynamicSubtitleSection: React.FC<DynamicSubtitleSectionProps> = (
           <div className="aspect-video bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border border-gray-300 rounded-3xl shadow-sm relative overflow-hidden">
             {/* Background video simulation */}
             <div className="absolute inset-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-blue-900/20 animate-pulse"></div>
-              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-purple-800/20 animate-pulse"></div>
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-brand-main/10 rounded-full blur-3xl animate-pulse"></div>
               <div className="absolute bottom-1/3 right-1/4 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
             </div>
 

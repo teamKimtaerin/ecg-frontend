@@ -288,6 +288,7 @@ export default function HomeToolbar({
           </svg>
         }
         label="프로젝트 열기"
+        disabled={true}
         shortcut="Ctrl+O"
       />
 

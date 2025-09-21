@@ -1,9 +1,9 @@
 'use client'
 
 import { FaTimes } from 'react-icons/fa'
+import { FaSpinner } from 'react-icons/fa'
+import { LuLightbulb, LuChevronDown } from 'react-icons/lu'
 import React, { useState, useRef } from 'react'
-// import Draggable from 'react-draggable' // Currently unused
-// import { ChevronDownIcon, ChevronUpIcon } from '@/components/icons' // Currently unused
 
 export interface ProcessingModalProps {
   isOpen: boolean
@@ -75,33 +75,28 @@ export default function ProcessingModal({
     }
   }
 
+  const getDynamicTimeText = () => {
+    if (!estimatedTimeRemaining) return '음성을 분석하고 있습니다'
+
+    const minutes = Math.ceil(estimatedTimeRemaining / 60)
+    if (minutes > 0) {
+      return `${minutes}분의 음성을 분석하고 있습니다`
+    }
+    return '음성을 분석하고 있습니다'
+  }
+
   const getStatusText = () => {
     switch (status) {
       case 'uploading':
-        return '업로드 중'
+        return '파일을 업로드하고 있습니다'
       case 'processing':
-        return '처리 중'
+        return getDynamicTimeText()
       case 'completed':
-        return '완료!'
+        return '분석이 완료되었습니다'
       case 'failed':
-        return '오류 발생'
+        return '처리 중 오류가 발생했습니다'
       default:
-        return '준비 중'
-    }
-  }
-
-  const getStatusEmoji = () => {
-    switch (status) {
-      case 'uploading':
-        return '📤'
-      case 'processing':
-        return '⚙️'
-      case 'completed':
-        return '✅'
-      case 'failed':
-        return '❌'
-      default:
-        return '⏳'
+        return '처리를 준비하고 있습니다'
     }
   }
 
@@ -112,58 +107,20 @@ export default function ProcessingModal({
     return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
   }
 
-  const getCurrentStageMessage = () => {
-    if (!currentStage) return null
-    return (
-      STAGE_MESSAGES[currentStage as keyof typeof STAGE_MESSAGES] ||
-      currentStage
-    )
-  }
-
-  const getGradientColor = () => {
-    switch (status) {
-      case 'uploading':
-        return 'from-blue-500 to-cyan-500'
-      case 'processing':
-        return 'from-purple-500 to-pink-500'
-      case 'completed':
-        return 'from-green-500 to-emerald-500'
-      case 'failed':
-        return 'from-red-500 to-rose-500'
-      default:
-        return 'from-gray-500 to-gray-600'
-    }
-  }
-
-  const getProgressBarColor = () => {
-    switch (status) {
-      case 'uploading':
-        return 'bg-gradient-to-r from-blue-400 to-cyan-400'
-      case 'processing':
-        return 'bg-gradient-to-r from-purple-400 to-pink-400'
-      case 'completed':
-        return 'bg-gradient-to-r from-green-400 to-emerald-400'
-      case 'failed':
-        return 'bg-gradient-to-r from-red-400 to-rose-400'
-      default:
-        return 'bg-gradient-to-r from-gray-400 to-gray-500'
-    }
-  }
-
   const shouldShowCloseButton = status === 'completed' || status === 'failed'
 
   if (!isOpen) return null
 
   return (
     <>
-      {/* Backdrop with blur effect - clickable background */}
+      {/* Backdrop with blur effect */}
       {backdrop && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm pointer-events-none z-[9998]" />
       )}
 
-      {/* Draggable Modal */}
+      {/* Clean Modal Design */}
       <div
-        className="fixed w-[500px] max-w-[90vw] shadow-2xl rounded-xl overflow-hidden pointer-events-auto z-[9999]"
+        className="fixed w-[600px] max-w-[90vw] bg-white rounded-2xl shadow-2xl pointer-events-auto z-[9999]"
         style={{
           left: '50%',
           top: '50%',
@@ -175,174 +132,120 @@ export default function ProcessingModal({
         role="dialog"
         aria-label="처리 진행 상황"
       >
-        {/* 그라디언트 헤더 */}
+        {/* Simple Header */}
         <div
-          className={`bg-gradient-to-r ${getGradientColor()} p-6 rounded-t-xl cursor-grab`}
+          className="flex items-center justify-between p-6 pb-4 cursor-grab"
           onMouseDown={handleMouseDown}
         >
-          <div className="flex items-center justify-between pointer-events-none">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl animate-bounce">
-                {getStatusEmoji()}
-              </span>
-              <div>
-                <h2 className="text-xl font-bold text-white">
-                  {getStatusText()}
-                </h2>
-                {getCurrentStageMessage() && (
-                  <p className="text-sm text-white/90 mt-1">
-                    {getCurrentStageMessage()}
-                  </p>
-                )}
-              </div>
-            </div>
-            {shouldShowCloseButton && (
-              <button
-                onClick={onClose}
-                onMouseDown={(e) => e.stopPropagation()}
-                className="text-white/80 hover:text-white transition-colors p-1 pointer-events-auto"
-              >
-                <FaTimes size={20} />
-              </button>
-            )}
-          </div>
+          <h2 className="text-lg font-medium text-gray-900">
+            {getStatusText()}
+          </h2>
+          <button
+            onClick={shouldShowCloseButton ? onClose : onCancel}
+            onMouseDown={(e) => e.stopPropagation()}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 pointer-events-auto"
+          >
+            <FaTimes size={16} />
+          </button>
         </div>
 
-        {/* 본문 */}
-        <div className="p-6 bg-white rounded-b-xl">
-          {/* 파일명 */}
+        {/* Main Content */}
+        <div className="px-6 pb-6">
+          {/* File Name with Spinner */}
           {fileName && (
-            <div className="mb-6 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm font-medium text-gray-700 truncate">
-                📁 {fileName}
-              </p>
+            <div className="flex items-center gap-3 mb-6">
+              {(status === 'uploading' || status === 'processing') && (
+                <FaSpinner className="animate-spin text-brand-main" size={16} />
+              )}
+              <span className="text-gray-700 font-medium">{fileName}</span>
             </div>
           )}
 
-          {/* 진행률 바 */}
-          <div className="mb-6">
+          {/* Thumbnail Image */}
+          <div className="mb-6 flex justify-center">
+            <div className="w-full max-w-md bg-gray-100 rounded-lg overflow-hidden">
+              <img
+                src="/friends-thumbnail.png"
+                alt="Video thumbnail"
+                className="w-full h-48 object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Tip Section */}
+          <div className="mb-6 p-4 bg-purple-50 rounded-lg border-l-4 border-brand-sub">
+            <div className="flex items-start gap-3">
+              <LuLightbulb className="text-brand-main text-lg mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  알고 계셨나요?
+                </h4>
+                <p className="text-sm text-gray-700 mb-1">
+                  편집 중인 영상을 다른 사람에게 보여주고 싶다면,
+                </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">[만일] &gt; [프리뷰 공유]</span>
+                  를 사용하여 간편하게 영상을 공유해 보세요.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">진행률</span>
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-sm text-gray-600">진행률</span>
+              <span className="text-sm font-medium text-gray-900">
                 {Math.round(progress)}%
               </span>
             </div>
-            <div className="relative">
-              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${getProgressBarColor()} transition-all duration-500 ease-out rounded-full relative overflow-hidden`}
-                  style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
-                >
-                  {/* 애니메이션 효과 */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
-                </div>
-              </div>
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-brand-main transition-all duration-500 ease-out rounded-full"
+                style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+              />
             </div>
           </div>
 
-          {/* 예상 시간 */}
+          {/* Estimated Time - Only show if available */}
           {estimatedTimeRemaining && estimatedTimeRemaining > 0 && (
-            <div className="mb-6 text-center">
+            <div className="text-center">
               <p className="text-sm text-gray-500">
-                예상 남은 시간:{' '}
-                <span className="font-medium text-gray-700">
-                  {formatTime(estimatedTimeRemaining)}
-                </span>
+                예상 남은 시간: {formatTime(estimatedTimeRemaining)}
               </p>
             </div>
           )}
 
-          {/* 상태별 메시지 */}
-          {status === 'uploading' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-700">
-                파일을 안전하게 업로드하고 있습니다...
-              </p>
-            </div>
-          )}
+          {/* Collapse Arrow */}
+          <div className="flex justify-center mt-4">
+            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <LuChevronDown className="w-5 h-5" />
+            </button>
+          </div>
 
-          {status === 'processing' && (
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
-                <p className="text-sm text-purple-700">
-                  AI가 콘텐츠를 분석하고 있습니다
-                </p>
-              </div>
-              <p className="text-xs text-purple-600 mt-1">
-                파일 크기에 따라 시간이 소요될 수 있습니다
-              </p>
-            </div>
-          )}
-
+          {/* Action Buttons for Completed/Failed States */}
           {status === 'completed' && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <p className="text-sm font-medium text-green-700">
-                🎉 처리가 완료되었습니다!
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                이제 편집을 시작할 수 있습니다
-              </p>
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={onClose}
+                className="px-6 py-2 bg-brand-main hover:bg-brand-dark text-white rounded-lg transition-colors"
+              >
+                에디터로 이동
+              </button>
             </div>
           )}
 
           {status === 'failed' && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <p className="text-sm font-medium text-red-700">
-                처리 중 문제가 발생했습니다
-              </p>
-              <p className="text-xs text-red-600 mt-1">
-                다시 시도하거나 지원팀에 문의해주세요
-              </p>
-            </div>
-          )}
-
-          {/* 액션 버튼 */}
-          <div className="flex justify-end gap-3">
-            {canCancel && !shouldShowCloseButton && onCancel && (
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                취소
-              </button>
-            )}
-
-            {status === 'completed' && (
+            <div className="flex justify-center mt-6 gap-3">
               <button
                 onClick={onClose}
-                className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-lg transition-all shadow-lg hover:shadow-xl"
-              >
-                에디터로 이동 →
-              </button>
-            )}
-
-            {status === 'failed' && (
-              <button
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 rounded-lg transition-all"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
               >
                 닫기
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-
-        {/* 애니메이션을 위한 스타일 */}
-        <style jsx>{`
-          @keyframes shimmer {
-            0% {
-              transform: translateX(-100%);
-            }
-            100% {
-              transform: translateX(100%);
-            }
-          }
-
-          .animate-shimmer {
-            animation: shimmer 2s infinite;
-          }
-        `}</style>
       </div>
     </>
   )
