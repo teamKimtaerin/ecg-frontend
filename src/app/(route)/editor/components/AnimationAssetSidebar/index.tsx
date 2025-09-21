@@ -17,6 +17,7 @@ import UsedAssetsStrip from './UsedAssetsStrip'
 import TabNavigation from './TabNavigation'
 import AssetGrid from './AssetGrid'
 import AssetControlPanel from './AssetControlPanel'
+import AssetStoreLinkBanner from '../AssetStoreLinkBanner'
 import { AssetItem } from './AssetCard'
 
 interface AnimationAssetSidebarProps {
@@ -337,6 +338,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
 
         {/* Filter Controls */}
         <div className="pt-4">
+          <AssetStoreLinkBanner type="assets" />
           <SearchBar />
 
           {/* Used Assets Strip */}

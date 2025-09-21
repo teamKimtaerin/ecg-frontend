@@ -82,19 +82,99 @@ const NumberControl: React.FC<ControlProps> = ({
   const step = property.step ?? 1
   const unit = property.ui?.unit || ''
 
+  // 진행률 계산
+  const progressPercentage = max > min ? ((numValue - min) / (max - min)) * 100 : 0
+  
+  // 기준선 계산 (중간값)
+  const midValue = (min + max) / 2
+  const midPercentage = max > min ? ((midValue - min) / (max - min)) * 100 : 50
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center space-x-2">
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={numValue}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="flex-1 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+    <div className="space-y-3">
+      {/* 슬라이더 컨테이너 */}
+      <div className="relative">
+        {/* 기준선 (중간값 표시) */}
+        <div 
+          className="absolute top-1/2 w-0.5 h-4 bg-gray-400/60 rounded-full transform -translate-y-1/2 z-10"
+          style={{ left: `${midPercentage}%` }}
         />
-        <div className="flex items-center space-x-1">
+        
+        {/* 슬라이더 트랙 */}
+        <div 
+          className="relative h-2 bg-gray-200 rounded-full cursor-pointer"
+          onClick={(e) => {
+            if (max <= min) return
+            const rect = e.currentTarget.getBoundingClientRect()
+            const clickX = e.clientX - rect.left
+            const percentage = Math.max(0, Math.min(1, clickX / rect.width))
+            const newValue = min + percentage * (max - min)
+            onChange(newValue)
+          }}
+        >
+          {/* 진행 바 */}
+          <div
+            className="absolute top-0 left-0 h-full bg-purple-400 rounded-full"
+            style={{ width: `${progressPercentage}%` }}
+          />
+          
+          {/* 직사각형 핸들 */}
+          <div
+            className="absolute w-3 h-6 bg-purple-600 border-2 border-white shadow-md cursor-grab active:cursor-grabbing transform -translate-x-1/2 transition-all duration-200 hover:bg-purple-700 hover:scale-110"
+            style={{
+              left: `${progressPercentage}%`,
+              top: '-8px',
+              borderRadius: '2px',
+            }}
+            onMouseDown={(e) => {
+              if (max <= min) return
+              e.preventDefault()
+              const startX = e.clientX
+              const startValue = numValue
+              const trackRect = e.currentTarget.parentElement?.getBoundingClientRect()
+
+              const handleMouseMove = (moveEvent: MouseEvent) => {
+                if (!trackRect || max <= min) return
+                const deltaX = moveEvent.clientX - startX
+                const deltaPercentage = deltaX / trackRect.width
+                const deltaValue = deltaPercentage * (max - min)
+                const newValue = Math.max(min, Math.min(max, startValue + deltaValue))
+                onChange(newValue)
+              }
+
+              const handleMouseUp = () => {
+                document.removeEventListener('mousemove', handleMouseMove)
+                document.removeEventListener('mouseup', handleMouseUp)
+              }
+
+              document.addEventListener('mousemove', handleMouseMove)
+              document.addEventListener('mouseup', handleMouseUp)
+            }}
+          />
+          
+          {/* 숨겨진 실제 input (키보드 접근성용) */}
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={numValue}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+        </div>
+        
+        {/* 기준점 수치 표시 (min, mid, max) - 슬라이더 아래로 이동 */}
+        <div className="flex justify-between text-xs text-gray-700 mt-1 px-1">
+          <span>{min}{unit}</span>
+          <span className="text-gray-600">{midValue}{unit}</span>
+          <span>{max}{unit}</span>
+        </div>
+      </div>
+
+      {/* 현재 값 입력 및 표시 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-800">현재 값:</span>
           <input
             type="number"
             min={min}
@@ -103,16 +183,21 @@ const NumberControl: React.FC<ControlProps> = ({
             value={numValue}
             onChange={(e) => onChange(Number(e.target.value))}
             className={clsx(
-              'w-16 px-2 py-1 text-sm bg-gray-700 border border-gray-600',
-              'rounded text-white focus:outline-none focus:border-blue-500',
+              'w-20 px-2 py-1 text-sm bg-white border border-gray-300',
+              'rounded text-gray-900 focus:outline-none focus:border-blue-500',
               TRANSITIONS.colors
             )}
           />
           {unit && (
-            <span className="text-xs text-gray-400 font-mono min-w-0">
+            <span className="text-xs text-gray-700 font-mono">
               {unit}
             </span>
           )}
+        </div>
+        
+        {/* 진행률 표시 */}
+        <div className="text-xs text-gray-700">
+          {progressPercentage.toFixed(1)}%
         </div>
       </div>
     </div>
@@ -148,7 +233,7 @@ const BooleanControl: React.FC<ControlProps> = ({ value, onChange }) => {
           />
         </div>
       </div>
-      <span className="ml-3 text-sm text-gray-700">
+      <span className="ml-3 text-sm text-gray-800">
         {boolValue ? '활성화' : '비활성화'}
       </span>
     </label>
@@ -364,7 +449,7 @@ export const PluginParameterControls: React.FC<
 
   if (!manifest || !manifest.schema) {
     return (
-      <div className={clsx('p-4 text-center text-gray-600', className)}>
+      <div className={clsx('p-4 text-center text-gray-800', className)}>
         플러그인 설정을 불러오는 중...
       </div>
     )
@@ -374,7 +459,7 @@ export const PluginParameterControls: React.FC<
 
   if (schemaEntries.length === 0) {
     return (
-      <div className={clsx('p-4 text-center text-gray-600', className)}>
+      <div className={clsx('p-4 text-center text-gray-800', className)}>
         설정 가능한 파라미터가 없습니다.
       </div>
     )
@@ -386,7 +471,7 @@ export const PluginParameterControls: React.FC<
         <h3 className="text-lg font-semibold text-black mb-1">
           {manifest.name} 설정
         </h3>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-700">
           아래 설정을 조정하여 애니메이션을 커스터마이징하세요
         </p>
       </div>
@@ -396,11 +481,11 @@ export const PluginParameterControls: React.FC<
           <div key={key} className="space-y-2">
             {/* 라벨과 설명 */}
             <div className="space-y-1">
-              <label className="text-sm font-medium text-white">
+              <label className="text-sm font-medium text-gray-900">
                 {getLabel(property)}
               </label>
               {getDescription(property) && (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-700">
                   {getDescription(property)}
                 </p>
               )}
@@ -417,10 +502,10 @@ export const PluginParameterControls: React.FC<
       {/* 현재 값 표시 (디버그용) */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mt-6 p-3 bg-gray-100 rounded border border-gray-300">
-          <h4 className="text-xs font-mono text-gray-600 mb-2">
+          <h4 className="text-xs font-mono text-gray-800 mb-2">
             Current Values:
           </h4>
-          <pre className="text-xs text-gray-700 overflow-auto">
+          <pre className="text-xs text-gray-900 overflow-auto">
             {JSON.stringify(parameters, null, 2)}
           </pre>
         </div>

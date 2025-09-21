@@ -168,9 +168,29 @@ export default function AssetPage() {
     loadData()
   }, [])
   const [isLoading, setIsLoading] = useState(true)
+  
+  // 사용자 즐겨찾기 목록 상태
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
+  
+  // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
+  useEffect(() => {
+    if (selectedAsset) {
+      const currentFavoriteStatus = userFavorites.has(selectedAsset.id)
+      if (selectedAsset.isFavorite !== currentFavoriteStatus) {
+        setSelectedAsset(prev => prev ? {
+          ...prev,
+          isFavorite: currentFavoriteStatus
+        } : null)
+      }
+    }
+  }, [userFavorites, selectedAsset?.id, selectedAsset?.isFavorite])
 
   const handleCardClick = (asset: AssetItem) => {
-    setSelectedAsset(asset)
+    const assetWithFavoriteStatus = {
+      ...asset,
+      isFavorite: userFavorites.has(asset.id)
+    }
+    setSelectedAsset(assetWithFavoriteStatus)
     setIsModalOpen(true)
   }
 
@@ -202,13 +222,15 @@ export default function AssetPage() {
   }
 
   const handleFavoriteToggle = (assetId: string) => {
-    setAssets((prevAssets) =>
-      prevAssets.map((asset) =>
-        asset.id === assetId
-          ? { ...asset, isFavorite: !asset.isFavorite }
-          : asset
-      )
-    )
+    setUserFavorites(prev => {
+      const newFavorites = new Set(prev)
+      if (newFavorites.has(assetId)) {
+        newFavorites.delete(assetId)
+      } else {
+        newFavorites.add(assetId)
+      }
+      return newFavorites
+    })
   }
 
   // 정렬 옵션
@@ -226,8 +248,14 @@ export default function AssetPage() {
   }
 
   const filteredAndSortedAssets = useMemo(() => {
+    // userFavorites 상태를 반영한 데이터
+    const dataWithFavoriteStatus = currentData.map(item => ({
+      ...item,
+      isFavorite: userFavorites.has(item.id)
+    }))
+    
     // 필터링
-    const filtered = currentData.filter((item) => {
+    const filtered = dataWithFavoriteStatus.filter((item) => {
       const matchesSearch = item.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
@@ -307,7 +335,7 @@ export default function AssetPage() {
     })
 
     return sorted
-  }, [currentData, searchTerm, activeFilter, sortOrder, contentType])
+  }, [currentData, searchTerm, activeFilter, sortOrder, contentType, userFavorites])
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
@@ -513,7 +541,7 @@ export default function AssetPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         asset={selectedAsset}
-        onAddToCart={handleAddToCart}
+        onFavoriteToggle={() => selectedAsset && handleFavoriteToggle(selectedAsset.id)}
       />
     </div>
   )

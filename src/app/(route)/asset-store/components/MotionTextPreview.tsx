@@ -5,15 +5,15 @@
 
 'use client'
 
-import { clsx } from 'clsx'
 import { type BaseComponentProps } from '@/lib/utils'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
+import { clsx } from 'clsx'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import Moveable, { OnDrag, OnResize, OnRotate } from 'react-moveable'
 import { useMotionTextRenderer } from '../hooks/useMotionTextRenderer'
 import {
-  loadPluginManifest,
-  getDefaultParameters,
   generateLoopedScenarioV2,
+  getDefaultParameters,
+  loadPluginManifest,
   validateAndNormalizeParams,
   type PluginManifest,
   type PreviewSettings,
@@ -26,6 +26,7 @@ interface MotionTextPreviewProps extends BaseComponentProps {
   onParameterChange?: (params: Record<string, unknown>) => void
   onManifestLoad?: (manifest: PluginManifest) => void
   onError?: (error: string) => void
+  onTextChange?: (newText: string) => void
 }
 
 export const MotionTextPreview = React.forwardRef<
@@ -40,6 +41,7 @@ export const MotionTextPreview = React.forwardRef<
       onParameterChange,
       onManifestLoad,
       onError,
+      onTextChange,
       className,
     },
     ref
@@ -50,7 +52,7 @@ export const MotionTextPreview = React.forwardRef<
       null
     )
     const [parameters, setParameters] = useState<Record<string, unknown>>({})
-    const [position, setPosition] = useState({ x: 200, y: 140 }) // 초기값은 640x360 기준
+    const [position, setPosition] = useState({ x: 136, y: 152 }) // 초기값은 512x384 기준 중앙
     const [size, setSize] = useState({ width: 240, height: 80 })
     const [showControls, setShowControls] = useState(false)
     const [rotationDeg, setRotationDeg] = useState(0)
@@ -61,17 +63,20 @@ export const MotionTextPreview = React.forwardRef<
     )
     const [isDragging, setIsDragging] = useState(false) // Flag to prevent updates during interaction
     const [showSimpleText, setShowSimpleText] = useState(false) // Show simple text during drag for performance
+    const [isEditingText, setIsEditingText] = useState(false) // Text editing mode
+    const [editingText, setEditingText] = useState(text) // Temporary text during editing
 
     // Refs
     const stageRef = useRef<HTMLDivElement>(null)
     const stageSizeRef = useRef<{ width: number; height: number }>({
-      width: 640,
-      height: 360,
+      width: 512,
+      height: 384,
     })
     const textBoxRef = useRef<HTMLDivElement>(null)
     const firstLoadDoneRef = useRef(false)
     const updateTimerRef = useRef<number | null>(null)
     const hasScaledFromInitialRef = useRef(false)
+    const editInputRef = useRef<HTMLInputElement>(null)
 
     // Stable error handler to avoid re-creating callbacks each render
     const onRendererError = useCallback(
@@ -208,9 +213,9 @@ export const MotionTextPreview = React.forwardRef<
           fontSizeRel,
         }
 
-        // Convert current stage space to generator's 640x360 base for normalization
-        const baseW = 640
-        const baseH = 360
+        // Convert current stage space to generator's 512x384 base for normalization
+        const baseW = 512
+        const baseH = 384
         const scaleX = baseW / stageSizeRef.current.width
         const scaleY = baseH / stageSizeRef.current.height
         const settingsForGenerator = {
@@ -339,6 +344,15 @@ export const MotionTextPreview = React.forwardRef<
       }
     }, [text, isDragging, updateScenario]) // Include updateScenario dependency
 
+    /**
+     * editingText를 text와 동기화
+     */
+    useEffect(() => {
+      if (!isEditingText) {
+        setEditingText(text)
+      }
+    }, [text, isEditingText])
+
     // Shallow compare helper to avoid useless updates
     const shallowEqual = (
       a: Record<string, unknown>,
@@ -398,13 +412,13 @@ export const MotionTextPreview = React.forwardRef<
       // 초기 값 보정 (마운트 직후 값 확보)
       const rect = el.getBoundingClientRect()
       stageSizeRef.current = {
-        width: rect.width || 640,
-        height: rect.height || 360,
+        width: rect.width || 512,
+        height: rect.height || 384,
       }
       if (!hasScaledFromInitialRef.current) {
-        // 초기 640x360 기준값을 실제 크기로 스케일 1회 적용
-        const scaleX = stageSizeRef.current.width / 640
-        const scaleY = stageSizeRef.current.height / 360
+        // 초기 512x384 기준값을 실제 크기로 스케일 1회 적용
+        const scaleX = stageSizeRef.current.width / 512
+        const scaleY = stageSizeRef.current.height / 384
         setPosition((p) => ({ x: p.x * scaleX, y: p.y * scaleY }))
         setSize((s) => ({ width: s.width * scaleX, height: s.height * scaleY }))
         hasScaledFromInitialRef.current = true
@@ -444,6 +458,60 @@ export const MotionTextPreview = React.forwardRef<
         }
       },
       [scheduleHideControls, pause, showControls]
+    )
+
+    /**
+     * 더블클릭 시 텍스트 편집 모드 시작
+     */
+    const handleDoubleClick = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation()
+        setIsEditingText(true)
+        setShowControls(true)
+        pause() // 편집 중 애니메이션 일시정지
+        // 다음 틱에서 input에 포커스
+        setTimeout(() => {
+          editInputRef.current?.focus()
+          editInputRef.current?.select()
+        }, 0)
+      },
+      [pause]
+    )
+
+    /**
+     * 텍스트 편집 완료
+     */
+    const handleEditComplete = useCallback(() => {
+      setIsEditingText(false)
+      if (onTextChange && editingText !== text) {
+        onTextChange(editingText)
+      }
+      scheduleHideControls()
+    }, [editingText, text, onTextChange, scheduleHideControls])
+
+    /**
+     * 텍스트 편집 취소
+     */
+    const handleEditCancel = useCallback(() => {
+      setIsEditingText(false)
+      setEditingText(text) // 원래 텍스트로 복원
+      scheduleHideControls()
+    }, [text, scheduleHideControls])
+
+    /**
+     * 편집 input 키 이벤트 처리
+     */
+    const handleEditKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          handleEditComplete()
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          handleEditCancel()
+        }
+      },
+      [handleEditComplete, handleEditCancel]
     )
 
     /**
@@ -574,10 +642,11 @@ export const MotionTextPreview = React.forwardRef<
     return (
       <div
         className={clsx(
-          'relative bg-black rounded-lg overflow-visible cursor-pointer aspect-video w-full',
+          'relative bg-black rounded-lg overflow-visible cursor-pointer w-128 h-96',
           className
         )}
         onClick={handlePreviewClick}
+        onDoubleClick={handleDoubleClick}
         ref={stageRef}
       >
         {/* 검정 배경 */}
@@ -628,8 +697,44 @@ export const MotionTextPreview = React.forwardRef<
           </div>
         )}
 
+        {/* 텍스트 편집 Input (편집 모드일 때) */}
+        {isEditingText && (
+          <div
+            className="absolute z-20 flex items-center justify-center"
+            style={{
+              left: `${position.x}px`,
+              top: `${position.y}px`,
+              width: `${size.width}px`,
+              height: `${size.height}px`,
+              transform: `rotate(${rotationDeg}deg)`,
+              transformOrigin: 'center center',
+            }}
+          >
+            <input
+              ref={editInputRef}
+              type="text"
+              value={editingText}
+              onChange={(e) => setEditingText(e.target.value)}
+              onKeyDown={handleEditKeyDown}
+              onBlur={handleEditComplete}
+              className="w-full h-full bg-transparent text-white text-center border-2 border-blue-400 rounded focus:outline-none focus:border-blue-300"
+              style={{
+                fontSize: `${(() => {
+                  const avg = (size.width + size.height) / 2
+                  const fontSizeRel = Math.max(
+                    0.03,
+                    Math.min(0.15, (avg / stageSizeRef.current.width) * 0.15)
+                  )
+                  return fontSizeRel * stageSizeRef.current.height
+                })()}px`,
+                fontFamily: 'inherit',
+              }}
+            />
+          </div>
+        )}
+
         {/* 드래그 가능한 텍스트 박스 (편집용 - 컨트롤 표시 시에만) */}
-        {showControls && (
+        {showControls && !isEditingText && (
           <div
             ref={textBoxRef}
             className={clsx(
@@ -658,7 +763,7 @@ export const MotionTextPreview = React.forwardRef<
         )}
 
         {/* React Moveable 컴포넌트 */}
-        {showControls && moveableTarget && (
+        {showControls && !isEditingText && moveableTarget && (
           <Moveable
             target={moveableTarget}
             draggable={true}

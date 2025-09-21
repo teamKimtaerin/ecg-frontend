@@ -9,6 +9,7 @@ import UsedTemplatesStrip from './UsedTemplatesStrip'
 import TabNavigation from './TabNavigation'
 import TemplateGrid from './TemplateGrid'
 import TemplateControlPanel from './TemplateControlPanel'
+import AssetStoreLinkBanner from '../AssetStoreLinkBanner'
 import { TemplateItem } from './TemplateCard'
 
 interface TemplateSidebarProps {
@@ -58,6 +59,9 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
     >
       {/* Header */}
       <SidebarHeader title="애니메이션 템플릿" onClose={onClose} />
+
+      {/* Asset Store Link */}
+      <AssetStoreLinkBanner type="templates" />
 
       {/* Search
       <SearchBar placeholder="Search templates..." /> */}
