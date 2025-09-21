@@ -23,11 +23,11 @@ const ChatBotFloatingButton: React.FC<ChatBotFloatingButtonProps> = ({
         title="둘리 어시스턴트와 대화하기"
         aria-label="둘리 어시스턴트 열기"
       >
-        <MessageCircleIcon 
-          className="w-6 h-6 text-purple-600 group-hover:text-purple-600 transition-colors duration-300" 
+        <MessageCircleIcon
+          className="w-6 h-6 text-purple-600 group-hover:text-purple-600 transition-colors duration-300"
           size={24}
         />
-        
+
         {/* Unread message indicator */}
         {hasUnreadMessages && (
           <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">

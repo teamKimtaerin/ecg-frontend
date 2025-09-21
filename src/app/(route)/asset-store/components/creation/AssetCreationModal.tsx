@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  TRANSITIONS,
-  type BaseComponentProps,
-} from '@/lib/utils'
+import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
 import { clsx } from 'clsx'
 import React, { useCallback, useEffect, useState } from 'react'
 import { LuX, LuChevronLeft, LuChevronRight } from 'react-icons/lu'
@@ -13,10 +10,10 @@ import { AIAssistantSidebar } from './AIAssistantSidebar'
 import { TabbedParameterControls } from './TabbedParameterControls'
 import { SimpleAssetNavigation } from './SimpleAssetNavigation'
 import { PluginSelectionPanel } from './PluginSelectionPanel'
-import { 
-  AssetCreationModalProps, 
+import {
+  AssetCreationModalProps,
   AssetCreationState,
-  PARAMETER_GROUPS 
+  PARAMETER_GROUPS,
 } from './types/assetCreation.types'
 import { ChatMessage } from '@/app/(route)/editor/types/chatBot'
 import type { PluginManifest } from '../../utils/scenarioGenerator'
@@ -64,25 +61,25 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
 
   // Handle AI sidebar toggle
   const handleAISidebarToggle = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      aiSidebarOpen: !prev.aiSidebarOpen
+      aiSidebarOpen: !prev.aiSidebarOpen,
     }))
   }, [])
 
   // Handle parameter sidebar toggle
   const handleParameterSidebarToggle = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      parameterSidebarExpanded: !prev.parameterSidebarExpanded
+      parameterSidebarExpanded: !prev.parameterSidebarExpanded,
     }))
   }, [])
 
   // Handle expanded sidebar toggle
   const handleExpandedSidebarToggle = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      expandedSidebarOpen: !prev.expandedSidebarOpen
+      expandedSidebarOpen: !prev.expandedSidebarOpen,
     }))
   }, [])
 
@@ -100,7 +97,7 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
       timestamp: new Date(),
     }
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       messages: [...prev.messages, newMessage],
       isTyping: true,
@@ -115,7 +112,7 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
         timestamp: new Date(),
       }
 
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         messages: [...prev.messages, aiResponse],
         isTyping: false,
@@ -125,9 +122,9 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
 
   // Handle parameter changes
   const handleParameterChange = useCallback((key: string, value: unknown) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      parameters: { ...prev.parameters, [key]: value }
+      parameters: { ...prev.parameters, [key]: value },
     }))
   }, [])
 
@@ -139,25 +136,31 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
         defaultParameters[key] = property.default
       })
       previewRef.current.updateParameters(defaultParameters)
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        parameters: defaultParameters
+        parameters: defaultParameters,
       }))
     }
   }, [manifest])
 
   // Handle manifest load
-  const handlePreviewManifestLoad = useCallback((loadedManifest: PluginManifest) => {
-    setManifest(loadedManifest)
-  }, [])
+  const handlePreviewManifestLoad = useCallback(
+    (loadedManifest: PluginManifest) => {
+      setManifest(loadedManifest)
+    },
+    []
+  )
 
   // Handle parameters init
-  const handleParametersInit = useCallback((params: Record<string, unknown>) => {
-    setState(prev => ({
-      ...prev,
-      parameters: params
-    }))
-  }, [])
+  const handleParametersInit = useCallback(
+    (params: Record<string, unknown>) => {
+      setState((prev) => ({
+        ...prev,
+        parameters: params,
+      }))
+    },
+    []
+  )
 
   // Handle preview error
   const handlePreviewError = useCallback((error: string) => {
@@ -166,9 +169,9 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
 
   // Handle preview text change
   const handlePreviewTextChange = useCallback((text: string) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      previewText: text
+      previewText: text,
     }))
   }, [])
 
@@ -322,14 +325,20 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
           {/* Parameter Controls Area */}
           <div className="flex flex-shrink-0">
             {/* Expanded Sidebar */}
-            <div className={clsx(
-              'bg-gray-200 overflow-y-auto transition-all duration-300 relative',
-              state.expandedSidebarOpen ? 'w-64 p-4 border-l border-gray-300' : 'w-0 p-0'
-            )}>
+            <div
+              className={clsx(
+                'bg-gray-200 overflow-y-auto transition-all duration-300 relative',
+                state.expandedSidebarOpen
+                  ? 'w-64 p-4 border-l border-gray-300'
+                  : 'w-0 p-0'
+              )}
+            >
               {state.expandedSidebarOpen && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-800">추가 설정</h3>
+                    <h3 className="text-sm font-medium text-gray-800">
+                      추가 설정
+                    </h3>
                     <button
                       onClick={handleExpandedSidebarToggle}
                       className={clsx(
@@ -379,10 +388,14 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
             )}
 
             {/* Main Parameter Controls Sidebar */}
-            <div className={clsx(
-              'bg-gray-100 overflow-y-auto transition-all duration-300',
-              state.parameterSidebarExpanded ? 'w-80 p-6 border-l border-gray-300' : 'w-0 p-0'
-            )}>
+            <div
+              className={clsx(
+                'bg-gray-100 overflow-y-auto transition-all duration-300',
+                state.parameterSidebarExpanded
+                  ? 'w-80 p-6 border-l border-gray-300'
+                  : 'w-0 p-0'
+              )}
+            >
               {state.parameterSidebarExpanded && (
                 <>
                   {/* Preview Text Input */}
@@ -433,18 +446,20 @@ export const AssetCreationModal: React.FC<AssetCreationModalProps> = ({
           )}
 
           {/* Fixed Bottom Center Navigation */}
-          {availableAssets.length > 1 && currentSelectedAsset && onAssetChange && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-              <SimpleAssetNavigation
-                assets={availableAssets}
-                currentAssetId={currentSelectedAsset.id}
-                onAssetChange={(asset) => {
-                  setCurrentSelectedAsset(asset)
-                  onAssetChange?.(asset)
-                }}
-              />
-            </div>
-          )}
+          {availableAssets.length > 1 &&
+            currentSelectedAsset &&
+            onAssetChange && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                <SimpleAssetNavigation
+                  assets={availableAssets}
+                  currentAssetId={currentSelectedAsset.id}
+                  onAssetChange={(asset) => {
+                    setCurrentSelectedAsset(asset)
+                    onAssetChange?.(asset)
+                  }}
+                />
+              </div>
+            )}
         </div>
       </div>
     </div>

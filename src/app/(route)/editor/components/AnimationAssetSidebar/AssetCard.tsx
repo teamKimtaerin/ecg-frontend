@@ -76,9 +76,7 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
         disabled
           ? 'opacity-50 cursor-not-allowed'
           : 'hover:shadow-md cursor-pointer border-gray-200'
-      } ${
-        asset.isUsed ? 'ring-2 ring-blue-500' : 'border-gray-200'
-      }`}
+      } ${asset.isUsed ? 'ring-2 ring-blue-500' : 'border-gray-200'}`}
       onClick={handleClick}
     >
       {/* Preview */}
@@ -102,9 +100,11 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
 
         {/* Used indicator */}
         {asset.isUsed && (
-          <div className={`absolute top-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded ${
-            asset.type === 'premium' ? 'right-1 mt-6' : 'right-1'
-          }`}>
+          <div
+            className={`absolute top-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded ${
+              asset.type === 'premium' ? 'right-1 mt-6' : 'right-1'
+            }`}
+          >
             적용중
           </div>
         )}

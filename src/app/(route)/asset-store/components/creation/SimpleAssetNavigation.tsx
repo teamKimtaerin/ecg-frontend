@@ -19,17 +19,18 @@ export const SimpleAssetNavigation: React.FC<SimpleAssetNavigationProps> = ({
   className,
 }) => {
   // 현재 에셋 인덱스 찾기
-  const currentIndex = assets.findIndex(asset => asset.id === currentAssetId)
+  const currentIndex = assets.findIndex((asset) => asset.id === currentAssetId)
   const currentAsset = assets[currentIndex]
-  
+
   // 이전/다음 에셋으로 이동
   const navigateAsset = (direction: 'prev' | 'next') => {
     if (assets.length === 0) return
-    
-    const newIndex = direction === 'next' 
-      ? (currentIndex + 1) % assets.length
-      : (currentIndex - 1 + assets.length) % assets.length
-    
+
+    const newIndex =
+      direction === 'next'
+        ? (currentIndex + 1) % assets.length
+        : (currentIndex - 1 + assets.length) % assets.length
+
     onAssetChange(assets[newIndex])
   }
 

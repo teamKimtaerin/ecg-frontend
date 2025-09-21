@@ -175,7 +175,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
           <div className="flex-1">
             <h2 className="text-2xl font-semibold text-white">{asset.title}</h2>
             <p className="text-gray-400 text-sm mt-1">{asset.description}</p>
-            
+
             {/* 에셋 정보 (헤더에 작게 표시) */}
             <div className="flex gap-6 mt-3 text-xs text-gray-300">
               <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export const AssetModal: React.FC<AssetModalProps> = ({
                 />
               </div>
             </div>
-            
+
             {/* 네비게이션 패널 - 미리보기 영역 하단에서 상하 확장 */}
             {availableAssets.length > 1 && onAssetChange && (
               <div className="flex-1 min-h-[120px]">

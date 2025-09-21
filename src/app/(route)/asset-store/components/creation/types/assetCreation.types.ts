@@ -54,36 +54,42 @@ export const PARAMETER_GROUPS: ParameterGroup[] = [
     id: 'basic',
     label: '기본',
     icon: 'Settings',
-    parameters: ['width', 'height', 'x', 'y', 'rotation', 'scale', 'opacity']
+    parameters: ['width', 'height', 'x', 'y', 'rotation', 'scale', 'opacity'],
   },
   {
     id: 'animation',
     label: '애니메이션',
     icon: 'Play',
-    parameters: ['duration', 'delay', 'ease', 'repeat', 'yoyo', 'stagger']
+    parameters: ['duration', 'delay', 'ease', 'repeat', 'yoyo', 'stagger'],
   },
   {
     id: 'colors',
     label: '색상',
     icon: 'Palette',
-    parameters: ['color', 'backgroundColor', 'borderColor', 'shadowColor', 'gradientColors']
+    parameters: [
+      'color',
+      'backgroundColor',
+      'borderColor',
+      'shadowColor',
+      'gradientColors',
+    ],
   },
   {
     id: 'effects',
     label: '효과',
     icon: 'Sparkles',
-    parameters: ['shadow', 'glow', 'blur', 'brightness', 'contrast', 'filter']
+    parameters: ['shadow', 'glow', 'blur', 'brightness', 'contrast', 'filter'],
   },
   {
     id: 'timing',
     label: '타이밍',
     icon: 'Clock',
-    parameters: ['startTime', 'endTime', 'timeline', 'sequence', 'sync']
+    parameters: ['startTime', 'endTime', 'timeline', 'sequence', 'sync'],
   },
   {
     id: 'advanced',
     label: '고급',
     icon: 'Settings2',
-    parameters: ['custom', 'transform', 'matrix', 'physics', 'expressions']
-  }
+    parameters: ['custom', 'transform', 'matrix', 'physics', 'expressions'],
+  },
 ]

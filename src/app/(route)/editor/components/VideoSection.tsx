@@ -255,7 +255,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         sender: 'user',
         timestamp: new Date(),
       }
-      setChatMessages(prev => [...prev, userMessage])
+      setChatMessages((prev) => [...prev, userMessage])
 
       // Simulate bot typing
       setIsChatBotTyping(true)
@@ -265,11 +265,12 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         try {
           const botMessage: ChatMessage = {
             id: `bot_${Date.now()}`,
-            content: '안녕하세요! 현재 UI만 구현된 상태입니다. 실제 AI 응답 기능은 추후 추가될 예정입니다.',
+            content:
+              '안녕하세요! 현재 UI만 구현된 상태입니다. 실제 AI 응답 기능은 추후 추가될 예정입니다.',
             sender: 'bot',
             timestamp: new Date(),
           }
-          setChatMessages(prev => [...prev, botMessage])
+          setChatMessages((prev) => [...prev, botMessage])
           setIsChatBotTyping(false)
         } catch (error) {
           console.error('Error in bot response:', error)

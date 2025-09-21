@@ -170,19 +170,23 @@ export default function AssetPage() {
     loadData()
   }, [])
   const [isLoading, setIsLoading] = useState(true)
-  
+
   // 사용자 즐겨찾기 목록 상태
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set())
-  
+
   // selectedAsset의 즐겨찾기 상태를 userFavorites와 동기화
   useEffect(() => {
     if (selectedAsset) {
       const currentFavoriteStatus = userFavorites.has(selectedAsset.id)
       if (selectedAsset.isFavorite !== currentFavoriteStatus) {
-        setSelectedAsset(prev => prev ? {
-          ...prev,
-          isFavorite: currentFavoriteStatus
-        } : null)
+        setSelectedAsset((prev) =>
+          prev
+            ? {
+                ...prev,
+                isFavorite: currentFavoriteStatus,
+              }
+            : null
+        )
       }
     }
   }, [userFavorites, selectedAsset?.id, selectedAsset?.isFavorite])
@@ -190,7 +194,7 @@ export default function AssetPage() {
   const handleCardClick = (asset: AssetItem) => {
     const assetWithFavoriteStatus = {
       ...asset,
-      isFavorite: userFavorites.has(asset.id)
+      isFavorite: userFavorites.has(asset.id),
     }
     setSelectedAsset(assetWithFavoriteStatus)
     setIsModalOpen(true)
@@ -199,7 +203,7 @@ export default function AssetPage() {
   const handleAssetChange = (asset: AssetItem) => {
     const assetWithFavoriteStatus = {
       ...asset,
-      isFavorite: userFavorites.has(asset.id)
+      isFavorite: userFavorites.has(asset.id),
     }
     setSelectedAsset(assetWithFavoriteStatus)
   }
@@ -238,7 +242,7 @@ export default function AssetPage() {
   }
 
   const handleFavoriteToggle = (assetId: string) => {
-    setUserFavorites(prev => {
+    setUserFavorites((prev) => {
       const newFavorites = new Set(prev)
       if (newFavorites.has(assetId)) {
         newFavorites.delete(assetId)
@@ -265,11 +269,11 @@ export default function AssetPage() {
 
   const filteredAndSortedAssets = useMemo(() => {
     // userFavorites 상태를 반영한 데이터
-    const dataWithFavoriteStatus = currentData.map(item => ({
+    const dataWithFavoriteStatus = currentData.map((item) => ({
       ...item,
-      isFavorite: userFavorites.has(item.id)
+      isFavorite: userFavorites.has(item.id),
     }))
-    
+
     // 필터링
     const filtered = dataWithFavoriteStatus.filter((item) => {
       const matchesSearch = item.title
@@ -351,7 +355,14 @@ export default function AssetPage() {
     })
 
     return sorted
-  }, [currentData, searchTerm, activeFilter, sortOrder, contentType, userFavorites])
+  }, [
+    currentData,
+    searchTerm,
+    activeFilter,
+    sortOrder,
+    contentType,
+    userFavorites,
+  ])
 
   // 메인 컨테이너 클래스
   const mainContainerClasses = clsx('min-h-screen', 'bg-gray-50', 'text-black')
@@ -556,7 +567,9 @@ export default function AssetPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         asset={selectedAsset}
-        onFavoriteToggle={() => selectedAsset && handleFavoriteToggle(selectedAsset.id)}
+        onFavoriteToggle={() =>
+          selectedAsset && handleFavoriteToggle(selectedAsset.id)
+        }
         availableAssets={filteredAndSortedAssets}
         onAssetChange={handleAssetChange}
       />

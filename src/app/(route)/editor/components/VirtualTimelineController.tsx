@@ -31,7 +31,7 @@ const VirtualTimelineController: React.FC<VirtualTimelineControllerProps> = ({
         console.warn('Failed to get Virtual Timeline duration:', error)
       }
     }
-    
+
     // Fallback: HTML video element
     const video = getVideoElement()
     return video?.duration || 0

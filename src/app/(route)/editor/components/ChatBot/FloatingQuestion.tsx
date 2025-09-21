@@ -24,7 +24,7 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
         setShouldRender(true)
         setAnimationClass('animate-float-up-fade')
       }, delay)
-      
+
       return () => clearTimeout(timer)
     } else {
       setShouldRender(false)

@@ -107,14 +107,16 @@ export default {
   cleanup(el) {
     if (el && window.gsap) {
       window.gsap.killTweensOf(el.querySelectorAll('.rotation-char'))
-      
+
       // rotation-container에서 원본 텍스트 복원
       const container = el.querySelector('.rotation-container')
       if (container) {
-        const originalText = Array.from(container.querySelectorAll('.rotation-char'))
+        const originalText = Array.from(
+          container.querySelectorAll('.rotation-char')
+        )
           .map((char) => char.textContent)
           .join('')
-        
+
         // 컨테이너 제거하고 원본 텍스트로 복원
         container.remove()
         el.textContent = originalText
@@ -125,7 +127,7 @@ export default {
           .join('')
         el.innerHTML = originalText
       }
-      
+
       // 클래스 초기화
       el.className = el.className.replace('rotation-text', '').trim()
     }
@@ -142,19 +144,19 @@ function setupRotation3D(element, options) {
     container.className = 'rotation-container'
     element.appendChild(container)
   }
-  
+
   container.style.transformStyle = 'preserve-3d'
   container.style.perspective = `${options?.perspective || 800}px`
 }
 
 function splitTextIntoCharacters(element) {
   const container = element.querySelector('.rotation-container') || element
-  
+
   // 이미 처리된 경우 건너뛰기
   if (container.querySelector('.rotation-char')) {
     return
   }
-  
+
   let text = element.textContent || ''
   if (!text.trim() && element.parentElement) {
     let collected = ''
@@ -169,7 +171,7 @@ function splitTextIntoCharacters(element) {
     toRemove.forEach((n) => host.removeChild(n))
     text = collected
   }
-  
+
   // 컨테이너 초기화
   container.innerHTML = ''
   element.className = 'rotation-text'

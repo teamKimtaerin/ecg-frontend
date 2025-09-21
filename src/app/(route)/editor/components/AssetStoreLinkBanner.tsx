@@ -14,9 +14,10 @@ const AssetStoreLinkBanner: React.FC<AssetStoreLinkBannerProps> = ({
   type = 'assets',
   className = '',
 }) => {
-  const defaultText = type === 'templates' 
-    ? '템플릿 스토어에서 더 많은 템플릿 보기'
-    : '에셋 스토어에서 더 많은 에셋 보기'
+  const defaultText =
+    type === 'templates'
+      ? '템플릿 스토어에서 더 많은 템플릿 보기'
+      : '에셋 스토어에서 더 많은 에셋 보기'
 
   const displayText = text || defaultText
 
@@ -33,9 +34,9 @@ const AssetStoreLinkBanner: React.FC<AssetStoreLinkBannerProps> = ({
         type="button"
       >
         <span>{displayText}</span>
-        <IoArrowForward 
-          size={12} 
-          className="group-hover:translate-x-0.5 transition-transform duration-200" 
+        <IoArrowForward
+          size={12}
+          className="group-hover:translate-x-0.5 transition-transform duration-200"
         />
       </button>
     </div>

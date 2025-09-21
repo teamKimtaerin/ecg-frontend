@@ -176,11 +176,11 @@ export const MotionTextPreview = React.forwardRef<
         // Debug: compare drag-box visual center vs scenario input center
         const STAGE_W = stageSizeRef.current.width
         const STAGE_H = stageSizeRef.current.height
-        
+
         // 현재 드래그 박스의 중앙 위치 계산
         const boxCenterX = position.x + size.width / 2
         const boxCenterY = position.y + size.height / 2
-        
+
         const boxCenter = {
           x: boxCenterX,
           y: boxCenterY,
@@ -198,12 +198,12 @@ export const MotionTextPreview = React.forwardRef<
           0.03,
           Math.min(0.15, (avgDimension / stageSizeRef.current.width) * 0.15)
         )
-        
+
         const settings: PreviewSettings = {
           text,
           position: {
-            x: boxCenterX - size.width / 2,  // 중앙 기준으로 top-left 계산
-            y: boxCenterY - size.height / 2
+            x: boxCenterX - size.width / 2, // 중앙 기준으로 top-left 계산
+            y: boxCenterY - size.height / 2,
           },
           size,
           pluginParams: validatedParams,
@@ -216,17 +216,17 @@ export const MotionTextPreview = React.forwardRef<
         const baseH = 384
         const scaleX = baseW / stageSizeRef.current.width
         const scaleY = baseH / stageSizeRef.current.height
-        
+
         // 중앙 위치를 기준으로 변환
         const centerXInBase = boxCenterX * scaleX
         const centerYInBase = boxCenterY * scaleY
         const scaledWidth = settings.size.width * scaleX
         const scaledHeight = settings.size.height * scaleY
-        
+
         const settingsForGenerator = {
           ...settings,
           position: {
-            x: centerXInBase - scaledWidth / 2,  // 512x384 기준 중앙 위치에서 top-left 계산
+            x: centerXInBase - scaledWidth / 2, // 512x384 기준 중앙 위치에서 top-left 계산
             y: centerYInBase - scaledHeight / 2,
           },
           size: {
@@ -236,10 +236,22 @@ export const MotionTextPreview = React.forwardRef<
         }
 
         // Debug logging after all variables are calculated
-        console.log('[PosCompare] DragBox center (px):', { x: boxCenterX, y: boxCenterY })
-        console.log('[PosCompare] Current stage size:', { width: STAGE_W, height: STAGE_H })
-        console.log('[PosCompare] Center in base (512x384):', { x: centerXInBase, y: centerYInBase })
-        console.log('[PosCompare] Final position for generator:', settingsForGenerator.position)
+        console.log('[PosCompare] DragBox center (px):', {
+          x: boxCenterX,
+          y: boxCenterY,
+        })
+        console.log('[PosCompare] Current stage size:', {
+          width: STAGE_W,
+          height: STAGE_H,
+        })
+        console.log('[PosCompare] Center in base (512x384):', {
+          x: centerXInBase,
+          y: centerYInBase,
+        })
+        console.log(
+          '[PosCompare] Final position for generator:',
+          settingsForGenerator.position
+        )
         console.log('[PosCompare] Box TL/Size/Rot:', {
           tl: position,
           size,
@@ -435,15 +447,15 @@ export const MotionTextPreview = React.forwardRef<
         // 초기 512x384 기준값을 실제 크기로 스케일 1회 적용
         const scaleX = stageSizeRef.current.width / 512
         const scaleY = stageSizeRef.current.height / 384
-        
+
         // 크기를 먼저 스케일링
         const scaledWidth = 240 * scaleX
         const scaledHeight = 80 * scaleY
-        
+
         // 중앙 정렬을 위한 위치 계산
         const centerX = (stageSizeRef.current.width - scaledWidth) / 2
         const centerY = (stageSizeRef.current.height - scaledHeight) / 2
-        
+
         setPosition({ x: centerX, y: centerY })
         setSize({ width: scaledWidth, height: scaledHeight })
         hasScaledFromInitialRef.current = true

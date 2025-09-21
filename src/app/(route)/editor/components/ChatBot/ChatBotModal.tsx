@@ -16,7 +16,9 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
   onSendMessage,
 }) => {
   const [inputValue, setInputValue] = useState('')
-  const [activeQuestionIndices, setActiveQuestionIndices] = useState<number[]>([])
+  const [activeQuestionIndices, setActiveQuestionIndices] = useState<number[]>(
+    []
+  )
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const animationTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -43,7 +45,7 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
     if (isOpen && messages.length === 0) {
       const startQuestionCycle = () => {
         let currentStartIndex = 0
-        
+
         const showNextQuestionGroup = () => {
           // Show 3 questions at once
           const activeIndices = []
@@ -51,24 +53,27 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
             activeIndices.push((currentStartIndex + i) % sampleQuestions.length)
           }
           setActiveQuestionIndices(activeIndices)
-          
+
           // Hide questions after animation and show next group
           animationTimerRef.current = setTimeout(() => {
             setActiveQuestionIndices([])
             currentStartIndex = (currentStartIndex + 3) % sampleQuestions.length
-            
+
             // Wait before showing next group
-            questionCycleTimerRef.current = setTimeout(showNextQuestionGroup,500)
+            questionCycleTimerRef.current = setTimeout(
+              showNextQuestionGroup,
+              500
+            )
           }, 2000)
         }
-        
+
         // Start the cycle
         showNextQuestionGroup()
       }
-      
+
       // Start after a brief delay
       const initialDelay = setTimeout(startQuestionCycle, 500)
-      
+
       return () => {
         clearTimeout(initialDelay)
         if (animationTimerRef.current) {
@@ -139,15 +144,25 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
             <div className="h-full flex flex-col">
               {/* Welcome message */}
               <div className="text-center text-gray-500 mb-6">
-
-                <p className="text-sm">안녕하세요! 자막 편집에 대해 궁금한 것이 있으면 언제든 물어보세요.</p>
-                <p className="text-xs text-gray-400 mt-2">아래 예시 질문을 클릭해보세요</p>
+                <p className="text-sm">
+                  안녕하세요! 자막 편집에 대해 궁금한 것이 있으면 언제든
+                  물어보세요.
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  아래 예시 질문을 클릭해보세요
+                </p>
               </div>
-              
+
               {/* Floating sample questions */}
               <div className="flex-1 overflow-hidden relative">
                 {sampleQuestions.map((question, index) => (
-                  <div key={index} className="absolute inset-x-0" style={{ top: `${(activeQuestionIndices.indexOf(index) * 60)}px` }}>
+                  <div
+                    key={index}
+                    className="absolute inset-x-0"
+                    style={{
+                      top: `${activeQuestionIndices.indexOf(index) * 60}px`,
+                    }}
+                  >
                     <FloatingQuestion
                       question={question}
                       delay={activeQuestionIndices.indexOf(index) * 100}

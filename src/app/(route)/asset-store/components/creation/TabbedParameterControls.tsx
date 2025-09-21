@@ -9,9 +9,12 @@ import {
   LuRotateCcw,
   LuSettings,
   LuSettings2,
-  LuSparkles
+  LuSparkles,
 } from 'react-icons/lu'
-import { PARAMETER_GROUPS, TabbedParameterControlsProps } from './types/assetCreation.types'
+import {
+  PARAMETER_GROUPS,
+  TabbedParameterControlsProps,
+} from './types/assetCreation.types'
 
 // Control Props interface
 interface ControlProps {
@@ -53,15 +56,23 @@ const getControlType = (property: any): string => {
 }
 
 // Control Components
-const NumberControl: React.FC<ControlProps> = ({ property, value, onChange }) => {
-  const dflt = typeof property.default === 'number' ? property.default : Number(property.default) || 0
+const NumberControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const dflt =
+    typeof property.default === 'number'
+      ? property.default
+      : Number(property.default) || 0
   const numValue = typeof value === 'number' ? value : Number(value) || dflt
   const min = property.min ?? 0
   const max = property.max ?? 100
   const step = property.step ?? 1
   const unit = property.ui?.unit || ''
 
-  const progressPercentage = max > min ? ((numValue - min) / (max - min)) * 100 : 0
+  const progressPercentage =
+    max > min ? ((numValue - min) / (max - min)) * 100 : 0
 
   const handleSliderChange = (newValue: number) => {
     onChange(newValue)
@@ -102,7 +113,8 @@ const NumberControl: React.FC<ControlProps> = ({ property, value, onChange }) =>
               e.preventDefault()
               const startX = e.clientX
               const startValue = numValue
-              const trackRect = e.currentTarget.parentElement?.getBoundingClientRect()
+              const trackRect =
+                e.currentTarget.parentElement?.getBoundingClientRect()
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
                 if (!trackRect || max <= min) return
@@ -125,7 +137,7 @@ const NumberControl: React.FC<ControlProps> = ({ property, value, onChange }) =>
           />
         </div>
       </div>
-      
+
       <div className="flex items-center justify-between">
         <input
           type="number"
@@ -154,14 +166,18 @@ const BooleanControl: React.FC<ControlProps> = ({ value, onChange }) => {
           onChange={(e) => onChange(e.target.checked)}
           className="sr-only"
         />
-        <div className={clsx(
-          'block bg-gray-300 w-14 h-8 rounded-full transition-colors',
-          boolValue && 'bg-purple-500'
-        )}>
-          <div className={clsx(
-            'absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform',
-            boolValue && 'transform translate-x-6'
-          )} />
+        <div
+          className={clsx(
+            'block bg-gray-300 w-14 h-8 rounded-full transition-colors',
+            boolValue && 'bg-purple-500'
+          )}
+        >
+          <div
+            className={clsx(
+              'absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform',
+              boolValue && 'transform translate-x-6'
+            )}
+          />
         </div>
       </div>
       <span className="ml-3 text-sm text-gray-800">
@@ -171,8 +187,13 @@ const BooleanControl: React.FC<ControlProps> = ({ value, onChange }) => {
   )
 }
 
-const StringControl: React.FC<ControlProps> = ({ property, value, onChange }) => {
-  const stringValue = typeof value === 'string' ? value : String(value ?? property.default ?? '')
+const StringControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const stringValue =
+    typeof value === 'string' ? value : String(value ?? property.default ?? '')
 
   return (
     <input
@@ -185,8 +206,13 @@ const StringControl: React.FC<ControlProps> = ({ property, value, onChange }) =>
   )
 }
 
-const SelectControl: React.FC<ControlProps> = ({ property, value, onChange }) => {
-  const selectValue = typeof value === 'string' ? value : String(value ?? property.default ?? '')
+const SelectControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const selectValue =
+    typeof value === 'string' ? value : String(value ?? property.default ?? '')
   const options = property.enum || []
 
   return (
@@ -196,14 +222,23 @@ const SelectControl: React.FC<ControlProps> = ({ property, value, onChange }) =>
       className="w-full px-3 py-2 bg-white border border-gray-300 rounded text-black"
     >
       {options.map((option: string) => (
-        <option key={option} value={option}>{option}</option>
+        <option key={option} value={option}>
+          {option}
+        </option>
       ))}
     </select>
   )
 }
 
-const ColorControl: React.FC<ControlProps> = ({ property, value, onChange }) => {
-  const colorValue = typeof value === 'string' ? value : String(value ?? property.default ?? '#FFFFFF')
+const ColorControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const colorValue =
+    typeof value === 'string'
+      ? value
+      : String(value ?? property.default ?? '#FFFFFF')
 
   return (
     <div className="flex items-center space-x-3">
@@ -227,12 +262,17 @@ const ColorControl: React.FC<ControlProps> = ({ property, value, onChange }) => 
   )
 }
 
-const ObjectControl: React.FC<ControlProps> = ({ property, value, onChange }) => {
-  const jsonValue = typeof value === 'string' 
-    ? value 
-    : typeof value === 'object' && value !== null
-      ? JSON.stringify(value, null, 2)
-      : JSON.stringify(property.default ?? {}, null, 2)
+const ObjectControl: React.FC<ControlProps> = ({
+  property,
+  value,
+  onChange,
+}) => {
+  const jsonValue =
+    typeof value === 'string'
+      ? value
+      : typeof value === 'object' && value !== null
+        ? JSON.stringify(value, null, 2)
+        : JSON.stringify(property.default ?? {}, null, 2)
 
   const [inputValue, setInputValue] = React.useState(jsonValue)
   const [isValid, setIsValid] = React.useState(true)
@@ -270,12 +310,16 @@ const ObjectControl: React.FC<ControlProps> = ({ property, value, onChange }) =>
           isValid ? 'border-gray-300' : 'border-red-500'
         )}
       />
-      {!isValid && <p className="text-xs text-red-500">올바른 JSON 형식이 아닙니다</p>}
+      {!isValid && (
+        <p className="text-xs text-red-500">올바른 JSON 형식이 아닙니다</p>
+      )}
     </div>
   )
 }
 
-export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = ({
+export const TabbedParameterControls: React.FC<
+  TabbedParameterControlsProps
+> = ({
   manifest,
   parameters,
   onParameterChange,
@@ -289,28 +333,31 @@ export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = (
     if (!manifest?.schema) return {}
 
     const groups: Record<string, Array<[string, any]>> = {}
-    
+
     // Initialize groups
-    PARAMETER_GROUPS.forEach(group => {
+    PARAMETER_GROUPS.forEach((group) => {
       groups[group.id] = []
     })
 
     // Categorize parameters
     Object.entries(manifest.schema).forEach(([key, property]) => {
       let assigned = false
-      
+
       // Try to assign to specific groups based on parameter name/type
       for (const group of PARAMETER_GROUPS) {
-        if (group.parameters.some(param => 
-          key.toLowerCase().includes(param.toLowerCase()) ||
-          (property as any).category === group.id
-        )) {
+        if (
+          group.parameters.some(
+            (param) =>
+              key.toLowerCase().includes(param.toLowerCase()) ||
+              (property as any).category === group.id
+          )
+        ) {
           groups[group.id].push([key, property])
           assigned = true
           break
         }
       }
-      
+
       // If not assigned to any specific group, put in basic
       if (!assigned) {
         groups.basic.push([key, property])
@@ -322,8 +369,9 @@ export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = (
 
   // Get available tabs (only show tabs that have parameters)
   const availableTabs = useMemo(() => {
-    return PARAMETER_GROUPS.filter(group => 
-      groupedParameters[group.id] && groupedParameters[group.id].length > 0
+    return PARAMETER_GROUPS.filter(
+      (group) =>
+        groupedParameters[group.id] && groupedParameters[group.id].length > 0
     )
   }, [groupedParameters])
 
@@ -338,50 +386,53 @@ export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = (
   // Handle reset
   const handleReset = useCallback(() => {
     if (!manifest?.schema) return
-    
+
     // Reset all parameters to default values
     const defaultParameters: Record<string, unknown> = {}
     Object.entries(manifest.schema).forEach(([key, property]) => {
       defaultParameters[key] = (property as any).default
     })
-    
+
     // Apply each parameter change
     Object.entries(defaultParameters).forEach(([key, value]) => {
       handleParameterChange(key, value)
     })
-    
+
     // Call external reset callback
     onParametersReset?.()
   }, [manifest, handleParameterChange, onParametersReset])
 
   // Render individual control
-  const renderControl = useCallback((key: string, property: any) => {
-    const value = parameters[key]
-    const controlProps = {
-      property,
-      value,
-      onChange: (newValue: unknown) => handleParameterChange(key, newValue),
-    }
+  const renderControl = useCallback(
+    (key: string, property: any) => {
+      const value = parameters[key]
+      const controlProps = {
+        property,
+        value,
+        onChange: (newValue: unknown) => handleParameterChange(key, newValue),
+      }
 
-    const controlType = getControlType(property)
+      const controlType = getControlType(property)
 
-    switch (controlType) {
-      case 'slider':
-        return <NumberControl {...controlProps} />
-      case 'checkbox':
-        return <BooleanControl {...controlProps} />
-      case 'text':
-        return <StringControl {...controlProps} />
-      case 'select':
-        return <SelectControl {...controlProps} />
-      case 'color':
-        return <ColorControl {...controlProps} />
-      case 'object':
-        return <ObjectControl {...controlProps} />
-      default:
-        return <StringControl {...controlProps} />
-    }
-  }, [parameters, handleParameterChange])
+      switch (controlType) {
+        case 'slider':
+          return <NumberControl {...controlProps} />
+        case 'checkbox':
+          return <BooleanControl {...controlProps} />
+        case 'text':
+          return <StringControl {...controlProps} />
+        case 'select':
+          return <SelectControl {...controlProps} />
+        case 'color':
+          return <ColorControl {...controlProps} />
+        case 'object':
+          return <ObjectControl {...controlProps} />
+        default:
+          return <StringControl {...controlProps} />
+      }
+    },
+    [parameters, handleParameterChange]
+  )
 
   if (!manifest || !manifest.schema) {
     return (
@@ -428,7 +479,8 @@ export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = (
       <div className="border-b border-gray-200">
         <nav className="flex space-x-1 overflow-x-auto">
           {availableTabs.map((group) => {
-            const Icon = TAB_ICONS[group.id as keyof typeof TAB_ICONS] || LuSettings
+            const Icon =
+              TAB_ICONS[group.id as keyof typeof TAB_ICONS] || LuSettings
             const isActive = activeTab === group.id
             const paramCount = groupedParameters[group.id]?.length || 0
 
@@ -447,12 +499,14 @@ export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = (
               >
                 <Icon className="w-4 h-4" />
                 <span>{group.label}</span>
-                <span className={clsx(
-                  'text-xs px-1.5 py-0.5 rounded-full',
-                  isActive 
-                    ? 'bg-purple-200 text-purple-700'
-                    : 'bg-gray-200 text-gray-600'
-                )}>
+                <span
+                  className={clsx(
+                    'text-xs px-1.5 py-0.5 rounded-full',
+                    isActive
+                      ? 'bg-purple-200 text-purple-700'
+                      : 'bg-gray-200 text-gray-600'
+                  )}
+                >
                   {paramCount}
                 </span>
               </button>
@@ -487,7 +541,9 @@ export const TabbedParameterControls: React.FC<TabbedParameterControlsProps> = (
         ) : (
           <div className="text-center text-gray-500 py-8">
             <Icon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-            <p className="text-sm">이 카테고리에는 설정할 수 있는 파라미터가 없습니다.</p>
+            <p className="text-sm">
+              이 카테고리에는 설정할 수 있는 파라미터가 없습니다.
+            </p>
           </div>
         )}
       </div>

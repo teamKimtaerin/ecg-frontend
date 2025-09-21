@@ -23,21 +23,21 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
   const ASSETS_PER_PAGE = 5
 
   // 현재 에셋 인덱스 찾기
-  const currentIndex = assets.findIndex(asset => asset.id === currentAssetId)
-  
+  const currentIndex = assets.findIndex((asset) => asset.id === currentAssetId)
+
   // 총 페이지 수 계산
   const totalPages = Math.ceil(assets.length / ASSETS_PER_PAGE)
-  
+
   // 현재 선택된 에셋 기준으로 앞뒤 2개씩 보여주기 (총 5개)
   const getVisibleAssets = () => {
     if (assets.length <= ASSETS_PER_PAGE) {
       return assets
     }
-    
+
     const startIndex = Math.max(0, currentIndex - 2)
     const endIndex = Math.min(assets.length, startIndex + ASSETS_PER_PAGE)
     const adjustedStartIndex = Math.max(0, endIndex - ASSETS_PER_PAGE)
-    
+
     return assets.slice(adjustedStartIndex, endIndex)
   }
 
@@ -46,11 +46,12 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
   // 이전/다음 에셋으로 이동 (전체 리스트 기준)
   const navigateAsset = (direction: 'prev' | 'next') => {
     if (assets.length === 0) return
-    
-    const newIndex = direction === 'next' 
-      ? (currentIndex + 1) % assets.length
-      : (currentIndex - 1 + assets.length) % assets.length
-    
+
+    const newIndex =
+      direction === 'next'
+        ? (currentIndex + 1) % assets.length
+        : (currentIndex - 1 + assets.length) % assets.length
+
     onAssetChange(assets[newIndex])
   }
 
@@ -110,8 +111,8 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
             'absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-2 z-10',
             'w-10 h-10 bg-white border border-gray-300 rounded-full shadow-md',
             'flex items-center justify-center transition-all',
-            assets.length === 0 
-              ? 'opacity-40 cursor-not-allowed' 
+            assets.length === 0
+              ? 'opacity-40 cursor-not-allowed'
               : 'hover:bg-gray-50 hover:shadow-lg cursor-pointer'
           )}
           title="이전 애니메이션"
@@ -139,8 +140,8 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
             'absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-2 z-10',
             'w-10 h-10 bg-white border border-gray-300 rounded-full shadow-md',
             'flex items-center justify-center transition-all',
-            assets.length === 0 
-              ? 'opacity-40 cursor-not-allowed' 
+            assets.length === 0
+              ? 'opacity-40 cursor-not-allowed'
               : 'hover:bg-gray-50 hover:shadow-lg cursor-pointer'
           )}
           title="다음 애니메이션"
