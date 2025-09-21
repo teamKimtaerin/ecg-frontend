@@ -141,7 +141,7 @@ export default function ClipSticker({
           }
         }
       ).videoPlayer
-      
+
       if (videoPlayer) {
         try {
           videoPlayer.seekTo(sticker.start)
@@ -149,7 +149,10 @@ export default function ClipSticker({
           if (videoPlayer.pauseAutoWordSelection) {
             videoPlayer.pauseAutoWordSelection()
           }
-          console.log('⏸️ Video paused and seeked to sticker time:', sticker.start)
+          console.log(
+            '⏸️ Video paused and seeked to sticker time:',
+            sticker.start
+          )
         } catch (error) {
           console.error('Video player seek/pause failed:', error)
         }
@@ -166,7 +169,10 @@ export default function ClipSticker({
       ).virtualPlayerController
 
       if (virtualPlayerController) {
-        console.log('🎯 Using VirtualPlayerController to seek to:', sticker.start)
+        console.log(
+          '🎯 Using VirtualPlayerController to seek to:',
+          sticker.start
+        )
         try {
           virtualPlayerController.seek(sticker.start)
           // Automatically pause after seeking to the sticker time

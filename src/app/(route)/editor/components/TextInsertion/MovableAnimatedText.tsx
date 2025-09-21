@@ -391,8 +391,9 @@ const MovableAnimatedText = forwardRef<
           virtualPlayerController.pause?.()
         } else {
           // Fallback to regular video player if virtual timeline not available
-          const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
-            .videoPlayer
+          const videoPlayer = (
+            window as { videoPlayer?: { pause: () => void } }
+          ).videoPlayer
           if (videoPlayer) {
             videoPlayer.pause()
           }
