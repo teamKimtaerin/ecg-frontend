@@ -132,7 +132,10 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     if (isSticker && selectedStickerInfo) {
       // Get pluginKey from sticker animation tracks
       const tracks = selectedStickerInfo.sticker.animationTracks || []
-      const track = tracks.find((t: NonNullable<Sticker['animationTracks']>[0]) => t.assetId === targetAssetId)
+      const track = tracks.find(
+        (t: NonNullable<Sticker['animationTracks']>[0]) =>
+          t.assetId === targetAssetId
+      )
       return track?.pluginKey
     } else if (targetWordId) {
       // Get pluginKey from word animation tracks

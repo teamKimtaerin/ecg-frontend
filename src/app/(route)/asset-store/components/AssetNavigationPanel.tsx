@@ -40,16 +40,19 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
   const visibleAssets = getVisibleAssets()
 
   // 이전/다음 에셋으로 이동 (전체 리스트 기준)
-  const navigateAsset = useCallback((direction: 'prev' | 'next') => {
-    if (assets.length === 0) return
+  const navigateAsset = useCallback(
+    (direction: 'prev' | 'next') => {
+      if (assets.length === 0) return
 
-    const newIndex =
-      direction === 'next'
-        ? (currentIndex + 1) % assets.length
-        : (currentIndex - 1 + assets.length) % assets.length
+      const newIndex =
+        direction === 'next'
+          ? (currentIndex + 1) % assets.length
+          : (currentIndex - 1 + assets.length) % assets.length
 
-    onAssetChange(assets[newIndex])
-  }, [assets, currentIndex, onAssetChange])
+      onAssetChange(assets[newIndex])
+    },
+    [assets, currentIndex, onAssetChange]
+  )
 
   // 키보드 네비게이션
   useEffect(() => {
