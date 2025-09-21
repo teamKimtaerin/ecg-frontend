@@ -132,9 +132,9 @@ const MovableAnimatedText = forwardRef<
           fontSizeRel,
         }
 
-        // Convert current stage space to generator's 640x360 base for normalization
-        const baseW = 640
-        const baseH = 360
+        // Convert current stage space to generator's 512x384 base for normalization
+        const baseW = 512
+        const baseH = 384
         const scaleX = baseW / STAGE_W
         const scaleY = baseH / STAGE_H
         const settingsForGenerator = {
@@ -377,11 +377,25 @@ const MovableAnimatedText = forwardRef<
         e.preventDefault()
         e.stopPropagation()
 
-        // Pause video when text is clicked
-        const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
-          .videoPlayer
-        if (videoPlayer) {
-          videoPlayer.pause()
+        // Pause virtual timeline when text is clicked
+        const virtualPlayerController = (
+          window as {
+            virtualPlayerController?: {
+              pause?: () => void
+            }
+          }
+        ).virtualPlayerController
+
+        if (virtualPlayerController) {
+          console.log('⏸️ Pausing virtual timeline for text selection')
+          virtualPlayerController.pause?.()
+        } else {
+          // Fallback to regular video player if virtual timeline not available
+          const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
+            .videoPlayer
+          if (videoPlayer) {
+            videoPlayer.pause()
+          }
         }
 
         console.log('✅ Selecting text:', text.content)

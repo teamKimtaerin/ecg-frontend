@@ -131,18 +131,51 @@ export default function ClipSticker({
         }
       }
 
+      // Seek and pause video player
       const videoPlayer = (
         window as {
           videoPlayer?: {
             seekTo: (time: number) => void
+            pause: () => void
             pauseAutoWordSelection?: () => void
           }
         }
       ).videoPlayer
+      
       if (videoPlayer) {
-        videoPlayer.seekTo(sticker.start)
-        if (videoPlayer.pauseAutoWordSelection) {
-          videoPlayer.pauseAutoWordSelection()
+        try {
+          videoPlayer.seekTo(sticker.start)
+          videoPlayer.pause()
+          if (videoPlayer.pauseAutoWordSelection) {
+            videoPlayer.pauseAutoWordSelection()
+          }
+          console.log('⏸️ Video paused and seeked to sticker time:', sticker.start)
+        } catch (error) {
+          console.error('Video player seek/pause failed:', error)
+        }
+      }
+
+      // Try to use VirtualPlayerController first (if available)
+      const virtualPlayerController = (
+        window as {
+          virtualPlayerController?: {
+            seek: (virtualTime: number) => void
+            pause?: () => void
+          }
+        }
+      ).virtualPlayerController
+
+      if (virtualPlayerController) {
+        console.log('🎯 Using VirtualPlayerController to seek to:', sticker.start)
+        try {
+          virtualPlayerController.seek(sticker.start)
+          // Automatically pause after seeking to the sticker time
+          setTimeout(() => {
+            virtualPlayerController.pause?.()
+            console.log('⏸️ Auto-paused after seeking to sticker time')
+          }, 100) // Small delay to ensure seek completes
+        } catch (error) {
+          console.error('VirtualPlayerController seek/pause failed:', error)
         }
       }
 

@@ -525,12 +525,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           )}
         </div>
 
-        {/* Progress Bar */}
-        <div className="relative mb-4">
-          <div
-            className="w-full h-2 bg-slate-700 rounded-full shadow-inner cursor-pointer"
-            onClick={handleProgressClick}
-          >
+        {/* Progress Bar - 가상 타임라인 모드에서 비활성화 */}
+        <div className="relative mb-4 opacity-50 pointer-events-none">
+          <div className="w-full h-2 bg-slate-700 rounded-full shadow-inner">
             <div
               className="h-full bg-gradient-to-r from-slate-400 to-gray-400 rounded-full shadow-sm transition-all duration-150"
               style={{
@@ -544,8 +541,13 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
         </div>
 
-        {/* Player Controls */}
-        <div className="flex items-center justify-center space-x-3 mb-3">
+        {/* Virtual Timeline 모드 알림 */}
+        <div className="bg-purple-600 text-white text-xs px-3 py-2 rounded-lg mb-2 text-center">
+          🎬 가상 타임라인 모드: 하단 Virtual Timeline Controller를 사용하세요
+        </div>
+
+        {/* Player Controls - 가상 타임라인 모드에서 비활성화 */}
+        <div className="flex items-center justify-center space-x-3 mb-3 opacity-50 pointer-events-none">
           <div className="bg-gradient-to-r from-slate-600 to-gray-600 rounded-lg p-2 flex items-center space-x-3 shadow-md">
             <button
               onClick={skipBackward}

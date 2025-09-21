@@ -25,11 +25,25 @@ const InsertToolbar: React.FC<InsertToolbarProps> = () => {
   }
 
   const handleAddTextAtCenter = () => {
-    // Pause video when adding text
-    const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
-      .videoPlayer
-    if (videoPlayer) {
-      videoPlayer.pause()
+    // Pause virtual timeline when adding text
+    const virtualPlayerController = (
+      window as {
+        virtualPlayerController?: {
+          pause?: () => void
+        }
+      }
+    ).virtualPlayerController
+
+    if (virtualPlayerController) {
+      console.log('⏸️ Pausing virtual timeline for text insertion')
+      virtualPlayerController.pause?.()
+    } else {
+      // Fallback to regular video player if virtual timeline not available
+      const videoPlayer = (window as { videoPlayer?: { pause: () => void } })
+        .videoPlayer
+      if (videoPlayer) {
+        videoPlayer.pause()
+      }
     }
 
     addTextAtCenter(currentTime)
