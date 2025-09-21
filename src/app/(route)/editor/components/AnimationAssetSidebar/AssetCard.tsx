@@ -34,85 +34,90 @@ const AssetCard: React.FC<AssetCardProps> = ({ asset, onClick, disabled }) => {
     onClick?.(asset)
   }
 
-  const renderPreview = () => {
-    const { preview } = asset
-
-    if (preview.type === 'gradient') {
-      return (
-        <div
-          className="w-full h-full rounded-lg flex items-center justify-center text-white text-lg font-bold"
-          style={{
-            background: `linear-gradient(135deg, ${preview.value}, ${preview.secondary || preview.value})`,
-          }}
-        >
-          {asset.name === 'CI' ? 'CI' : ''}
-          {asset.name.includes('화려한') && (
-            <div className="w-8 h-8 bg-white/30 rounded-full" />
-          )}
-        </div>
-      )
+  const getPreviewContent = () => {
+    switch (asset.preview.type) {
+      case 'color':
+        return (
+          <div
+            className="w-full h-full rounded"
+            style={{ backgroundColor: asset.preview.value }}
+          />
+        )
+      case 'gradient':
+        return (
+          <div
+            className="w-full h-full rounded"
+            style={{
+              background: `linear-gradient(135deg, ${asset.preview.value} 0%, ${asset.preview.secondary} 100%)`,
+            }}
+          />
+        )
+      case 'image':
+        return (
+          <Image
+            src={asset.preview.value}
+            alt={asset.name}
+            fill
+            className="object-cover rounded"
+          />
+        )
+      default:
+        return (
+          <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+            <span className="text-gray-400 text-xs">Asset</span>
+          </div>
+        )
     }
-
-    if (preview.type === 'color') {
-      return (
-        <div
-          className="w-full h-full rounded-lg flex items-center justify-center text-white text-lg font-bold"
-          style={{
-            backgroundColor: preview.value,
-          }}
-        >
-          {asset.name === 'CI' ? 'CI' : ''}
-        </div>
-      )
-    }
-
-    // For image type
-    return (
-      <div className="w-full h-full rounded-lg bg-slate-800/50 flex items-center justify-center overflow-hidden relative">
-        <Image
-          src={preview.value}
-          alt={asset.name}
-          fill
-          className="object-cover rounded-lg"
-          sizes="(max-width: 768px) 50vw, 200px"
-        />
-      </div>
-    )
   }
 
   return (
     <div
-      className={`group relative bg-gray-800 rounded-lg p-2 transition-all duration-200 border-2 aspect-[4/5] ${
+      className={`group relative bg-white border rounded-lg p-2 transition-all ${
         disabled
           ? 'opacity-50 cursor-not-allowed'
-          : 'hover:bg-gray-500 cursor-pointer hover:border-gray-200'
+          : 'hover:shadow-md cursor-pointer border-gray-200'
+      } ${
+        asset.isUsed ? 'ring-2 ring-blue-500' : 'border-gray-200'
       }`}
       onClick={handleClick}
     >
-      {/* Preview Area with Badge Overlay */}
-      <div className="relative aspect-[4/3] mb-2 rounded-lg overflow-hidden">
-        {renderPreview()}
+      {/* Preview */}
+      <div className="relative aspect-video mb-2 overflow-hidden">
+        {getPreviewContent()}
 
-        {/* Star Icon for Favorites */}
-        {asset.isFavorite && (
-          <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-500 rounded-md flex items-center justify-center shadow-lg">
-            <IoStar size={14} className="text-white" />
+        {/* Premium badge */}
+        {asset.type === 'premium' && (
+          <div className="absolute top-1 right-1 bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+            <IoStar size={10} />
+            <span>회원 전용</span>
           </div>
         )}
 
-        {/* Used Badge */}
+        {/* Favorite indicator */}
+        {asset.isFavorite && (
+          <div className="absolute top-1 left-1 text-yellow-500">
+            <IoStar size={14} />
+          </div>
+        )}
+
+        {/* Used indicator */}
         {asset.isUsed && (
-          <span className="absolute top-2 left-2 inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/90 text-white backdrop-blur-sm shadow-sm">
-            사용중
-          </span>
+          <div className={`absolute top-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded ${
+            asset.type === 'premium' ? 'right-1 mt-6' : 'right-1'
+          }`}>
+            적용중
+          </div>
         )}
       </div>
 
-      {/* Asset Info */}
-      <div className="space-y-1">
-        <h3 className="text-sm font-bold text-white leading-tight text-center">
-          {asset.name}
-        </h3>
+      {/* Asset Name */}
+      <div className="text-xs font-medium text-gray-900 truncate">
+        {asset.name}
+      </div>
+
+      {/* Category */}
+      <div className="text-xs text-gray-500 truncate mt-0.5">
+        {asset.category}
       </div>
     </div>
   )

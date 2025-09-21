@@ -45,6 +45,7 @@ export default function ClipWord({
     setLastSelectedWord,
     playingWordId,
     playingClipId,
+    setSelectedWordId,
   } = useEditorStore()
 
   const isFocused = focusedWordId === word.id && focusedClipId === clipId
@@ -120,6 +121,8 @@ export default function ClipWord({
         clearMultiSelection()
         // Set as last selected for future range selection
         setLastSelectedWord(clipId, word.id)
+        // Sync selectedWordId for AnimationAssetSidebar
+        setSelectedWordId(word.id)
 
         // Seek video player to word start time
         const videoPlayer = (
@@ -170,6 +173,7 @@ export default function ClipWord({
       toggleMultiSelectWord,
       clearMultiSelection,
       setLastSelectedWord,
+      setSelectedWordId,
     ]
   )
 
