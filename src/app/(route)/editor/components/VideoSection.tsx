@@ -9,6 +9,9 @@ import TextInsertionOverlay from './TextInsertion/TextInsertionOverlay'
 import TextEditInput from './TextInsertion/TextEditInput'
 import ScenarioJsonEditor from './ScenarioJsonEditor'
 import VirtualTimelineController from './VirtualTimelineController'
+import ChatBotFloatingButton from './ChatBot/ChatBotFloatingButton'
+import ChatBotModal from './ChatBot/ChatBotModal'
+import { ChatMessage } from '../types/chatBot'
 import { playbackEngine } from '@/utils/timeline/playbackEngine'
 import { timelineEngine } from '@/utils/timeline/timelineEngine'
 import {
@@ -35,6 +38,11 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   // Text insertion state
   const [currentTime, setCurrentTime] = useState(0) // 가상 타임라인 시간
   const [realVideoTime, setRealVideoTime] = useState(0) // 실제 영상 시간 (텍스트 삽입용)
+
+  // ChatBot state
+  const [isChatBotOpen, setIsChatBotOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [isChatBotTyping, setIsChatBotTyping] = useState(false)
 
   // Virtual Timeline 시스템
   const virtualTimelineManagerRef = useRef<VirtualTimelineManager | null>(null)
@@ -229,6 +237,51 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     // Double click functionality disabled
   }, [])
 
+  // ChatBot handlers
+  const handleChatBotOpen = useCallback(() => {
+    setIsChatBotOpen(true)
+  }, [])
+
+  const handleChatBotClose = useCallback(() => {
+    setIsChatBotOpen(false)
+  }, [])
+
+  const handleSendMessage = useCallback((message: string) => {
+    try {
+      // Add user message
+      const userMessage: ChatMessage = {
+        id: `user_${Date.now()}`,
+        content: message,
+        sender: 'user',
+        timestamp: new Date(),
+      }
+      setChatMessages(prev => [...prev, userMessage])
+
+      // Simulate bot typing
+      setIsChatBotTyping(true)
+
+      // Simulate bot response (replace with actual AI integration later)
+      setTimeout(() => {
+        try {
+          const botMessage: ChatMessage = {
+            id: `bot_${Date.now()}`,
+            content: '안녕하세요! 현재 UI만 구현된 상태입니다. 실제 AI 응답 기능은 추후 추가될 예정입니다.',
+            sender: 'bot',
+            timestamp: new Date(),
+          }
+          setChatMessages(prev => [...prev, botMessage])
+          setIsChatBotTyping(false)
+        } catch (error) {
+          console.error('Error in bot response:', error)
+          setIsChatBotTyping(false)
+        }
+      }, 1500)
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error)
+      setIsChatBotTyping(false)
+    }
+  }, [])
+
   return (
     <div
       className="bg-white flex-shrink-0 h-full flex flex-col border-r border-gray-200"
@@ -282,6 +335,20 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           />
         )}
       </div>
+
+      {/* ChatBot Floating Button */}
+      <div className="absolute bottom-4 right-4 z-30">
+        <ChatBotFloatingButton onClick={handleChatBotOpen} />
+      </div>
+
+      {/* ChatBot Modal */}
+      <ChatBotModal
+        isOpen={isChatBotOpen}
+        onClose={handleChatBotClose}
+        messages={chatMessages}
+        isTyping={isChatBotTyping}
+        onSendMessage={handleSendMessage}
+      />
     </div>
   )
 }

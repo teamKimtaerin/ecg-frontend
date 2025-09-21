@@ -26,6 +26,7 @@ import {
   FastForward,
   Volume2,
   VolumeX,
+  MessageCircle,
 } from 'lucide-react'
 
 export interface IconProps {
@@ -161,3 +162,9 @@ export const VolumeOffIcon: React.FC<IconProps> = ({
   className,
   size = 20,
 }) => <VolumeX className={className} size={size} />
+
+// Chat Bot Icon
+export const MessageCircleIcon: React.FC<IconProps> = ({
+  className,
+  size = 20,
+}) => <MessageCircle className={className} size={size} />
