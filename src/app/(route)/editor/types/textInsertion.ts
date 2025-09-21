@@ -145,10 +145,8 @@ export const ROTATION_PRESETS = {
 export type RotationPreset = keyof typeof ROTATION_PRESETS
 
 export const DEFAULT_TEXT_ANIMATION: TextAnimation = {
-  plugin: 'spin@2.0.0', // 기본으로 스핀 애니메이션 적용
-  parameters: {
-    fullTurns: 0.5, // 기본값: 1/2 회전 (180도)
-  },
+  plugin: '', // No default animation - empty pluginChain [] works
+  parameters: {},
 }
 
 // Helper functions

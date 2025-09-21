@@ -319,6 +319,7 @@ export const MotionTextPreview = React.forwardRef<
       play,
       showControls,
       extractedPluginKey,
+      extractedPluginKey,
     ])
 
     /**

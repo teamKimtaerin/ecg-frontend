@@ -12,6 +12,7 @@ interface AuthState {
   isLoading: boolean
   error: string | null
   isAuthenticated: boolean
+  hasAuthChecked: boolean
 }
 
 interface AuthActions {
@@ -34,6 +35,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
   isLoading: false,
   error: null,
   isAuthenticated: false,
+  hasAuthChecked: false,
 
   // Actions
   signup: async (data: SignupRequest) => {
@@ -47,6 +49,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
         token: response.access_token,
         isAuthenticated: true,
         isLoading: false,
+        hasAuthChecked: true,
       })
     } catch (error) {
       set({
@@ -69,6 +72,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
         token: response.access_token,
         isAuthenticated: true,
         isLoading: false,
+        hasAuthChecked: true,
       })
     } catch (error) {
       set({
@@ -83,24 +87,30 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
   logout: async () => {
     try {
       // 서버에 로그아웃 요청 (refresh token 쿠키 삭제)
-      await fetch(
+      const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/auth/logout`,
         {
           method: 'POST',
           credentials: 'include',
         }
       )
+
+      console.log('🚪 Logout API response:', response.ok, response.status)
     } catch (error) {
       console.error('Logout API failed:', error)
     }
 
-    // 클라이언트 상태 초기화
+    // 클라이언트 상태 즉시 초기화
     set({
       user: null,
       token: null,
       isAuthenticated: false,
       error: null,
+      isLoading: false, // 로그아웃 중 로딩 상태 방지
+      hasAuthChecked: true,
     })
+
+    console.log('🚪 Client state reset after logout')
   },
 
   getCurrentUser: async () => {
@@ -116,6 +126,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
         user,
         isAuthenticated: true,
         isLoading: false,
+        hasAuthChecked: true,
       })
     } catch (error) {
       set({
@@ -127,6 +138,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
             ? error.message
             : '사용자 정보를 가져오는데 실패했습니다.',
         isLoading: false,
+        hasAuthChecked: true,
       })
     }
   },
@@ -142,6 +154,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
       isAuthenticated: true,
       isLoading: false,
       error: null,
+      hasAuthChecked: true,
     })
   },
 
@@ -158,7 +171,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
 
       if (response.ok) {
         const data = await response.json()
-        set({ token: data.access_token })
+        set({ token: data.access_token, hasAuthChecked: true })
         return data.access_token
       } else {
         // Refresh token 만료 시 로그아웃
@@ -167,6 +180,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
           token: null,
           isAuthenticated: false,
           error: null,
+          hasAuthChecked: true,
         })
 
         return null
@@ -177,6 +191,7 @@ const useAuthStore = create<AuthStore>()((set, get) => ({
         token: null,
         isAuthenticated: false,
         error: 'Token refresh failed',
+        hasAuthChecked: true,
       })
       return null
     }

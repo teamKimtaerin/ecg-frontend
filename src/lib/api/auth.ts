@@ -59,6 +59,7 @@ export class AuthAPI {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(data),
+        credentials: 'include', // HttpOnly 쿠키를 받기 위해 필요
       })
 
       console.log('🔍 Auth signup response:', {

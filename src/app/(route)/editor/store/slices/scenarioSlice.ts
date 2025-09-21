@@ -1,11 +1,11 @@
-import type { StateCreator } from 'zustand'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
+import { computeTimeOffsetSeconds } from '@/app/shared/motiontext'
+import { videoSegmentManager } from '@/utils/video/segmentManager'
+import type { StateCreator } from 'zustand'
 import {
   buildInitialScenarioFromClips,
   type NodeIndexEntry,
 } from '../../utils/initialScenario'
-import { videoSegmentManager } from '@/utils/video/segmentManager'
-import { computeTimeOffsetSeconds } from '@/app/shared/motiontext'
 
 export interface ScenarioSlice {
   currentScenario: RendererConfigV2 | null
