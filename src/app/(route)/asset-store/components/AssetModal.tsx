@@ -11,7 +11,8 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { IoStar, IoStarOutline } from 'react-icons/io5'
 import { type PluginManifest } from '../utils/scenarioGenerator'
 import { MotionTextPreview } from './MotionTextPreview'
-import { PluginParameterControls } from './PluginParameterControls'
+import { TabbedParameterControls } from './creation/TabbedParameterControls'
+import { AssetNavigationPanel } from './AssetNavigationPanel'
 
 // Asset Modal Props 타입
 interface AssetModalProps extends BaseComponentProps {
@@ -19,6 +20,8 @@ interface AssetModalProps extends BaseComponentProps {
   onClose: () => void
   asset: AssetItem | null
   onFavoriteToggle?: () => void
+  availableAssets?: AssetItem[]
+  onAssetChange?: (asset: AssetItem) => void
 }
 
 // Asset Modal 컴포넌트
@@ -27,6 +30,8 @@ export const AssetModal: React.FC<AssetModalProps> = ({
   onClose,
   asset,
   onFavoriteToggle,
+  availableAssets = [],
+  onAssetChange,
   className,
 }) => {
   const [text, setText] = useState('텍스트를 입력해보세요')
@@ -84,6 +89,20 @@ export const AssetModal: React.FC<AssetModalProps> = ({
     },
     []
   )
+
+  /**
+   * 파라미터 초기화 핸들러
+   */
+  const handleParametersReset = useCallback(() => {
+    // 미리보기에도 초기화 알림
+    if (previewRef.current && manifest?.schema) {
+      const defaultParameters: Record<string, unknown> = {}
+      Object.entries(manifest.schema).forEach(([key, property]) => {
+        defaultParameters[key] = property.default
+      })
+      previewRef.current.updateParameters(defaultParameters)
+    }
+  }, [manifest])
 
   // 안정적인 에러 핸들러 (리렌더 시 함수 아이덴티티 고정)
   const handlePreviewError = useCallback((error: string) => {
@@ -221,25 +240,39 @@ export const AssetModal: React.FC<AssetModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex h-[calc(95vh-120px)]">
-          {/* 미리보기 영역 */}
-          <div className="flex-1 min-h-0 p-6 overflow-y-auto">
-            <div className="bg-gray-100 rounded-lg p-4 border border-gray-300">
-              <MotionTextPreview
-                ref={previewRef}
-                manifestFile={asset.manifestFile || ''}
-                pluginKey={asset.pluginKey}
-                text={text}
-                onParameterChange={handleParametersInit}
-                onManifestLoad={handlePreviewManifestLoad}
-                onError={handlePreviewError}
-                className="w-1/2 max-h-[40vh] mx-auto"
-              />
+        <div className="flex h-[calc(95vh-140px)] min-h-0">
+          {/* 미리보기 영역 컬럼 */}
+          <div className="flex-1 min-w-0 flex flex-col gap-6">
+            {/* 미리보기 컨테이너 */}
+            <div className="flex-[2] min-h-0 p-6">
+              <div className="bg-gray-100 rounded-lg p-4 border border-gray-300 h-full flex items-center justify-center">
+                <MotionTextPreview
+                  ref={previewRef}
+                  manifestFile={asset.manifestFile || ''}
+                  pluginKey={asset.pluginKey}
+                  text={text}
+                  onParameterChange={handleParametersInit}
+                  onManifestLoad={handlePreviewManifestLoad}
+                  onError={handlePreviewError}
+                  className="w-3/4 max-w-md h-full max-h-[50vh] mx-auto"
+                />
+              </div>
             </div>
+            
+            {/* 네비게이션 패널 - 미리보기 영역 하단에서 상하 확장 */}
+            {availableAssets.length > 1 && onAssetChange && (
+              <div className="flex-1 min-h-[120px]">
+                <AssetNavigationPanel
+                  assets={availableAssets}
+                  currentAssetId={asset.id}
+                  onAssetChange={onAssetChange}
+                />
+              </div>
+            )}
           </div>
 
           {/* 파라미터 컨트롤 영역 */}
-          <div className="w-80 bg-gray-100 border-l border-gray-300 p-6 overflow-y-auto">
+          <div className="w-80 flex-shrink-0 bg-gray-100 border-l border-gray-300 p-6 overflow-y-auto">
             {/* 미리보기 텍스트 입력 - 사이드바 상단으로 이동 */}
             <div className="mb-6">
               <label className="block text-black text-sm font-medium mb-2">
@@ -259,10 +292,11 @@ export const AssetModal: React.FC<AssetModalProps> = ({
               />
             </div>
 
-            <PluginParameterControls
+            <TabbedParameterControls
               manifest={manifest}
               parameters={parameters}
               onParameterChange={handleParameterChange}
+              onParametersReset={handleParametersReset}
             />
           </div>
         </div>

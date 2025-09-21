@@ -107,10 +107,27 @@ export default {
   cleanup(el) {
     if (el && window.gsap) {
       window.gsap.killTweensOf(el.querySelectorAll('.rotation-char'))
-      const originalText = Array.from(el.querySelectorAll('.rotation-char'))
-        .map((char) => char.textContent)
-        .join('')
-      el.innerHTML = originalText
+      
+      // rotation-container에서 원본 텍스트 복원
+      const container = el.querySelector('.rotation-container')
+      if (container) {
+        const originalText = Array.from(container.querySelectorAll('.rotation-char'))
+          .map((char) => char.textContent)
+          .join('')
+        
+        // 컨테이너 제거하고 원본 텍스트로 복원
+        container.remove()
+        el.textContent = originalText
+      } else {
+        // fallback: 전체 엘리먼트에서 복원
+        const originalText = Array.from(el.querySelectorAll('.rotation-char'))
+          .map((char) => char.textContent)
+          .join('')
+        el.innerHTML = originalText
+      }
+      
+      // 클래스 초기화
+      el.className = el.className.replace('rotation-text', '').trim()
     }
   },
 }
@@ -118,16 +135,26 @@ export default {
 function setupRotation3D(element, options) {
   if (!element) return
 
-  const container = document.createElement('div')
-  container.className = 'rotation-container'
+  // 기존 컨테이너가 있으면 재사용
+  let container = element.querySelector('.rotation-container')
+  if (!container) {
+    container = document.createElement('div')
+    container.className = 'rotation-container'
+    element.appendChild(container)
+  }
+  
   container.style.transformStyle = 'preserve-3d'
   container.style.perspective = `${options?.perspective || 800}px`
-
-  element.appendChild(container)
 }
 
 function splitTextIntoCharacters(element) {
   const container = element.querySelector('.rotation-container') || element
+  
+  // 이미 처리된 경우 건너뛰기
+  if (container.querySelector('.rotation-char')) {
+    return
+  }
+  
   let text = element.textContent || ''
   if (!text.trim() && element.parentElement) {
     let collected = ''
@@ -142,6 +169,8 @@ function splitTextIntoCharacters(element) {
     toRemove.forEach((n) => host.removeChild(n))
     text = collected
   }
+  
+  // 컨테이너 초기화
   container.innerHTML = ''
   element.className = 'rotation-text'
 

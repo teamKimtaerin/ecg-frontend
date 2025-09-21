@@ -8,6 +8,7 @@ import {
 } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
 import React from 'react'
+import { LuHeart, LuDownload, LuImage } from 'react-icons/lu'
 
 // Asset 카드 Props 타입
 interface AssetCardProps extends BaseComponentProps {
@@ -126,7 +127,7 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           ) : (
             <div className={placeholderClasses}>
               <div className="text-center">
-                <div className="text-3xl mb-1">📄</div>
+                <LuImage className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                 <div className="text-xs text-gray-400">Sample Asset</div>
               </div>
             </div>
@@ -175,13 +176,13 @@ export const AssetCard: React.FC<AssetCardProps> = ({
                 e.stopPropagation()
                 onLikeClick?.(asset.id)
               }}
-              className="flex items-center space-x-1 text-gray-500 hover:text-red-500 transition-colors duration-200 cursor-pointer"
+              className="flex items-center space-x-1.5 text-gray-500 hover:text-red-500 transition-colors duration-200 cursor-pointer"
             >
-              <span className="text-xs">❤️</span>
+              <LuHeart className="w-3.5 h-3.5" />
               <span className="text-xs font-medium">{asset.likes || 0}</span>
             </button>
-            <div className="flex items-center space-x-1 text-gray-500">
-              <span className="text-xs">⬇️</span>
+            <div className="flex items-center space-x-1.5 text-gray-500">
+              <LuDownload className="w-3.5 h-3.5" />
               <span className="text-xs font-medium">{asset.downloads}</span>
             </div>
           </div>

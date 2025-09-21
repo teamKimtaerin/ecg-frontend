@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { IoCheckmark, IoClose, IoRefresh, IoSettings } from 'react-icons/io5'
-import { PluginParameterControls } from '../../../asset-store/components/PluginParameterControls'
+import { TabbedParameterControls } from '../../../asset-store/components/creation/TabbedParameterControls'
 import {
   loadPluginManifest,
   getDefaultParameters,
@@ -397,7 +397,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
             <div className="text-sm text-slate-600">설정을 불러오는 중...</div>
           </div>
         ) : manifest ? (
-          <PluginParameterControls
+          <TabbedParameterControls
             manifest={manifest}
             parameters={parameters}
             onParameterChange={handleParameterChange}
