@@ -189,7 +189,7 @@ export default function AssetPage() {
         )
       }
     }
-  }, [userFavorites, selectedAsset?.id, selectedAsset?.isFavorite])
+  }, [userFavorites, selectedAsset])
 
   const handleCardClick = (asset: AssetItem) => {
     const assetWithFavoriteStatus = {

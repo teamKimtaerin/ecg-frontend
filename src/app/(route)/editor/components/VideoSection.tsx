@@ -127,7 +127,6 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           const avgDurationPerClip = (videoDuration || 0) / clips.length
           const clipIndex = clips.indexOf(clip)
           const startTime = clipIndex * avgDurationPerClip
-          // endTime calculation removed as it's not used
 
           return {
             ...clip,
@@ -356,15 +355,5 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
 // Cleanup on unmount
 VideoSection.displayName = 'VideoSection'
-
-// Virtual Timeline 정리 함수 (현재 사용하지 않음)
-// const cleanupVirtualTimeline = (
-//   virtualPlayerControllerRef: React.MutableRefObject<VirtualPlayerController | null>
-// ) => {
-//   if (virtualPlayerControllerRef.current) {
-//     virtualPlayerControllerRef.current.cleanup()
-//     virtualPlayerControllerRef.current = null
-//   }
-// }
 
 export default VideoSection

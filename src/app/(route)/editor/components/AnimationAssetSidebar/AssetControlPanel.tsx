@@ -65,10 +65,6 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
   const {
     expandedAssetId,
     wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
     selectedStickerId,
     focusedStickerId,
   } = useEditorStore()
@@ -86,7 +82,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
       for (const clip of clips) {
         const sticker = clip.stickers?.find(
-          (s: any) => s.id === selectedStickerId
+          (s) => s.id === selectedStickerId
         )
         if (sticker) {
           return { sticker, clipId: clip.id }
@@ -105,14 +101,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return null
     }
-  }, [
-    isSticker,
-    wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
-  ])
+  }, [isSticker])
 
   // Get all target word IDs for multi-selection
   const targetWordIds = useMemo(() => {
@@ -122,13 +111,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return []
     }
-  }, [
-    wordAnimationTracks,
-    focusedWordId,
-    selectedWordId,
-    expandedWordId,
-    multiSelectedWordIds,
-  ])
+  }, [])
 
   // Check if multi-selection is active
   const isMultiSelection = useMemo(() => {
@@ -138,7 +121,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     } catch {
       return false
     }
-  }, [multiSelectedWordIds])
+  }, [])
 
   // Resolve pluginKey from current target (word or sticker) animation tracks
   const pluginKeyFromStore = useMemo(() => {
@@ -148,7 +131,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     if (isSticker && selectedStickerInfo) {
       // Get pluginKey from sticker animation tracks
       const tracks = selectedStickerInfo.sticker.animationTracks || []
-      const track = tracks.find((t: any) => t.assetId === targetAssetId)
+      const track = tracks.find((t) => t.assetId === targetAssetId)
       return track?.pluginKey
     } else if (targetWordId) {
       // Get pluginKey from word animation tracks
@@ -368,6 +351,11 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     fallbackPluginKey,
     expandedAssetId,
     assetId,
+    isMultiSelection,
+    isSticker,
+    selectedStickerInfo,
+    targetWordId,
+    targetWordIds,
   ])
 
   // If we found a fallback key but store lacked it, persist it back to store
@@ -396,6 +384,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     assetId,
     expandedAssetId,
     targetWordId,
+    isSticker,
   ])
 
   const handleParameterChange = (key: string, value: unknown) => {

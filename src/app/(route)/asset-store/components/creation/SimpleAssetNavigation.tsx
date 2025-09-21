@@ -1,7 +1,7 @@
 'use client'
 
 import { clsx } from 'clsx'
-import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
+import { type BaseComponentProps } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
 import React from 'react'
 import { LuChevronLeft, LuChevronRight, LuImage } from 'react-icons/lu'

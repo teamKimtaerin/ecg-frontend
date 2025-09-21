@@ -4,6 +4,7 @@ import { clsx } from 'clsx'
 import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
 import React from 'react'
+import Image from 'next/image'
 import { IoStar } from 'react-icons/io5'
 
 interface AssetNavigationCardProps extends BaseComponentProps {
@@ -47,11 +48,12 @@ export const AssetNavigationCard: React.FC<AssetNavigationCardProps> = ({
     <div className={cardClasses} onClick={() => onClick(asset)}>
       {/* 썸네일 */}
       <div className="relative w-full h-full">
-        <img
+        <Image
           src={asset.thumbnail}
           alt={asset.title}
           className={thumbnailClasses}
-          loading="lazy"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           onError={(e) => {
             // 이미지 로드 실패 시 기본 배경으로 대체
             const target = e.target as HTMLImageElement

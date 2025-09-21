@@ -1,9 +1,9 @@
 'use client'
 
 import { clsx } from 'clsx'
-import { TRANSITIONS, type BaseComponentProps } from '@/lib/utils'
+import { type BaseComponentProps } from '@/lib/utils'
 import { AssetItem } from '@/types/asset-store'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu'
 import { AssetNavigationCard } from './AssetNavigationCard'
 
@@ -19,14 +19,10 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
   onAssetChange,
   className,
 }) => {
-  const [currentPage, setCurrentPage] = useState(0)
   const ASSETS_PER_PAGE = 5
 
   // 현재 에셋 인덱스 찾기
   const currentIndex = assets.findIndex((asset) => asset.id === currentAssetId)
-
-  // 총 페이지 수 계산
-  const totalPages = Math.ceil(assets.length / ASSETS_PER_PAGE)
 
   // 현재 선택된 에셋 기준으로 앞뒤 2개씩 보여주기 (총 5개)
   const getVisibleAssets = () => {
@@ -44,7 +40,7 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
   const visibleAssets = getVisibleAssets()
 
   // 이전/다음 에셋으로 이동 (전체 리스트 기준)
-  const navigateAsset = (direction: 'prev' | 'next') => {
+  const navigateAsset = useCallback((direction: 'prev' | 'next') => {
     if (assets.length === 0) return
 
     const newIndex =
@@ -53,7 +49,7 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
         : (currentIndex - 1 + assets.length) % assets.length
 
     onAssetChange(assets[newIndex])
-  }
+  }, [assets, currentIndex, onAssetChange])
 
   // 키보드 네비게이션
   useEffect(() => {
@@ -69,7 +65,7 @@ export const AssetNavigationPanel: React.FC<AssetNavigationPanelProps> = ({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentIndex, assets])
+  }, [navigateAsset])
 
   if (assets.length <= 1) {
     return null // 에셋이 1개 이하면 네비게이션 패널 숨김

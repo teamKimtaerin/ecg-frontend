@@ -6,7 +6,6 @@ import {
   determineTargetWordId,
   determineTargetWordIds,
   isMultipleWordsSelected,
-  getTargetWordDisplayName,
   getMultipleWordsDisplayText,
 } from '../../utils/animationHelpers'
 
