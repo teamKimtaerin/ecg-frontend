@@ -10,6 +10,7 @@ import {
 } from '@/app/(route)/asset-store/utils/scenarioGenerator'
 import { useEditorStore } from '../../store'
 import { AssetSettings } from './types'
+import { Sticker } from '../../types'
 import {
   determineTargetWordId,
   determineTargetWordIds,
@@ -82,7 +83,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
 
       for (const clip of clips) {
         const sticker = clip.stickers?.find(
-          (s) => s.id === selectedStickerId
+          (s: Sticker) => s.id === selectedStickerId
         )
         if (sticker) {
           return { sticker, clipId: clip.id }
@@ -131,7 +132,7 @@ const AssetControlPanel: React.FC<AssetControlPanelProps> = ({
     if (isSticker && selectedStickerInfo) {
       // Get pluginKey from sticker animation tracks
       const tracks = selectedStickerInfo.sticker.animationTracks || []
-      const track = tracks.find((t) => t.assetId === targetAssetId)
+      const track = tracks.find((t: NonNullable<Sticker['animationTracks']>[0]) => t.assetId === targetAssetId)
       return track?.pluginKey
     } else if (targetWordId) {
       // Get pluginKey from word animation tracks
