@@ -896,15 +896,20 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     // Load plugin manifest data for new animations
     let timeOffset: [number, number] | [string, string] | undefined = undefined
     let defaultParams: Record<string, unknown> = {}
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let manifest: any = null
 
     try {
       if (asset.pluginKey) {
         // Load timeOffset and default params from plugin manifest
         timeOffset = await getPluginTimeOffset(asset.pluginKey)
-        const { getPluginDefaultParams } = await import(
+        const { getPluginDefaultParams, loadPluginManifest } = await import(
           '../../utils/pluginManifestLoader'
         )
         defaultParams = await getPluginDefaultParams(asset.pluginKey)
+
+        // Load full manifest for autofill
+        manifest = await loadPluginManifest(asset.pluginKey)
       }
     } catch (error) {
       console.warn('Failed to load plugin manifest data:', error)
@@ -934,6 +939,82 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         // Apply timeOffset to timing for soundWave visualization
         const adjustedTiming = applyTimeOffset(baseTiming, timeOffset)
 
+        // Apply autofill logic for each word
+        const finalParams = { ...defaultParams }
+        try {
+          if (manifest) {
+            // Extract autofill sources from manifest
+            const { extractAutofillSources, getAutofillData } = await import(
+              '../../utils/autofillDataProvider'
+            )
+            const autofillSources = extractAutofillSources(
+              manifest?.schema || {}
+            )
+
+            if (Object.keys(autofillSources).length > 0) {
+              // Get store state for autofill context
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const anyState = state as any
+
+              const autofillContext = {
+                store: anyState,
+                targetWordId: wordId,
+                targetClipId: wordId
+                  ? wordId.match(/^word-(\d+)-\d+$/)?.[1]
+                  : null,
+              }
+
+              console.log(
+                '🔍 [AUTOFILL MULTI] ==================================='
+              )
+              console.log('🔍 [AUTOFILL MULTI] Target Word ID:', wordId)
+              console.log('🔍 [AUTOFILL MULTI] Plugin Key:', asset.pluginKey)
+              console.log(
+                '🔍 [AUTOFILL MULTI] Extracted Sources:',
+                autofillSources
+              )
+
+              // Get autofill data
+              const autofillData: Record<string, unknown> = {}
+              Object.entries(autofillSources).forEach(([paramKey, source]) => {
+                const data = getAutofillData(source, autofillContext)
+                console.log(
+                  `🔍 [AUTOFILL MULTI] Getting data for ${paramKey}:`,
+                  {
+                    source,
+                    result: data,
+                  }
+                )
+                if (data !== null && data !== undefined) {
+                  autofillData[paramKey] = data
+                }
+              })
+
+              // Apply autofill data to parameters
+              Object.entries(autofillData).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
+                  finalParams[key] = value
+                }
+              })
+
+              console.log('🔍 [AUTOFILL MULTI] Final Params:', {
+                defaultParams,
+                autofillData,
+                finalMerged: finalParams,
+              })
+              console.log(
+                '🔍 [AUTOFILL MULTI] ==================================='
+              )
+            }
+          }
+        } catch (error) {
+          console.warn(
+            'Failed to apply autofill in toggleAnimationForWords:',
+            error
+          )
+          // Continue with default params if autofill fails
+        }
+
         const track: AnimationTrack = {
           assetId: asset.id,
           assetName: asset.name,
@@ -942,7 +1023,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           intensity: { min: 0.3, max: 0.7 },
           color,
           timeOffset, // Apply loaded timeOffset
-          params: defaultParams, // Apply loaded default parameters
+          params: finalParams, // Apply autofilled parameters
         }
         newTracks.set(wordId, [...existing, track])
       }
@@ -1142,12 +1223,86 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     // Fetch timeOffset and default params from plugin manifest
     const timeOffset = await getPluginTimeOffset(pluginKey)
     // Lazy import to avoid cycle; use same loader file
-    const { getPluginDefaultParams } = await import(
+    const { getPluginDefaultParams, loadPluginManifest } = await import(
       '../../utils/pluginManifestLoader'
     )
     const defaultParams = await getPluginDefaultParams(pluginKey)
 
-    // Call the regular addAnimationTrack with the fetched timeOffset
+    // Apply autofill logic similar to AssetControlPanel
+    const finalParams = { ...defaultParams }
+
+    try {
+      if (pluginKey) {
+        // Load plugin manifest to get autofill sources
+        const manifest = await loadPluginManifest(pluginKey)
+
+        // Extract autofill sources from manifest
+        const { extractAutofillSources, getAutofillData } = await import(
+          '../../utils/autofillDataProvider'
+        )
+        const autofillSources = extractAutofillSources(manifest?.schema || {})
+
+        if (Object.keys(autofillSources).length > 0) {
+          // Get store state for autofill context
+          const state = get()
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const anyState = state as any
+
+          const autofillContext = {
+            store: anyState,
+            targetWordId: wordId,
+            targetClipId: wordId ? wordId.match(/^word-(\d+)-\d+$/)?.[1] : null,
+          }
+
+          console.log(
+            '🔍 [AUTOFILL ADDTRACK] ==================================='
+          )
+          console.log('🔍 [AUTOFILL ADDTRACK] Target Word ID:', wordId)
+          console.log('🔍 [AUTOFILL ADDTRACK] Plugin Key:', pluginKey)
+          console.log(
+            '🔍 [AUTOFILL ADDTRACK] Extracted Sources:',
+            autofillSources
+          )
+
+          // Get autofill data
+          const autofillData: Record<string, unknown> = {}
+          Object.entries(autofillSources).forEach(([paramKey, source]) => {
+            const data = getAutofillData(source, autofillContext)
+            console.log(
+              `🔍 [AUTOFILL ADDTRACK] Getting data for ${paramKey}:`,
+              {
+                source,
+                result: data,
+              }
+            )
+            if (data !== null && data !== undefined) {
+              autofillData[paramKey] = data
+            }
+          })
+
+          // Apply autofill data to parameters
+          Object.entries(autofillData).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+              finalParams[key] = value
+            }
+          })
+
+          console.log('🔍 [AUTOFILL ADDTRACK] Final Params:', {
+            defaultParams,
+            autofillData,
+            finalMerged: finalParams,
+          })
+          console.log(
+            '🔍 [AUTOFILL ADDTRACK] ==================================='
+          )
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to apply autofill in addAnimationTrackAsync:', error)
+      // Continue with default params if autofill fails
+    }
+
+    // Call the regular addAnimationTrack with the fetched timeOffset and autofilled params
     const state = get()
     state.addAnimationTrack(
       wordId,
@@ -1156,7 +1311,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       wordTiming,
       pluginKey,
       timeOffset,
-      defaultParams
+      finalParams
     )
   },
 

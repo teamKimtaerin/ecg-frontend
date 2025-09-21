@@ -58,6 +58,9 @@ export interface ProcessingResult {
       model: string
       processing_time: number
     }
+    // 화자 정보 (선택적)
+    speakers?: string[]
+    speakerMapping?: Record<string, string>
   }
 }
 

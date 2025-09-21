@@ -135,7 +135,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   }, [selectedTextId, insertedTexts, insertedTextFromSticker])
 
   const handleAssetSelect = (asset: AssetItem) => {
-    console.log('Selected asset:', asset)
+    // console.log('Selected asset:', asset)
 
     const store = useEditorStore.getState()
 
@@ -179,7 +179,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
         // Asset is already applied, open parameter panel
         setExpandedAssetId(asset.id)
         setExpandedAssetName(asset.name)
-        console.log('Opening parameter panel for applied asset:', asset.name)
+        // console.log('Opening parameter panel for applied asset:', asset.name)
         return
       }
     }
@@ -202,7 +202,7 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
   }
 
   const handleSettingsChange = async (settings: Record<string, unknown>) => {
-    console.log('Settings changed:', settings)
+    // console.log('Settings changed:', settings)
 
     const store = useEditorStore.getState()
     const isMultiSelection = isMultipleWordsSelected(store)
@@ -251,9 +251,9 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
           assetId,
           settings
         )
-        console.log(
-          `Applied settings to ${wordIds.length} words: "${getMultipleWordsDisplayText(store, wordIds)}"`
-        )
+        // console.log(
+        //   `Applied settings to ${wordIds.length} words: "${getMultipleWordsDisplayText(store, wordIds)}"`
+        // )
       } else {
         // Apply to single word
         const wordId = determineTargetWordId(store)
@@ -266,9 +266,9 @@ const AnimationAssetSidebar: React.FC<AnimationAssetSidebarProps> = ({
           assetId,
           settings
         )
-        console.log(
-          `Applied settings to word "${getTargetWordDisplayName(store)}"`
-        )
+        // console.log(
+        //   `Applied settings to word "${getTargetWordDisplayName(store)}"`
+        // )
       }
 
       // Note: refreshWordPluginChain is called automatically in update methods

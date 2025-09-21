@@ -110,6 +110,10 @@ export interface SchemaProperty {
     allowDefine?: boolean
     unit?: string // px, s, °, Hz 등
     step?: number // UI에서 사용할 step (schema.step과 별개)
+    autofill?: {
+      source: string // 데이터 소스 식별자 (예: "clip.speaker", "editor.speakerColors")
+      type: 'current' | 'global' // 현재 컨텍스트 또는 전역 데이터
+    }
   }
 
   // 제약사항

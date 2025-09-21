@@ -93,7 +93,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       }
     }
     if (!currentScenario) return
-    const entry = nodeIndex[`word-${wordId}`]
+    const entry = nodeIndex[wordId]
     if (!entry) return
     const cue = currentScenario.cues[entry.cueIndex]
     const childIdx = entry.path[0]
@@ -143,7 +143,7 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       }
     }
     if (!currentScenario) return
-    const entry = nodeIndex[`word-${wordId}`]
+    const entry = nodeIndex[wordId]
     if (!entry) return
     const cue = currentScenario.cues[entry.cueIndex]
     const childIdx = entry.path[0]
