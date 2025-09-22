@@ -47,6 +47,7 @@ import DeployModal from '@/components/ui/DeployModal'
 import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
+import ChatBotContainer from './components/ChatBot/ChatBotContainer'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
@@ -2251,6 +2252,9 @@ export default function EditorPage() {
 
       {/* Deploy Modal */}
       <DeployModal {...deployModalProps} />
+
+      {/* ChatBot */}
+      <ChatBotContainer />
     </>
   )
 }

@@ -20,15 +20,33 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
 
   useEffect(() => {
     if (isActive) {
-      const timer = setTimeout(() => {
-        setShouldRender(true)
-        setAnimationClass('animate-float-up-fade')
-      }, delay)
-
-      return () => clearTimeout(timer)
-    } else {
-      setShouldRender(false)
+      setShouldRender(true)
       setAnimationClass('')
+      
+      // 다음 프레임에서 애니메이션 시작 (브라우저 렌더링 최적화)
+      requestAnimationFrame(() => {
+        const timer = setTimeout(() => {
+          setAnimationClass('animate-float-up-fade')
+        }, delay)
+
+        // 3초 대기 후 숨기기
+        const hideTimer = setTimeout(() => {
+          setAnimationClass('animate-float-up-fade-out')
+          
+          // fade-out 완료 후 컴포넌트 제거
+          setTimeout(() => {
+            setShouldRender(false)
+          }, 1200) // fade-out 애니메이션 시간과 동일
+        }, delay + 1200 + 3000) // 등장 애니메이션(1.2초) + 대기(3초)
+
+        return () => {
+          clearTimeout(timer)
+          clearTimeout(hideTimer)
+        }
+      })
+    } else {
+      setAnimationClass('')
+      setShouldRender(false)
     }
   }, [isActive, delay])
 
@@ -43,24 +61,33 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
   return (
     <>
       <style jsx>{`
-        @keyframes floatUpFade {
+        @keyframes floatUpFadeIn {
           0% {
-            transform: translateY(100%);
+            transform: translateY(15px) scale(0.95);
             opacity: 0;
           }
-          50% {
-            transform: translateY(0%);
+          100% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+          }
+        }
+        @keyframes floatUpFadeOut {
+          0% {
+            transform: translateY(0) scale(1);
             opacity: 1;
           }
           100% {
-            transform: translateY(-100%);
+            transform: translateY(-20px) scale(0.95);
             opacity: 0;
           }
         }
         .animate-float-up-fade {
-          animation: floatUpFade 4s ease-in-out;
+          animation: floatUpFadeIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
           opacity: 0;
-          transform: translateY(100%);
+          transform: translateY(15px) scale(0.95);
+        }
+        .animate-float-up-fade-out {
+          animation: floatUpFadeOut 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
       `}</style>
       <div
@@ -68,7 +95,8 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
           cursor-pointer mb-3 ${animationClass}
         `}
         style={{
-          animationDelay: `${delay}ms`,
+          opacity: animationClass === '' ? 0 : undefined,
+          transform: animationClass === '' ? 'translateY(15px) scale(0.95)' : undefined,
         }}
         onClick={handleClick}
       >

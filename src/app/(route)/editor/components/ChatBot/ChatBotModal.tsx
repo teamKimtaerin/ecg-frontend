@@ -62,9 +62,9 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
             // Wait before showing next group
             questionCycleTimerRef.current = setTimeout(
               showNextQuestionGroup,
-              500
+              1500
             )
-          }, 2000)
+          }, 5400) // 등장(1.2초) + 대기(3초) + 사라짐(1.2초)
         }
 
         // Start the cycle
