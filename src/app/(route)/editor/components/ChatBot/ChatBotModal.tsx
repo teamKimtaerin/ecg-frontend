@@ -165,7 +165,6 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
                 {sampleQuestions.map((question, index) => {
                   const questionIndex = activeQuestionIndices.indexOf(index)
                   const isActive = questionIndex !== -1
-                  
                   return (
                     <div
                       key={index}

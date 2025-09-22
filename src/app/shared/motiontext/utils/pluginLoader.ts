@@ -84,14 +84,10 @@ export async function loadLocalPlugin(
 
   const origin = getPluginOrigin()
   const base = `${origin}/plugins/${key}`
-  const url = `${base}/index.mjs`
-  const mod: PluginRuntimeModule = await import(
-    /* webpackIgnore: true */ /* @vite-ignore */ url
-  )
-  cache.set(key, mod)
 
   if (!registeredPlugins.has(key)) {
     try {
+      // manifest.json 요청
       const manifestResponse = await fetch(`${base}/manifest.json`)
       if (!manifestResponse.ok) {
         throw new Error(
@@ -99,6 +95,25 @@ export async function loadLocalPlugin(
         )
       }
       const manifest = await manifestResponse.json()
+
+      // index.mjs 요청 (302 리다이렉트될 것)
+      const entryResponse = await fetch(`${base}/index.mjs`)
+      if (!entryResponse.ok) {
+        throw new Error(
+          `Failed to load entry for plugin ${key}: ${entryResponse.status}`
+        )
+      }
+
+      // 리다이렉트된 실제 S3 URL에서 모듈 import
+      const moduleCode = await entryResponse.text()
+      const blob = new Blob([moduleCode], { type: 'text/javascript' })
+      const blobUrl = URL.createObjectURL(blob)
+
+      const mod: PluginRuntimeModule = await import(
+        /* webpackIgnore: true */ /* @vite-ignore */ blobUrl
+      )
+      cache.set(key, mod)
+
       const pluginNameWithoutVersion = key.split('@')[0]
       registerExternalPlugin({
         name: pluginNameWithoutVersion,
@@ -108,13 +123,16 @@ export async function loadLocalPlugin(
         manifest: manifest,
       })
       registeredPlugins.add(key)
+
+      // Blob URL 정리
+      URL.revokeObjectURL(blobUrl)
     } catch (error) {
       console.error(`Failed to register plugin ${key}:`, error)
       throw error
     }
   }
 
-  return mod
+  return cache.get(key) as PluginRuntimeModule
 }
 
 function extractPluginNames(
