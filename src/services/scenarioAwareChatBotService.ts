@@ -135,10 +135,6 @@ ${currentClips
   )
   .join('')}
 
-### MotionText 시나리오 구조:
-\`\`\`json
-${JSON.stringify(currentScenario, null, 2)}
-\`\`\`
 
 ## 📝 응답 형식 (중요!)
 사용자가 구체적인 편집을 요청할 때는 반드시 아래 JSON 형식으로 응답해주세요:
@@ -165,27 +161,6 @@ ${JSON.stringify(currentScenario, null, 2)}
         }
       }
     ],
-    "scenario": {
-      "tracks": [
-        {
-          "id": "track_id",
-          "defaultStyle": {
-            "fontWeight": "bold",
-            "color": "#ffffff"
-          }
-        }
-      ],
-      "cues": [
-        {
-          "id": "cue_id", 
-          "root": {
-            "style": {
-              "fontSize": "24px"
-            }
-          }
-        }
-      ]
-    }
   }
 }
 \`\`\`
@@ -195,8 +170,8 @@ ${JSON.stringify(currentScenario, null, 2)}
 ## 🔧 편집 가능한 작업들
 - **텍스트 수정**: clips[].fullText, subtitle, words[].text 변경
 - **타이밍 조정**: words[].start, words[].end 시간 수정  
-- **스타일 적용**: scenario.tracks[].defaultStyle 또는 cues[].root.style 수정
-- **애니메이션 효과**: cues[].root.pluginChain 추가/수정
+- **스타일 적용**: 폰트, 색상, 크기 등 텍스트 스타일 변경
+- **애니메이션 효과**: 페이드, 슬라이드 등 다양한 효과 추가
 
 **중요**: 편집 요청 시 JSON 형식으로만 응답하고, 사용법 질문 시에는 일반 텍스트로 응답하세요.`
 

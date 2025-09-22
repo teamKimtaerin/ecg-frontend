@@ -118,6 +118,7 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
+      e.stopPropagation()
       handleSendMessage()
     }
   }
@@ -126,6 +127,12 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
     setInputValue(question)
     // Optionally auto-send the question
     onSendMessage(question)
+  }
+
+  // 모달 내에서 키보드 이벤트 전파 방지
+  const handleModalKeyDown = (e: React.KeyboardEvent) => {
+    // ChatBot 모달 내의 모든 키보드 이벤트는 부모로 전파되지 않도록 함
+    e.stopPropagation()
   }
 
   return (
@@ -137,7 +144,7 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
       size="md"
       className="max-w-lg"
     >
-      <div className="flex flex-col h-[500px]">
+      <div className="flex flex-col h-[500px]" onKeyDown={handleModalKeyDown}>
         {/* Messages container */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50 rounded-lg mb-4">
           {messages.length === 0 ? (

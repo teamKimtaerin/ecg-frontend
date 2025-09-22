@@ -36,6 +36,7 @@ import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import useChatBot from './hooks/useChatBot'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -500,6 +501,9 @@ export default function EditorPage() {
     speakers: globalSpeakers,
     setSpeakers: setGlobalSpeakers,
   } = useEditorStore()
+
+  // ChatBot state
+  const { isOpen: isChatBotOpen } = useChatBot()
 
   // Local state
   const [activeTab, setActiveTab] = useState<EditorTab>('home')
@@ -1611,6 +1615,11 @@ export default function EditorPage() {
   // 키보드 단축키 처리 (macOS Command + Windows/Linux Ctrl 지원)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // ChatBot 모달이 열려있을 때는 단축키 비활성화
+      if (isChatBotOpen) {
+        return
+      }
+
       // 입력 필드에서는 단축키 비활성화
       const target = event.target as HTMLElement
       if (
@@ -1676,11 +1685,6 @@ export default function EditorPage() {
           handlePasteClips()
         }
       }
-      // Enter (split clip) - 포커싱된 클립 나누기
-      else if (event.key === 'Enter' && !cmdOrCtrl) {
-        event.preventDefault()
-        handleSplitClip()
-      }
       // Delete key - delete selected words if any are selected
       else if (event.key === 'Delete' || event.key === 'Backspace') {
         if (isMultipleWordsSelected()) {
@@ -1695,6 +1699,7 @@ export default function EditorPage() {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [
+    isChatBotOpen,
     handleUndo,
     handleRedo,
     saveProject,
