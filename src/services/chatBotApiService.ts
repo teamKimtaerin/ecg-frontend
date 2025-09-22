@@ -33,7 +33,8 @@ export default class ChatBotApiService {
       }
 
       // 백엔드 API 호출로 변경
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+      const backendUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
       const response = await fetch(`${backendUrl}/api/v1/chatbot`, {
         method: 'POST',
         headers: {
@@ -44,11 +45,13 @@ export default class ChatBotApiService {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.detail?.error || errorData.detail || 'API 호출 실패')
+        throw new Error(
+          errorData.detail?.error || errorData.detail || 'API 호출 실패'
+        )
       }
 
       const data: ChatBotApiResponse = await response.json()
-      
+
       if (data.error) {
         throw new Error(data.error)
       }
@@ -57,11 +60,10 @@ export default class ChatBotApiService {
     } catch (error) {
       console.error('ChatBot API 메시지 전송 실패:', error)
       throw new Error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
       )
     }
   }
-
 }
