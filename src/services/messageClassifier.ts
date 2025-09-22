@@ -20,17 +20,55 @@ export class MessageClassifier {
   // 자막 편집 관련 키워드들
   private static readonly SUBTITLE_KEYWORDS = [
     // 기본 편집
-    '자막', '텍스트', '글자', '문자', '대사', '내용',
+    '자막',
+    '텍스트',
+    '글자',
+    '문자',
+    '대사',
+    '내용',
     // 편집 동작
-    '수정', '바꿔', '변경', '고쳐', '편집', '삭제', '지워', '추가', '넣어',
+    '수정',
+    '바꿔',
+    '변경',
+    '고쳐',
+    '편집',
+    '삭제',
+    '지워',
+    '추가',
+    '넣어',
     // 위치/순서
-    '번째', '첫번째', '두번째', '세번째', '마지막', '처음', '끝',
+    '번째',
+    '첫번째',
+    '두번째',
+    '세번째',
+    '마지막',
+    '처음',
+    '끝',
     // 타이밍
-    '시간', '타이밍', '늦춰', '빠르게', '느리게', '초', '분', '싱크',
+    '시간',
+    '타이밍',
+    '늦춰',
+    '빠르게',
+    '느리게',
+    '초',
+    '분',
+    '싱크',
     // 스타일
-    '폰트', '크기', '색깔', '색상', '굵게', '기울임', '밑줄',
+    '폰트',
+    '크기',
+    '색깔',
+    '색상',
+    '굵게',
+    '기울임',
+    '밑줄',
     // 애니메이션
-    '애니메이션', '효과', '페이드', '바운스', '슬라이드', '확대', '축소'
+    '애니메이션',
+    '효과',
+    '페이드',
+    '바운스',
+    '슬라이드',
+    '확대',
+    '축소',
   ]
 
   // 편집 타입별 키워드
@@ -38,25 +76,33 @@ export class MessageClassifier {
     edit: ['수정', '바꿔', '변경', '고쳐', '편집', '내용', '텍스트'],
     timing: ['시간', '타이밍', '늦춰', '빠르게', '느리게', '초', '분', '싱크'],
     style: ['폰트', '크기', '색깔', '색상', '굵게', '기울임', '밑줄', '스타일'],
-    animation: ['애니메이션', '효과', '페이드', '바운스', '슬라이드', '확대', '축소'],
-    general: ['도움', '사용법', '방법', '어떻게', '가능', '설명']
+    animation: [
+      '애니메이션',
+      '효과',
+      '페이드',
+      '바운스',
+      '슬라이드',
+      '확대',
+      '축소',
+    ],
+    general: ['도움', '사용법', '방법', '어떻게', '가능', '설명'],
   }
 
   static classifyMessage(message: string): MessageClassification {
     const normalizedMessage = message.toLowerCase().trim()
-    
+
     // 1. 자막 관련 키워드 체크
-    const subtitleKeywordCount = this.SUBTITLE_KEYWORDS.filter(keyword => 
+    const subtitleKeywordCount = this.SUBTITLE_KEYWORDS.filter((keyword) =>
       normalizedMessage.includes(keyword)
     ).length
 
     const isSubtitleRelated = subtitleKeywordCount > 0
-    
+
     if (!isSubtitleRelated) {
       return {
         isSubtitleRelated: false,
         actionType: 'none',
-        confidence: 0
+        confidence: 0,
       }
     }
 
@@ -65,10 +111,10 @@ export class MessageClassifier {
     let maxScore = 0
 
     for (const [actionType, keywords] of Object.entries(this.ACTION_KEYWORDS)) {
-      const score = keywords.filter(keyword => 
+      const score = keywords.filter((keyword) =>
         normalizedMessage.includes(keyword)
       ).length
-      
+
       if (score > maxScore) {
         maxScore = score
         bestActionType = actionType as MessageClassification['actionType']
@@ -76,12 +122,14 @@ export class MessageClassifier {
     }
 
     // 3. 세부 정보 추출
-    const extractedDetails = this.extractDetails(normalizedMessage, bestActionType)
+    const extractedDetails = this.extractDetails(
+      normalizedMessage,
+      bestActionType
+    )
 
     // 4. 신뢰도 계산 (키워드 수 + 구체성)
     const confidence = Math.min(
-      (subtitleKeywordCount + maxScore) * 0.2 + 
-      (extractedDetails ? 0.3 : 0),
+      (subtitleKeywordCount + maxScore) * 0.2 + (extractedDetails ? 0.3 : 0),
       1.0
     )
 
@@ -89,12 +137,12 @@ export class MessageClassifier {
       isSubtitleRelated: true,
       actionType: bestActionType,
       confidence,
-      extractedDetails
+      extractedDetails,
     }
   }
 
   private static extractDetails(
-    message: string, 
+    message: string,
     actionType: MessageClassification['actionType']
   ): MessageClassification['extractedDetails'] | undefined {
     const details: MessageClassification['extractedDetails'] = {}
@@ -112,7 +160,9 @@ export class MessageClassifier {
     }
 
     // 새 텍스트 추출 (따옴표 안의 내용)
-    const textMatch = message.match(/['"`]([^'"`]+)['"`]|로\s+바꿔|을\s+바꿔|를\s+바꿔/)
+    const textMatch = message.match(
+      /['"`]([^'"`]+)['"`]|로\s+바꿔|을\s+바꿔|를\s+바꿔/
+    )
     if (textMatch && textMatch[1]) {
       details.newText = textMatch[1]
     }
@@ -127,7 +177,8 @@ export class MessageClassifier {
     if (actionType === 'style') {
       if (message.includes('굵게')) details.styleProperty = 'fontWeight'
       if (message.includes('기울임')) details.styleProperty = 'fontStyle'
-      if (message.includes('색깔') || message.includes('색상')) details.styleProperty = 'color'
+      if (message.includes('색깔') || message.includes('색상'))
+        details.styleProperty = 'color'
       if (message.includes('크기')) details.styleProperty = 'fontSize'
     }
 
@@ -145,15 +196,15 @@ export class MessageClassifier {
   static testClassifications() {
     const testMessages = [
       "3번째 자막을 '안녕하세요'로 바꿧어줘",
-      "모든 자막을 0.5초씩 늦춰줘",
-      "자막 폰트를 굵게 만들어줘",
-      "페이드인 효과를 추가해줘",
-      "자막 편집하는 방법 알려줘",
-      "오늘 날씨가 어때?"
+      '모든 자막을 0.5초씩 늦춰줘',
+      '자막 폰트를 굵게 만들어줘',
+      '페이드인 효과를 추가해줘',
+      '자막 편집하는 방법 알려줘',
+      '오늘 날씨가 어때?',
     ]
 
     console.log('=== Message Classification Test ===')
-    testMessages.forEach(message => {
+    testMessages.forEach((message) => {
       const result = this.classifyMessage(message)
       console.log(`메시지: "${message}"`)
       console.log(`결과:`, result)

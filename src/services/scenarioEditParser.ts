@@ -27,20 +27,20 @@ export class ScenarioEditParser {
   static parseAIResponse(aiResponse: string): ParsedEditResponse {
     // 1. JSON 블록 추출 시도
     const jsonMatch = this.extractJsonFromResponse(aiResponse)
-    
+
     if (!jsonMatch) {
       // JSON이 없으면 일반 텍스트 응답
       return {
         isEdit: false,
         explanation: aiResponse,
-        originalText: aiResponse
+        originalText: aiResponse,
       }
     }
 
     try {
       // 2. JSON 파싱
       const parsedJson = JSON.parse(jsonMatch) as ScenarioEditRequest
-      
+
       // 3. 유효성 검증
       if (!this.validateEditRequest(parsedJson)) {
         throw new Error('Invalid edit request format')
@@ -52,16 +52,16 @@ export class ScenarioEditParser {
         explanation: parsedJson.explanation,
         clipChanges: parsedJson.changes.clips,
         scenarioChanges: parsedJson.changes.scenario,
-        originalText: aiResponse
+        originalText: aiResponse,
       }
     } catch (error) {
       console.error('JSON 파싱 실패:', error)
-      
+
       // 파싱 실패 시 일반 텍스트로 처리
       return {
         isEdit: false,
         explanation: aiResponse,
-        originalText: aiResponse
+        originalText: aiResponse,
       }
     }
   }
@@ -74,14 +74,14 @@ export class ScenarioEditParser {
       // ``` ... ``` 블록 (json 키워드 없이)
       /```\s*([\s\S]*?)\s*```/,
       // { ... } 객체 (멀티라인)
-      /(\{[\s\S]*\})/
+      /(\{[\s\S]*\})/,
     ]
 
     for (const pattern of patterns) {
       const match = response.match(pattern)
       if (match && match[1]) {
         const jsonStr = match[1].trim()
-        
+
         // 간단한 JSON 유효성 체크
         if (jsonStr.startsWith('{') && jsonStr.endsWith('}')) {
           return jsonStr
@@ -102,7 +102,7 @@ export class ScenarioEditParser {
     // clips 배열 검증 (있다면)
     if (data.changes.clips) {
       if (!Array.isArray(data.changes.clips)) return false
-      
+
       for (const clip of data.changes.clips) {
         if (typeof clip !== 'object' || !clip) return false
         if (typeof clip.id !== 'string') return false
@@ -112,7 +112,8 @@ export class ScenarioEditParser {
 
     // scenario 객체 검증 (있다면)
     if (data.changes.scenario) {
-      if (typeof data.changes.scenario !== 'object' || !data.changes.scenario) return false
+      if (typeof data.changes.scenario !== 'object' || !data.changes.scenario)
+        return false
     }
 
     return true
@@ -127,16 +128,16 @@ export class ScenarioEditParser {
       return originalClips
     }
 
-    return originalClips.map(clip => {
-      const change = clipChanges.find(c => c.id === clip.id)
+    return originalClips.map((clip) => {
+      const change = clipChanges.find((c) => c.id === clip.id)
       if (!change) return clip
 
       const updatedClip = { ...clip, ...change.updates }
 
       // words 배열 개별 처리
       if (change.updates.words) {
-        updatedClip.words = clip.words.map(word => {
-          const wordUpdate = change.updates.words?.find(w => w.id === word.id)
+        updatedClip.words = clip.words.map((word) => {
+          const wordUpdate = change.updates.words?.find((w) => w.id === word.id)
           return wordUpdate ? { ...word, ...wordUpdate } : word
         })
       }
@@ -155,12 +156,16 @@ export class ScenarioEditParser {
     }
 
     // 깊은 복사 후 병합
-    const updatedScenario = JSON.parse(JSON.stringify(originalScenario)) as RendererConfigV2
+    const updatedScenario = JSON.parse(
+      JSON.stringify(originalScenario)
+    ) as RendererConfigV2
 
     // tracks 병합
     if (scenarioChanges.tracks) {
-      scenarioChanges.tracks.forEach(trackChange => {
-        const existingTrack = updatedScenario.tracks.find(t => t.id === trackChange.id)
+      scenarioChanges.tracks.forEach((trackChange) => {
+        const existingTrack = updatedScenario.tracks.find(
+          (t) => t.id === trackChange.id
+        )
         if (existingTrack) {
           Object.assign(existingTrack, trackChange)
         }
@@ -169,8 +174,10 @@ export class ScenarioEditParser {
 
     // cues 병합
     if (scenarioChanges.cues) {
-      scenarioChanges.cues.forEach(cueChange => {
-        const existingCue = updatedScenario.cues.find(c => c.id === cueChange.id)
+      scenarioChanges.cues.forEach((cueChange) => {
+        const existingCue = updatedScenario.cues.find(
+          (c) => c.id === cueChange.id
+        )
         if (existingCue) {
           Object.assign(existingCue, cueChange)
         }
@@ -178,9 +185,9 @@ export class ScenarioEditParser {
     }
 
     // 기타 최상위 속성들 병합
-    Object.keys(scenarioChanges).forEach(key => {
+    Object.keys(scenarioChanges).forEach((key) => {
       if (key !== 'tracks' && key !== 'cues') {
-        (updatedScenario as any)[key] = (scenarioChanges as any)[key]
+        ;(updatedScenario as any)[key] = (scenarioChanges as any)[key]
       }
     })
 
@@ -190,7 +197,7 @@ export class ScenarioEditParser {
   // 테스트용 메서드
   static testParsing() {
     console.log('=== ScenarioEditParser 테스트 ===')
-    
+
     const testResponses = [
       // JSON 편집 응답
       `네, 첫 번째 자막을 수정하겠습니다.
@@ -212,24 +219,24 @@ export class ScenarioEditParser {
   }
 }
 \`\`\``,
-      
+
       // 일반 텍스트 응답
       '자막을 편집하는 방법을 알려드리겠습니다. 먼저 클립을 선택하고...',
-      
+
       // 잘못된 JSON
-      '```json\n{ "invalid": json } \n```'
+      '```json\n{ "invalid": json } \n```',
     ]
 
     testResponses.forEach((response, index) => {
       console.log(`\n--- 테스트 ${index + 1} ---`)
       console.log('입력:', response.substring(0, 50) + '...')
-      
+
       const result = this.parseAIResponse(response)
       console.log('결과:', {
         isEdit: result.isEdit,
         explanation: result.explanation?.substring(0, 50) + '...',
         hasClipChanges: !!result.clipChanges,
-        hasScenarioChanges: !!result.scenarioChanges
+        hasScenarioChanges: !!result.scenarioChanges,
       })
     })
   }

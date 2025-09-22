@@ -20,7 +20,10 @@ export default class ChatBotService {
   ): Promise<string> {
     try {
       // 대화 맥락을 위한 프롬프트 구성
-      const contextPrompt = this.buildContextPrompt(message, conversationHistory)
+      const contextPrompt = this.buildContextPrompt(
+        message,
+        conversationHistory
+      )
 
       const request: ClaudeRequest = {
         prompt: contextPrompt,
@@ -33,7 +36,9 @@ export default class ChatBotService {
       return response.completion.trim()
     } catch (error) {
       console.error('ChatBot 메시지 전송 실패:', error)
-      throw new Error('죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      throw new Error(
+        '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      )
     }
   }
 

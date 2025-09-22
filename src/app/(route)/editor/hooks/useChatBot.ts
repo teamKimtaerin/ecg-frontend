@@ -13,8 +13,12 @@ const useChatBot = () => {
   // Editor Store에서 현재 시나리오와 클립 데이터 가져오기
   const currentScenario = useEditorStore((state) => state.currentScenario)
   const clips = useEditorStore((state) => state.clips)
-  const buildInitialScenario = useEditorStore((state) => state.buildInitialScenario)
-  const setScenarioFromJson = useEditorStore((state) => state.setScenarioFromJson)
+  const buildInitialScenario = useEditorStore(
+    (state) => state.buildInitialScenario
+  )
+  const setScenarioFromJson = useEditorStore(
+    (state) => state.setScenarioFromJson
+  )
   const updateClips = useEditorStore((state) => state.updateClips)
 
   // ChatBot 서비스 인스턴스 생성 (useMemo로 최적화)
@@ -23,7 +27,8 @@ const useChatBot = () => {
       new ScenarioAwareChatBotService({
         region: process.env.NEXT_PUBLIC_AWS_BEDROCK_REGION || 'us-east-1',
         accessKeyId: process.env.NEXT_PUBLIC_AWS_BEDROCK_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY || '',
+        secretAccessKey:
+          process.env.NEXT_PUBLIC_AWS_BEDROCK_SECRET_ACCESS_KEY || '',
       }),
     []
   )
@@ -44,16 +49,20 @@ const useChatBot = () => {
       try {
         // 1. 메시지 분류
         const classification = MessageClassifier.classifyMessage(content)
-        
+
         // 2. 시나리오가 없고 자막 관련 요청이면 시나리오 생성
         let workingScenario = currentScenario
-        if (classification.isSubtitleRelated && !currentScenario && clips.length > 0) {
+        if (
+          classification.isSubtitleRelated &&
+          !currentScenario &&
+          clips.length > 0
+        ) {
           workingScenario = buildInitialScenario(clips)
         }
 
         // 3. AI 응답 요청 (시나리오 컨텍스트 포함)
         const response = await chatBotService.sendMessage(
-          content, 
+          content,
           messages,
           workingScenario || undefined,
           clips.length > 0 ? clips : undefined
@@ -61,18 +70,24 @@ const useChatBot = () => {
 
         // 4. AI 응답 파싱 및 편집 적용
         const parsedResponse = ScenarioEditParser.parseAIResponse(response)
-        
+
         // 5. 실제 편집 적용
         if (parsedResponse.isEdit) {
           // 클립 변경사항 적용
           if (parsedResponse.clipChanges && clips.length > 0) {
-            const updatedClips = ScenarioEditParser.applyClipChanges(clips, parsedResponse.clipChanges)
+            const updatedClips = ScenarioEditParser.applyClipChanges(
+              clips,
+              parsedResponse.clipChanges
+            )
             updateClips(updatedClips)
           }
 
           // 시나리오 변경사항 적용
           if (parsedResponse.scenarioChanges && workingScenario) {
-            const updatedScenario = ScenarioEditParser.applyScenarioChanges(workingScenario, parsedResponse.scenarioChanges)
+            const updatedScenario = ScenarioEditParser.applyScenarioChanges(
+              workingScenario,
+              parsedResponse.scenarioChanges
+            )
             setScenarioFromJson(updatedScenario)
           }
         }
@@ -103,7 +118,15 @@ const useChatBot = () => {
         setIsTyping(false)
       }
     },
-    [messages, chatBotService, currentScenario, clips, buildInitialScenario, updateClips, setScenarioFromJson]
+    [
+      messages,
+      chatBotService,
+      currentScenario,
+      clips,
+      buildInitialScenario,
+      updateClips,
+      setScenarioFromJson,
+    ]
   )
 
   const openChatBot = useCallback(() => {

@@ -22,7 +22,7 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
     if (isActive) {
       setShouldRender(true)
       setAnimationClass('')
-      
+
       // 다음 프레임에서 애니메이션 시작 (브라우저 렌더링 최적화)
       requestAnimationFrame(() => {
         const timer = setTimeout(() => {
@@ -30,14 +30,17 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
         }, delay)
 
         // 3초 대기 후 숨기기
-        const hideTimer = setTimeout(() => {
-          setAnimationClass('animate-float-up-fade-out')
-          
-          // fade-out 완료 후 컴포넌트 제거
-          setTimeout(() => {
-            setShouldRender(false)
-          }, 1200) // fade-out 애니메이션 시간과 동일
-        }, delay + 1200 + 3000) // 등장 애니메이션(1.2초) + 대기(3초)
+        const hideTimer = setTimeout(
+          () => {
+            setAnimationClass('animate-float-up-fade-out')
+
+            // fade-out 완료 후 컴포넌트 제거
+            setTimeout(() => {
+              setShouldRender(false)
+            }, 1200) // fade-out 애니메이션 시간과 동일
+          },
+          delay + 1200 + 3000
+        ) // 등장 애니메이션(1.2초) + 대기(3초)
 
         return () => {
           clearTimeout(timer)
@@ -82,12 +85,14 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
           }
         }
         .animate-float-up-fade {
-          animation: floatUpFadeIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+          animation: floatUpFadeIn 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+            forwards;
           opacity: 0;
           transform: translateY(15px) scale(0.95);
         }
         .animate-float-up-fade-out {
-          animation: floatUpFadeOut 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+          animation: floatUpFadeOut 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)
+            forwards;
         }
       `}</style>
       <div
@@ -96,7 +101,8 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
         `}
         style={{
           opacity: animationClass === '' ? 0 : undefined,
-          transform: animationClass === '' ? 'translateY(15px) scale(0.95)' : undefined,
+          transform:
+            animationClass === '' ? 'translateY(15px) scale(0.95)' : undefined,
         }}
         onClick={handleClick}
       >

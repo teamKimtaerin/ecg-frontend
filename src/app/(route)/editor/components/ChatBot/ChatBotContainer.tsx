@@ -6,22 +6,13 @@ import ChatBotFloatingButton from './ChatBotFloatingButton'
 import useChatBot from '../../hooks/useChatBot'
 
 const ChatBotContainer: React.FC = () => {
-  const {
-    messages,
-    isTyping,
-    isOpen,
-    sendMessage,
-    openChatBot,
-    closeChatBot,
-  } = useChatBot()
+  const { messages, isTyping, isOpen, sendMessage, openChatBot, closeChatBot } =
+    useChatBot()
 
   return (
     <>
-      <ChatBotFloatingButton
-        onClick={openChatBot}
-        hasUnreadMessages={false}
-      />
-      
+      <ChatBotFloatingButton onClick={openChatBot} hasUnreadMessages={false} />
+
       <ChatBotModal
         isOpen={isOpen}
         onClose={closeChatBot}

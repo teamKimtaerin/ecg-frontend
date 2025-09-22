@@ -35,7 +35,7 @@ export default class ScenarioAwareChatBotService {
     try {
       // 1. 메시지 분류
       const classification = MessageClassifier.classifyMessage(message)
-      
+
       // 2. 자막 관련이면 시나리오 컨텍스트 포함
       if (classification.isSubtitleRelated && currentScenario && currentClips) {
         return await this.handleScenarioMessage(
@@ -51,7 +51,9 @@ export default class ScenarioAwareChatBotService {
       return await this.handleGeneralMessage(message, conversationHistory)
     } catch (error) {
       console.error('ChatBot 메시지 전송 실패:', error)
-      throw new Error('죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+      throw new Error(
+        '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+      )
     }
   }
 
@@ -121,13 +123,17 @@ export default class ScenarioAwareChatBotService {
 - 추출된 정보: ${JSON.stringify(classification.extractedDetails, null, 2)}
 
 ### 현재 자막 클립 정보:
-${currentClips.map((clip, index) => `
+${currentClips
+  .map(
+    (clip, index) => `
 클립 ${index + 1} (ID: ${clip.id}):
 - 화자: ${clip.speaker}
 - 전체 텍스트: "${clip.fullText}"
 - 단어 수: ${clip.words.length}개
 - 타이밍: ${clip.words[0]?.start || 0}초 ~ ${clip.words[clip.words.length - 1]?.end || 0}초
-`).join('')}
+`
+  )
+  .join('')}
 
 ### MotionText 시나리오 구조:
 \`\`\`json
@@ -266,12 +272,12 @@ ${conversationContext}Human: ${currentMessage}`
   ): Promise<ScenarioEditResponse> {
     try {
       const classification = MessageClassifier.classifyMessage(message)
-      
+
       if (!classification.isSubtitleRelated) {
         return {
           hasScenarioChanges: false,
           explanation: '자막 편집과 관련된 요청이 아닙니다.',
-          success: false
+          success: false,
         }
       }
 
@@ -280,14 +286,15 @@ ${conversationContext}Human: ${currentMessage}`
       return {
         hasScenarioChanges: false,
         explanation: `${classification.actionType} 작업으로 분류되었습니다. 구체적인 편집 기능은 곧 추가될 예정입니다.`,
-        success: true
+        success: true,
       }
     } catch (error) {
       return {
         hasScenarioChanges: false,
         explanation: '편집 요청 처리 중 오류가 발생했습니다.',
         success: false,
-        errorMessage: error instanceof Error ? error.message : '알 수 없는 오류'
+        errorMessage:
+          error instanceof Error ? error.message : '알 수 없는 오류',
       }
     }
   }
