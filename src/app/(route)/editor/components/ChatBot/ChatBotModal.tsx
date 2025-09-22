@@ -124,8 +124,7 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
   }
 
   const handleQuestionClick = (question: string) => {
-    setInputValue(question)
-    // Optionally auto-send the question
+    // 샘플 질문은 바로 전송만 하고 입력란에는 설정하지 않음
     onSendMessage(question)
   }
 
