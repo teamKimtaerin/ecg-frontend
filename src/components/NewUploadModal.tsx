@@ -162,7 +162,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               onClick={() => setActiveTab('upload')}
               className={`flex-1 h-12 text-base font-bold transition-colors cursor-pointer ${
                 activeTab === 'upload'
-                  ? 'bg-gray-900 text-white rounded-l-lg'
+                  ? 'bg-brand-main text-white rounded-l-lg'
                   : 'bg-gray-100 text-gray-900 rounded-l-lg border border-gray-300'
               }`}
             >
@@ -206,7 +206,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
                     <button
                       onClick={handleFileSelectClick}
-                      className="bg-gray-900 text-white px-6 py-2 rounded font-bold hover:bg-gray-800 transition-colors cursor-pointer"
+                      className="bg-brand-main text-white px-6 py-2 rounded font-bold hover:bg-brand-dark transition-colors cursor-pointer"
                       disabled={isLoading}
                     >
                       파일 선택
@@ -226,7 +226,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       {/* 썸네일 우상단 파일 변경 버튼 */}
                       <button
                         onClick={handleFileSelectClick}
-                        className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-xs font-medium hover:bg-opacity-80 transition-all cursor-pointer"
+                        className="absolute top-2 right-2 bg-brand-main bg-opacity-90 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-dark transition-all cursor-pointer"
                         disabled={isLoading}
                       >
                         파일 변경
@@ -395,7 +395,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         <div className="flex justify-end space-x-4">
           <button
             onClick={handleGoBack}
-            className="px-6 py-2 text-gray-500 font-bold text-sm hover:text-gray-700 transition-colors cursor-pointer"
+            className="btn-modern-secondary"
             disabled={isLoading}
           >
             취소
@@ -407,12 +407,12 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading
             }
-            className={`px-8 py-2 rounded font-bold text-white transition-colors ${
+            className={`btn-modern-primary ${
               (activeTab === 'upload' && selectedFiles.length === 0) ||
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading
-                ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-gray-900 hover:bg-gray-800 cursor-pointer'
+                ? 'opacity-50 cursor-not-allowed'
+                : ''
             }`}
           >
             {isLoading ? '처리 중...' : '시작하기'}

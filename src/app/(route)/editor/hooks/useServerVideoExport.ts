@@ -67,15 +67,12 @@ export function useServerVideoExport(): UseServerVideoExportResult {
       const elapsedTime = (Date.now() - startTimeRef.current) / 1000
       let timeRemaining = null
 
-      if (status.progress && status.progress > 0) {
-        // 진행률 기반 남은 시간 계산
-        const totalEstimatedTime = (elapsedTime / status.progress) * 100
-        timeRemaining = Math.max(
-          0,
-          Math.round(totalEstimatedTime - elapsedTime)
-        )
-      } else if (status.estimatedTimeRemaining) {
-        timeRemaining = status.estimatedTimeRemaining
+      // 40초부터 시작해서 진행률에 따라 카운트다운
+      if (status.progress !== undefined) {
+        timeRemaining = Math.max(0, 40 - Math.floor(status.progress * 0.4))
+      } else {
+        // 진행률 정보가 없으면 40초부터 시작
+        timeRemaining = 40
       }
 
       updateState({

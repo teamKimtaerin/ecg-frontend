@@ -3,14 +3,15 @@
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
 import { showToast } from '@/utils/ui/toast'
 import { useEffect, useState } from 'react'
+import { useServerVideoExport } from '../../hooks/useServerVideoExport'
+import { useEditorStore } from '../../store'
+import { useToastTimerStore } from '@/lib/store/toastTimerStore'
+import CustomExportModal from './CustomExportModal'
+import VideoExportProgressModal from './VideoExportProgressModal'
 
 // 중복 토스트 방지를 위한 전역 변수
 let lastToastTime = 0
 const TOAST_DEBOUNCE_TIME = 1000 // 1초
-import { useServerVideoExport } from '../../hooks/useServerVideoExport'
-import { useEditorStore } from '../../store'
-import CustomExportModal from './CustomExportModal'
-import VideoExportProgressModal from './VideoExportProgressModal'
 
 interface ServerVideoExportModalProps {
   isOpen: boolean
@@ -43,6 +44,9 @@ export default function ServerVideoExportModal({
     'ready' | 'exporting' | 'completed' | 'error'
   >('ready')
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
+
+  // 전역 토스트 타이머 store 사용
+  const { startDelayedToast, cancelDelayedToast } = useToastTimerStore()
 
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
@@ -191,6 +195,10 @@ export default function ServerVideoExportModal({
   const handleProgressModalClose = () => {
     setIsProgressModalOpen(false)
     setPhase('ready')
+    onClose() // 부모 모달도 함께 닫기
+
+    // 전역 토스트 타이머로 30초 후 완료 토스트 표시
+    startDelayedToast('영상 출력이 완료되었습니다', 30000)
   }
 
   const handleProgressModalComplete = () => {
@@ -393,7 +401,7 @@ export default function ServerVideoExportModal({
           </div>
 
           {/* 하단 버튼 - Modern Design */}
-          <div className="flex space-x-3 justify-center">
+          <div className="flex space-x-3 justify-end">
             <button onClick={onClose} className="btn-modern-secondary">
               취소
             </button>

@@ -19,8 +19,8 @@ export default function VideoExportResultModal({
 
   const getStatusMessage = () => {
     return status === 'success'
-      ? '영상 출력이 완료되었습니다.'
-      : '영상 출력이 실패되었습니다.'
+      ? '영상 출력이 완료되었습니다'
+      : '영상 출력이 실패되었습니다'
   }
 
   return (

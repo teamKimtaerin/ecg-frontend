@@ -23,8 +23,8 @@ export default function VideoExportProgressModal({
       return
     }
 
-    const duration = 4000 // 4초간 진행
-    const intervalTime = 50 // 50ms마다 업데이트
+    const duration = 8000 // 8초간 진행 (더 천천히)
+    const intervalTime = 100 // 100ms마다 업데이트 (더 천천히)
     const increment = 100 / (duration / intervalTime)
 
     const interval = setInterval(() => {
@@ -47,8 +47,8 @@ export default function VideoExportProgressModal({
     }
   }, [isOpen, onComplete])
 
-  // 가상의 남은 시간 계산 (진행률 기반)
-  const remainingSeconds = Math.max(0, Math.floor((100 - progress) * 0.02)) // 0.02초 per %
+  // 40초부터 시작해서 진행률에 따라 카운트다운
+  const remainingSeconds = Math.max(0, 40 - Math.floor(progress * 0.4)) // 100% 완료시 0초
 
   return (
     <ProgressModal
