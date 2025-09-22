@@ -106,8 +106,8 @@ const FloatingQuestion: React.FC<FloatingQuestionProps> = ({
         }}
         onClick={handleClick}
       >
-        <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg px-4 py-2 hover:from-purple-100 hover:to-purple-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 group">
-          <p className="text-sm text-purple-700 font-medium group-hover:text-purple-800">
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg px-4 py-3 hover:from-purple-100 hover:to-purple-200 hover:border-purple-300 hover:shadow-md transition-all duration-300 ease-in-out transform hover:scale-105 group min-h-[50px] flex items-center">
+          <p className="text-sm text-purple-700 font-medium group-hover:text-purple-800 break-words leading-relaxed">
             💬 {question}
           </p>
         </div>

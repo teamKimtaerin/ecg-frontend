@@ -144,13 +144,13 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
       size="md"
       className="max-w-lg"
     >
-      <div className="flex flex-col h-[500px]" onKeyDown={handleModalKeyDown}>
+      <div className="flex flex-col h-[550px]" onKeyDown={handleModalKeyDown}>
         {/* Messages container */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50 rounded-lg mb-4">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col">
               {/* Welcome message */}
-              <div className="text-center text-gray-500 mb-6">
+              <div className="text-center text-gray-500 mb-4">
                 <p className="text-sm">
                   안녕하세요! 자막 편집에 대해 궁금한 것이 있으면 언제든
                   물어보세요.
@@ -161,23 +161,29 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
               </div>
 
               {/* Floating sample questions */}
-              <div className="flex-1 overflow-hidden relative">
-                {sampleQuestions.map((question, index) => (
-                  <div
-                    key={index}
-                    className="absolute inset-x-0"
-                    style={{
-                      top: `${activeQuestionIndices.indexOf(index) * 60}px`,
-                    }}
-                  >
-                    <FloatingQuestion
-                      question={question}
-                      delay={activeQuestionIndices.indexOf(index) * 100}
-                      onQuestionClick={handleQuestionClick}
-                      isActive={activeQuestionIndices.includes(index)}
-                    />
-                  </div>
-                ))}
+              <div className="flex-1 relative min-h-[250px] overflow-visible">
+                {sampleQuestions.map((question, index) => {
+                  const questionIndex = activeQuestionIndices.indexOf(index)
+                  const isActive = questionIndex !== -1
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="absolute inset-x-0"
+                      style={{
+                        top: `${questionIndex * 70}px`, // Increased spacing from 60px to 70px
+                        zIndex: 10 + questionIndex, // Ensure proper stacking
+                      }}
+                    >
+                      <FloatingQuestion
+                        question={question}
+                        delay={questionIndex * 100}
+                        onQuestionClick={handleQuestionClick}
+                        isActive={isActive}
+                      />
+                    </div>
+                  )
+                })}
               </div>
             </div>
           ) : (
