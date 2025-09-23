@@ -12,32 +12,27 @@ import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
  * 클립 변경 시 화자 목록을 자동으로 동기화하는 훅
  */
 export const useSpeakerSync = () => {
-  const {
-    clips,
-    speakers,
-    speakerColors,
-    setSpeakers,
-    setSpeakerColors,
-  } = useEditorStore()
+  const { clips, speakers, speakerColors, setSpeakers, setSpeakerColors } =
+    useEditorStore()
 
   // 화자 목록 동기화 함수
   const syncSpeakers = useCallback(() => {
     try {
       // 1. 현재 클립에서 사용된 화자 추출
       const clipsBasedSpeakers = extractSpeakersFromClips(clips)
-      
+
       // 2. 기존 Store의 화자와 클립 기반 화자 병합
       const allSpeakers = [...speakers, ...clipsBasedSpeakers]
       const { speakers: normalizedSpeakers } = normalizeSpeakerList(allSpeakers)
-      
+
       // 3. 최소 1명의 화자 보장
       const finalSpeakers = ensureMinimumSpeakers(normalizedSpeakers)
-      
+
       // 4. 기존 화자와 변경사항이 있는지 확인
-      const hasChanged = 
+      const hasChanged =
         finalSpeakers.length !== speakers.length ||
-        finalSpeakers.some(speaker => !speakers.includes(speaker))
-      
+        finalSpeakers.some((speaker) => !speakers.includes(speaker))
+
       if (hasChanged) {
         // 5. 새로운 화자에 대해서만 색상 할당 (기존 색상 유지)
         const newColors = { ...speakerColors }
@@ -47,19 +42,19 @@ export const useSpeakerSync = () => {
             newColors[speaker] = getSpeakerColorByIndex(index)
           }
         })
-        
+
         // 6. 더 이상 사용되지 않는 화자의 색상 제거
         const unusedSpeakers = Object.keys(newColors).filter(
-          speaker => !finalSpeakers.includes(speaker)
+          (speaker) => !finalSpeakers.includes(speaker)
         )
-        unusedSpeakers.forEach(speaker => {
+        unusedSpeakers.forEach((speaker) => {
           delete newColors[speaker]
         })
-        
+
         // 7. Store 업데이트
         setSpeakers(finalSpeakers)
         setSpeakerColors(newColors)
-        
+
         console.log('🔄 [useSpeakerSync] Synchronized speakers:', {
           before: speakers,
           after: finalSpeakers,
@@ -88,15 +83,16 @@ export const useSpeakerSync = () => {
   // 사용되지 않는 화자 찾기
   const getUnusedSpeakers = useCallback(() => {
     const clipsBasedSpeakers = extractSpeakersFromClips(clips)
-    return speakers.filter(speaker => !clipsBasedSpeakers.includes(speaker))
+    return speakers.filter((speaker) => !clipsBasedSpeakers.includes(speaker))
   }, [clips, speakers])
 
   // 화자가 없는 클립 개수
   const getUnassignedClipsCount = useCallback(() => {
-    return clips.filter(clip => 
-      !clip.speaker || 
-      clip.speaker.trim() === '' || 
-      clip.speaker === 'Unknown'
+    return clips.filter(
+      (clip) =>
+        !clip.speaker ||
+        clip.speaker.trim() === '' ||
+        clip.speaker === 'Unknown'
     ).length
   }, [clips])
 

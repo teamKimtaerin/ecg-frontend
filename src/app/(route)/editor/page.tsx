@@ -618,7 +618,7 @@ export default function EditorPage() {
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
-  
+
   // 화자 동기화 훅 - 클립 변경 시 자동으로 화자 목록 동기화
   useSpeakerSync()
 
