@@ -8,12 +8,10 @@ import {
   LuPalette,
   LuInfo,
   LuRefreshCw,
-  LuBarChart,
 } from 'react-icons/lu'
 import chroma from 'chroma-js'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import { useSpeakerSync } from '../hooks/useSpeakerSync'
-import { findUnassignedClips } from '@/utils/speaker/speakerUtils'
 
 interface ClipItem {
   id: string
@@ -326,7 +324,7 @@ export default function SpeakerManagementSidebar({
               className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-600 hover:bg-green-200 rounded transition-colors"
               title="화자 통계 보기"
             >
-              <LuBarChart className="w-3 h-3" />
+              <LuInfo className="w-3 h-3" />
               통계
             </button>
 
@@ -357,7 +355,7 @@ export default function SpeakerManagementSidebar({
           <div className="bg-green-50 rounded-lg p-4 border border-green-200">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <LuBarChart className="w-5 h-5 text-green-600" />
+                <LuInfo className="w-5 h-5 text-green-600" />
                 <h3 className="text-sm font-semibold text-black">화자 통계</h3>
               </div>
               <button
