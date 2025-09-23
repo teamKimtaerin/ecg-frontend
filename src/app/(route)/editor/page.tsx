@@ -582,19 +582,25 @@ export default function EditorPage() {
     }
   }
 
-  // Cleanup blob URLs when component unmounts or videoUrl changes
+  // Get current videoUrl for blob URL tracking
+  const { videoUrl, cleanupPreviousBlobUrl } = useEditorStore()
+
+  // Cleanup blob URLs when videoUrl changes
   useEffect(() => {
-    // Track current blob URL for cleanup
-    let currentBlobUrl: string | null = null
+    // When videoUrl changes, check if we need to cleanup the previous blob URL
+    // The store will handle the cleanup automatically through cleanupPreviousBlobUrl
+    console.log('🔄 VideoUrl changed in page.tsx:', {
+      videoUrl,
+      isBlobUrl: videoUrl?.startsWith('blob:'),
+      timestamp: new Date().toISOString(),
+    })
+  }, [videoUrl])
 
-    // Store에서 현재 videoUrl 가져오기
-    const { videoUrl } = useEditorStore.getState()
-    if (videoUrl && videoUrl.startsWith('blob:')) {
-      currentBlobUrl = videoUrl
-      console.log('📌 Tracking Blob URL for cleanup:', currentBlobUrl)
-    }
-
+  // Cleanup blob URLs on component unmount (fallback safety)
+  useEffect(() => {
     return () => {
+      console.log('🧹 Page unmounting - performing final blob URL cleanup')
+      
       // Cleanup any blob URLs on unmount to prevent memory leaks
       const urls = document.querySelectorAll('video[src^="blob:"]')
       urls.forEach((video) => {
@@ -604,17 +610,18 @@ export default function EditorPage() {
             '🧹 Cleaning up blob URL from video element:',
             videoElement.src
           )
-          URL.revokeObjectURL(videoElement.src)
+          try {
+            URL.revokeObjectURL(videoElement.src)
+          } catch (error) {
+            console.warn('Failed to revoke blob URL from video element:', error)
+          }
         }
       })
 
-      // Also cleanup tracked blob URL
-      if (currentBlobUrl) {
-        console.log('🧹 Cleaning up tracked Blob URL:', currentBlobUrl)
-        URL.revokeObjectURL(currentBlobUrl)
-      }
+      // Final cleanup through store
+      cleanupPreviousBlobUrl()
     }
-  }, [])
+  }, [cleanupPreviousBlobUrl])
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
