@@ -1,9 +1,10 @@
 'use client'
 
 import Modal from '@/components/ui/Modal'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FaVimeo, FaYoutube } from 'react-icons/fa'
 import { LuLink } from 'react-icons/lu'
+import { generateVideoThumbnail, revokeThumbnailUrl, isVideoFile, isAudioFile } from '@/utils/video/videoThumbnail'
 
 interface NewUploadModalProps {
   isOpen: boolean
@@ -42,6 +43,8 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
   )
   const [isDragOver, setIsDragOver] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>('')
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -83,6 +86,15 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         if (validFiles.length > 0) {
           setSelectedFiles(validFiles)
           onFileSelect?.(validFiles)
+          
+          // 첫 번째 파일이 비디오인 경우 썸네일 생성
+          const firstFile = validFiles[0]
+          if (isVideoFile(firstFile)) {
+            generateThumbnailForFile(firstFile)
+          } else {
+            // 오디오 파일이거나 비디오가 아닌 경우 썸네일 없음
+            setThumbnailUrl('')
+          }
         }
       }
     },
@@ -107,6 +119,15 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         if (validFiles.length > 0) {
           setSelectedFiles(validFiles)
           onFileSelect?.(validFiles)
+          
+          // 첫 번째 파일이 비디오인 경우 썸네일 생성
+          const firstFile = validFiles[0]
+          if (isVideoFile(firstFile)) {
+            generateThumbnailForFile(firstFile)
+          } else {
+            // 오디오 파일이거나 비디오가 아닌 경우 썸네일 없음
+            setThumbnailUrl('')
+          }
         }
       }
     },
@@ -115,6 +136,35 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
   const handleFileSelectClick = () => {
     fileInputRef.current?.click()
+  }
+
+  // 썸네일 생성 함수
+  const generateThumbnailForFile = async (file: File) => {
+    try {
+      console.log('Starting thumbnail generation for:', file.name, file.type, file.size)
+      setIsGeneratingThumbnail(true)
+      
+      // 이전 썸네일 URL 정리
+      if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
+        revokeThumbnailUrl(thumbnailUrl)
+      }
+      
+      // 썸네일 생성 (1초 지점 고정)
+      const thumbnail = await generateVideoThumbnail(file, {
+        width: 384, // 썸네일 너비
+        height: 216, // 썸네일 높이 (16:9 비율)
+        quality: 0.8
+      })
+      
+      console.log('Thumbnail generated successfully:', thumbnail)
+      setThumbnailUrl(thumbnail)
+    } catch (error) {
+      console.error('Failed to generate thumbnail:', error)
+      // 썸네일 생성 실패 시 썸네일 없음
+      setThumbnailUrl('')
+    } finally {
+      setIsGeneratingThumbnail(false)
+    }
   }
 
   const handleStartTranscription = async () => {
@@ -136,23 +186,36 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
   const handleGoBack = () => {
     setSelectedFiles([])
+    // 썸네일 URL 정리
+    if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
+      revokeThumbnailUrl(thumbnailUrl)
+    }
+    setThumbnailUrl('')
     onClose()
   }
+
+  // 컴포넌트 언마운트 시 썸네일 URL 정리
+  useEffect(() => {
+    return () => {
+      if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
+        revokeThumbnailUrl(thumbnailUrl)
+      }
+    }
+  }, [thumbnailUrl])
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[512px] max-w-[90vw] max-h-[85vh]"
+      className="w-[512px] max-w-[90vw]"
       closeOnBackdropClick={!isLoading}
       closeOnEsc={!isLoading}
       aria-label="파일 업로드"
-      scrollable={true}
     >
-      <div className="bg-white rounded-xl p-6 relative">
+      <div className="bg-white rounded-xl p-5 relative">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-4">
+        <div className="mb-5">
+          <h1 className="text-xl font-bold text-gray-900 mb-3">
             1. 영상 불러오기
           </h1>
 
@@ -179,7 +242,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
         {/* Upload Tab Content */}
         {activeTab === 'upload' && (
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="relative">
               <div
                 className={`border-2 border-dashed rounded-lg transition-colors ${
@@ -218,11 +281,38 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                   // 파일 선택 상태: 썸네일 UI
                   <div className="p-4">
                     <div className="w-full bg-gray-100 rounded-lg overflow-hidden relative">
-                      <img
-                        src="/friends-thumbnail.png"
-                        alt="선택된 비디오 파일"
-                        className="w-full h-48 object-cover"
-                      />
+                      {isGeneratingThumbnail ? (
+                        // 썸네일 생성 중 로딩 상태
+                        <div className="w-full h-48 flex items-center justify-center bg-gray-200">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-600">썸네일 생성 중...</p>
+                          </div>
+                        </div>
+                      ) : (
+                        thumbnailUrl ? (
+                          <img
+                            src={thumbnailUrl}
+                            alt="선택된 비디오 파일 썸네일"
+                            className="w-full h-48 object-cover"
+                            onError={() => {
+                              // 이미지 로드 실패 시 썸네일 제거
+                              setThumbnailUrl('')
+                            }}
+                          />
+                        ) : (
+                          // 썸네일이 없는 경우 파일 아이콘 표시
+                          <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center">
+                            <div className="text-6xl mb-2">
+                              {isVideoFile(selectedFiles[0]) ? '🎬' : '🎵'}
+                            </div>
+                            <p className="text-sm text-gray-600">
+                              {isVideoFile(selectedFiles[0]) ? '비디오 파일' : '오디오 파일'}
+                            </p>
+                          </div>
+                        )
+                      )}
+                      
                       {/* 썸네일 우상단 파일 변경 버튼 */}
                       <button
                         onClick={handleFileSelectClick}
@@ -231,6 +321,13 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       >
                         파일 변경
                       </button>
+                      
+                      {/* 파일 타입 표시 */}
+                      <div className="absolute bottom-2 left-2">
+                        <span className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
+                          {isVideoFile(selectedFiles[0]) ? '비디오' : '오디오'}
+                        </span>
+                      </div>
                     </div>
                     <div className="mt-3 text-center">
                       <p className="text-sm font-medium text-gray-900">
@@ -259,10 +356,10 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
         {/* Link Tab Content */}
         {activeTab === 'link' && (
-          <div className="mb-6">
+          <div className="mb-4">
             {/* Import from URL Section */}
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-3">
                 <LuLink className="w-8 h-8 text-gray-600" />
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -274,7 +371,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
             </div>
 
             {/* Video URL Input */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Video URL
               </label>
@@ -339,10 +436,10 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         )}
 
         {/* Transcription Settings */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">2. 환경 설정</h2>
+        <div className="mb-4">
+          <h2 className="text-xl font-bold text-gray-900 mb-3">2. 환경 설정</h2>
 
-          <div className="mb-4">
+          <div className="mb-3">
             {/* <h3 className="text-base font-bold text-gray-900 mb-4">
               환경 설정
             </h3> */}

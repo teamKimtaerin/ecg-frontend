@@ -163,12 +163,11 @@ export default function ProcessingModal({
 
           {/* Thumbnail Image */}
           <div className="mb-6 flex justify-center">
-            <div className="w-full max-w-md bg-gray-100 rounded-lg overflow-hidden">
-              <img
-                src="/friends-thumbnail.png"
-                alt="Video thumbnail"
-                className="w-full h-48 object-cover"
-              />
+            <div className="w-full max-w-md bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center h-48">
+              <div className="text-center">
+                <div className="text-6xl mb-2">🎬</div>
+                <p className="text-sm text-gray-600">처리 중인 비디오</p>
+              </div>
             </div>
           </div>
 

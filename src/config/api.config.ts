@@ -11,14 +11,18 @@ export const API_CONFIG = {
       process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') ||
     false,
 
-  // Mock data flag: independently controlled from DEBUG_MODE
+  // Mock data usage flag for development
   USE_MOCK_DATA:
     (typeof process !== 'undefined' &&
       process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true') ||
-    false, // Toggle between mock and real API
+    false,
 
   // API Base URL (환경변수에서 가져오기)
   FASTAPI_BASE_URL: process.env.NEXT_PUBLIC_API_URL!,
+
+  // Mock data paths
+  MOCK_TRANSCRIPTION_PATH: '/friends_result.json',
+  MOCK_VIDEO_PATH: '/friends-thumbnail.png',
 
   // S3 Configuration
   S3_BUCKET: process.env.NEXT_PUBLIC_S3_BUCKET || 'ecg-videos',
@@ -65,13 +69,6 @@ export const API_CONFIG = {
   // Polling intervals
   STATUS_POLL_INTERVAL: 2000, // 2 seconds
 
-  // Mock data paths
-  MOCK_VIDEO_PATH: '/friends.mp4',
-  MOCK_TRANSCRIPTION_PATH:
-    typeof process !== 'undefined' &&
-    process.env.NEXT_PUBLIC_DEBUG_MODE === 'true'
-      ? '/friends_result.json'
-      : '/real.json',
 }
 
 export default API_CONFIG

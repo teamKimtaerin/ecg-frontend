@@ -197,12 +197,13 @@ export default function ProgressModal({
 
           {/* 썸네일 이미지 */}
           <div className="mb-6">
-            <div className="w-full bg-gray-100 rounded-lg overflow-hidden relative">
-              <img
-                src="/friends-thumbnail.png"
-                alt="비디오 썸네일"
-                className="w-full h-48 object-cover"
-              />
+            <div className="w-full bg-gray-100 rounded-lg overflow-hidden relative flex items-center justify-center h-48">
+              <div className="text-center">
+                <div className="text-6xl mb-2">🎬</div>
+                <p className="text-sm text-gray-600">
+                  {type === 'upload' ? '업로드 처리 중' : '변환 처리 중'}
+                </p>
+              </div>
               {/* 오버레이 텍스트 */}
               <div className="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-2 rounded">
                 {type === 'upload'
