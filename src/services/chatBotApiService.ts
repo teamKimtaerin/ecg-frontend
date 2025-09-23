@@ -34,7 +34,7 @@ export default class ChatBotApiService {
 
       // 백엔드 API 호출로 변경
       const backendUrl =
-        process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       const response = await fetch(`${backendUrl}/api/v1/chatbot`, {
         method: 'POST',
         headers: {
