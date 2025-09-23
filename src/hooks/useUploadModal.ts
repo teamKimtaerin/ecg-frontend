@@ -585,6 +585,66 @@ export const useUploadModal = () => {
     [setSpeakers, setSpeakerColors]
   )
 
+  // 화자 정보 초기화 헬퍼 함수
+  const initializeSpeakers = useCallback(
+    (clips: ClipItem[], mlSpeakers?: string[]) => {
+      try {
+        // 1. ML 분석에서 받은 화자 목록 정규화
+        const normalizedMLSpeakers = mlSpeakers
+          ? normalizeSpeakerList(mlSpeakers).speakers
+          : []
+
+        // 2. 실제 클립에서 사용된 화자 추출
+        const clipsBasedSpeakers = extractSpeakersFromClips(clips)
+
+        // 3. 두 목록을 병합하고 정규화
+        const allSpeakers = [...normalizedMLSpeakers, ...clipsBasedSpeakers]
+        const { speakers: finalSpeakers, colors: speakerColors } =
+          normalizeSpeakerList(allSpeakers)
+
+        // 4. 최소 1명의 화자 보장
+        const guaranteedSpeakers = ensureMinimumSpeakers(finalSpeakers)
+
+        // 5. 보장된 화자에 대한 색상 재할당
+        const finalColors: Record<string, string> = {}
+        guaranteedSpeakers.forEach((speaker, index) => {
+          finalColors[speaker] = getSpeakerColorByIndex(index)
+        })
+
+        // 6. Store에 화자 정보 설정
+        setSpeakers(guaranteedSpeakers)
+        setSpeakerColors(finalColors)
+
+        log('useUploadModal', `🎨 Initialized speakers:`, {
+          mlSpeakers: mlSpeakers || [],
+          clipsBasedSpeakers,
+          finalSpeakers: guaranteedSpeakers,
+          colors: finalColors,
+        })
+
+        return {
+          speakers: guaranteedSpeakers,
+          colors: finalColors,
+        }
+      } catch (error) {
+        log('useUploadModal', `❌ Failed to initialize speakers: ${error}`)
+
+        // 실패 시 기본 화자 설정
+        const defaultSpeakers = ['화자1']
+        const defaultColors = { 화자1: getSpeakerColorByIndex(0) }
+
+        setSpeakers(defaultSpeakers)
+        setSpeakerColors(defaultColors)
+
+        return {
+          speakers: defaultSpeakers,
+          colors: defaultColors,
+        }
+      }
+    },
+    [setSpeakers, setSpeakerColors]
+  )
+
   // 처리 완료 핸들러
   const handleProcessingComplete = useCallback(
     (result: ProcessingResult) => {
