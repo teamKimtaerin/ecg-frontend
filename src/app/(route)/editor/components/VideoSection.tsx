@@ -315,12 +315,12 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           />
         </div>
 
-        {/* Virtual Timeline Controller */}
-        <div className="mb-4">
+        {/* Virtual Timeline Controller - Hidden */}
+        {/* <div className="mb-4">
           <VirtualTimelineController
             virtualPlayerController={virtualPlayerControllerRef.current}
           />
-        </div>
+        </div> */}
 
         {/* Text Edit Input Panel */}
         <TextEditInput />
