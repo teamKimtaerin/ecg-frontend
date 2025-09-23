@@ -37,6 +37,19 @@ export interface UploadModalState {
   error?: string
 }
 
+// 초기 모달 상태 정의
+const getInitialModalState = (): UploadModalState => ({
+  isOpen: false,
+  step: 'select',
+  uploadProgress: 0,
+  processingProgress: 0,
+  currentStage: undefined,
+  estimatedTimeRemaining: undefined,
+  fileName: undefined,
+  videoUrl: undefined,
+  error: undefined,
+})
+
 export const useUploadModal = () => {
   const router = useRouter()
   const {
@@ -58,12 +71,7 @@ export const useUploadModal = () => {
     stopGlobalPolling,
   } = useProgressStore()
 
-  const [state, setState] = useState<UploadModalState>({
-    isOpen: false,
-    step: 'select',
-    uploadProgress: 0,
-    processingProgress: 0,
-  })
+  const [state, setState] = useState<UploadModalState>(getInitialModalState)
 
   const [currentJobId, setCurrentJobId] = useState<string>()
   const [currentProgressTaskId, setCurrentProgressTaskId] = useState<number>()
@@ -74,10 +82,28 @@ export const useUploadModal = () => {
     setState((prev) => ({ ...prev, ...updates }))
   }, [])
 
-  // 모달 열기
+  // 모달 열기 - 완전한 초기 상태로 리셋
   const openModal = useCallback(() => {
-    updateState({ isOpen: true, step: 'select' })
-  }, [updateState])
+    log('useUploadModal', '🎬 Opening upload modal with fresh state')
+    
+    // 진행 중인 폴링이 있다면 중단
+    if (stopPollingRef.current) {
+      stopPollingRef.current()
+      stopPollingRef.current = null
+    }
+    
+    // 완전한 초기 상태로 리셋 (단, isOpen은 true로 설정)
+    setState(() => ({
+      ...getInitialModalState(),
+      isOpen: true,
+    }))
+    
+    // 현재 작업 ID들도 초기화
+    setCurrentJobId(undefined)
+    setCurrentProgressTaskId(undefined)
+    
+    console.log('[UPLOAD MODAL] Modal opened with fresh state - no previous upload info')
+  }, [setState])
 
   // 모달 닫기
   const closeModal = useCallback(() => {
@@ -90,19 +116,13 @@ export const useUploadModal = () => {
     // 전역 폴링은 유지하고, progress task도 유지 (다른 페이지에서 확인 가능하도록)
     // Progress store task는 제거하지 않음
 
-    updateState({
-      isOpen: false,
-      step: 'select',
-      uploadProgress: 0,
-      processingProgress: 0,
-      currentStage: undefined,
-      estimatedTimeRemaining: undefined,
-      fileName: undefined,
-      error: undefined,
-    })
+    // 완전한 초기 상태로 리셋 (isOpen은 false로 설정)
+    setState(() => getInitialModalState())
     setCurrentJobId(undefined)
     setCurrentProgressTaskId(undefined)
-  }, [updateState])
+    
+    log('useUploadModal', '🔒 Upload modal closed and state reset')
+  }, [setState])
 
   // 파일 선택 처리
   const handleFileSelect = useCallback(

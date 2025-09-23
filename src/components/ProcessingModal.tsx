@@ -1,9 +1,8 @@
 'use client'
 
-import { FaTimes } from 'react-icons/fa'
-import { FaSpinner } from 'react-icons/fa'
-import { LuLightbulb, LuChevronDown } from 'react-icons/lu'
-import React, { useState, useRef } from 'react'
+import React, { useRef, useState } from 'react'
+import { FaSpinner, FaTimes } from 'react-icons/fa'
+import { LuChevronDown, LuLightbulb } from 'react-icons/lu'
 
 export interface ProcessingModalProps {
   isOpen: boolean
@@ -180,11 +179,11 @@ export default function ProcessingModal({
                   알고 계셨나요?
                 </h4>
                 <p className="text-sm text-gray-700 mb-1">
-                  편집 중인 영상을 다른 사람에게 보여주고 싶다면,
+                  애니메이션 템플릿을 적용하면 전체 자막 스타일을 한 번에 변경할 수 있습니다.
                 </p>
                 <p className="text-sm text-gray-700">
-                  <span className="font-medium">[만일] &gt; [프리뷰 공유]</span>
-                  를 사용하여 간편하게 영상을 공유해 보세요.
+                  <span className="font-medium"> 적합한 템플릿이 없다면</span>
+                  챗봇 어시스턴트를 사용하여 간편하게 커스텀 템플릿을 제작해보세요.
                 </p>
               </div>
             </div>
