@@ -32,10 +32,10 @@ export default class ChatBotApiService {
         temperature: 0.7,
       }
 
-      // 백엔드 API 호출로 변경
-      const backendUrl =
-        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-      const response = await fetch(`${backendUrl}/api/v1/chatbot`, {
+      // ChatBot API 호출 (배포 환경에서는 NEXT_PUBLIC_API_URL 사용)
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
+      const response = await fetch(`${apiUrl}/api/v1/chatbot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
