@@ -85,24 +85,26 @@ export const useUploadModal = () => {
   // 모달 열기 - 완전한 초기 상태로 리셋
   const openModal = useCallback(() => {
     log('useUploadModal', '🎬 Opening upload modal with fresh state')
-    
+
     // 진행 중인 폴링이 있다면 중단
     if (stopPollingRef.current) {
       stopPollingRef.current()
       stopPollingRef.current = null
     }
-    
+
     // 완전한 초기 상태로 리셋 (단, isOpen은 true로 설정)
     setState(() => ({
       ...getInitialModalState(),
       isOpen: true,
     }))
-    
+
     // 현재 작업 ID들도 초기화
     setCurrentJobId(undefined)
     setCurrentProgressTaskId(undefined)
-    
-    console.log('[UPLOAD MODAL] Modal opened with fresh state - no previous upload info')
+
+    console.log(
+      '[UPLOAD MODAL] Modal opened with fresh state - no previous upload info'
+    )
   }, [setState])
 
   // 모달 닫기
@@ -120,7 +122,7 @@ export const useUploadModal = () => {
     setState(() => getInitialModalState())
     setCurrentJobId(undefined)
     setCurrentProgressTaskId(undefined)
-    
+
     log('useUploadModal', '🔒 Upload modal closed and state reset')
   }, [setState])
 
