@@ -8,8 +8,6 @@ import {
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useRouter } from 'next/navigation'
-
 // Store
 import { useEditorStore } from './store'
 
@@ -20,23 +18,19 @@ import { projectInfoManager } from '@/utils/managers/ProjectInfoManager'
 import { mediaStorage } from '@/utils/storage/mediaStorage'
 import { projectStorage } from '@/utils/storage/projectStorage'
 
-// API Services
-import { API_CONFIG } from '@/config/api.config'
-import { transcriptionService } from '@/services/api/transcriptionService'
-
 // Types
 import { ClipItem } from './components/ClipComponent/types'
 import { EditorTab } from './types'
 
 // Hooks
 import ProcessingModal from '@/components/ProcessingModal'
-import { useUploadModal } from '@/hooks/useUploadModal'
 import { useDeployModal } from '@/hooks/useDeployModal'
+import { useUploadModal } from '@/hooks/useUploadModal'
+import useChatBot from './hooks/useChatBot'
 import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
-import useChatBot from './hooks/useChatBot'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -45,14 +39,14 @@ import TutorialModal from '@/components/TutorialModal'
 import { ChevronDownIcon } from '@/components/icons'
 import AlertDialog from '@/components/ui/AlertDialog'
 import DeployModal from '@/components/ui/DeployModal'
-import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResizablePanelDivider from '@/components/ui/ResizablePanelDivider'
-import ChatBotContainer from './components/ChatBot/ChatBotContainer'
 import { normalizeClipOrder } from '@/utils/editor/clipTimelineUtils'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
 import AnimationAssetSidebar from './components/AnimationAssetSidebar'
+import ChatBotContainer from './components/ChatBot/ChatBotContainer'
 import EditorHeaderTabs from './components/EditorHeaderTabs'
+import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
@@ -648,119 +642,8 @@ export default function EditorPage() {
         // Initialize AutosaveManager
         const autosaveManager = AutosaveManager.getInstance()
 
-        // Load friends_result.json for testing
-        interface FriendsWord {
-          word: string
-          start_time: number
-          end_time: number
-          acoustic_features?: { confidence?: number }
-        }
-
-        interface FriendsSegment {
-          speaker_id: string
-          text: string
-          start_time: number
-          end_time: number
-          words: FriendsWord[]
-        }
-
-        interface FriendsData {
-          segments: FriendsSegment[]
-        }
-
-        let transcriptionClips: ClipItem[] = []
-        try {
-          const response = await fetch('/friends_result.json')
-          const friendsData = (await response.json()) as FriendsData
-
-          // Convert friends_result.json format to transcription clips
-          transcriptionClips = friendsData.segments.map(
-            (segment: FriendsSegment, index: number) => ({
-              id: `clip_${index}`,
-              speaker: segment.speaker_id,
-              fullText: segment.text,
-              subtitle: segment.text, // Add subtitle field
-              timeline: `${Math.floor(segment.start_time / 60)
-                .toString()
-                .padStart(2, '0')}:${Math.floor(segment.start_time % 60)
-                .toString()
-                .padStart(2, '0')} → ${Math.floor(segment.end_time / 60)
-                .toString()
-                .padStart(2, '0')}:${Math.floor(segment.end_time % 60)
-                .toString()
-                .padStart(2, '0')}`,
-              duration: `${(segment.end_time - segment.start_time).toFixed(1)}s`, // Add duration field
-              thumbnail: '', // Add empty thumbnail field
-              words: segment.words.map(
-                (word: FriendsWord, wordIndex: number) => ({
-                  id: `word_${index}_${wordIndex}`,
-                  text: word.word,
-                  start: word.start_time,
-                  end: word.end_time,
-                  isEditable: true, // Add isEditable field
-                  confidence: word.acoustic_features?.confidence || 0.9,
-                })
-              ),
-              stickers: [],
-            })
-          )
-
-          console.log(
-            `Loaded ${transcriptionClips.length} clips from friends_result.json`
-          )
-        } catch (error) {
-          console.error('Failed to load friends_result.json:', error)
-          // Fallback to original service
-          transcriptionClips =
-            await transcriptionService.loadTranscriptionClips()
-        }
-        if (transcriptionClips.length > 0) {
-          log(
-            'EditorPage.tsx',
-            `Loaded ${transcriptionClips.length} clips via TranscriptionService`
-          )
-
-          // Extract unique speakers from clips and rename them with numbers
-          const originalSpeakers = Array.from(
-            new Set(transcriptionClips.map((clip) => clip.speaker))
-          )
-
-          // Create mapping for speaker names (original -> numbered)
-          const speakerMapping: Record<string, string> = {}
-          originalSpeakers.forEach((speaker, index) => {
-            speakerMapping[speaker] = `화자${index + 1}`
-          })
-
-          // Update clips with new speaker names (only change speaker field, preserve all text)
-          const updatedClips = transcriptionClips.map((clip) => ({
-            ...clip,
-            speaker: speakerMapping[clip.speaker] || clip.speaker,
-          }))
-
-          const numberedSpeakers = Object.values(speakerMapping)
-
-          setClips(updatedClips)
-          setOriginalClips(updatedClips) // 메모리에 원본 클립 데이터 저장
-          setGlobalSpeakers(numberedSpeakers)
-
-          // IndexedDB에도 원본 클립 저장 (세션 간 유지)
-          saveOriginalClipsToStorage().catch((error) => {
-            console.error('Failed to save original clips to IndexedDB:', error)
-          })
-
-          // Set media info for friends video
-          setMediaInfo({
-            videoUrl: '/friends.mp4',
-            videoName: 'friends.mp4',
-            videoType: 'video/mp4',
-            videoDuration: 143.4,
-          })
-        } else {
-          log(
-            'EditorPage.tsx',
-            'Failed to load transcription data from service'
-          )
-        }
+        // No automatic sample data loading for clean initial state
+        log('EditorPage.tsx', 'Skipping sample data loading for clean initial state')
 
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
@@ -1753,24 +1636,40 @@ export default function EditorPage() {
 
   // 편집 모드 변경 시 사이드바 자동 설정
   useEffect(() => {
-    if (editingMode === 'simple') {
-      // 쉬운 편집 모드에서는 항상 템플릿 사이드바 표시
+    if (editingMode === 'simple' && clips.length > 0) {
+      // 쉬운 편집 모드에서는 클립이 있을 때만 템플릿 사이드바 표시
       setRightSidebarType('template')
+    } else if (clips.length === 0) {
+      // 빈 상태에서는 사이드바 닫기
+      setRightSidebarType(null)
     }
-  }, [editingMode, setRightSidebarType])
+  }, [editingMode, clips.length, setRightSidebarType])
 
-  // 에디터 페이지 진입 시 튜토리얼 모달 표시 (첫 방문자용)
+  // Tutorial modal will now be triggered after upload completion, not page visit
   useEffect(() => {
-    // TODO: localStorage 대신 DB에서 사용자의 튜토리얼 완료 상태를 확인하도록 변경
-    // - 사용자 인증 상태 확인 후 API 호출
-    // - GET /api/user/tutorial-status 또는 사용자 프로필에서 튜토리얼 완료 여부 확인
-    // - 로그인하지 않은 사용자의 경우 localStorage 사용 (임시)
-    // - 튜토리얼 타입별 완료 상태 관리 (editor, upload, export 등)
-    const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
-    if (!hasSeenEditorTutorial && clips.length > 0) {
-      setShowTutorialModal(true)
+    const handleShowTutorialOnUpload = () => {
+      const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+      if (!hasSeenEditorTutorial) {
+        setShowTutorialModal(true)
+      }
     }
-  }, [clips])
+
+    // Check for immediate tutorial trigger flag from upload completion
+    const showTutorialFlag = sessionStorage.getItem('showTutorialAfterProcessing')
+    if (showTutorialFlag) {
+      sessionStorage.removeItem('showTutorialAfterProcessing')
+      const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+      if (!hasSeenEditorTutorial) {
+        // Show tutorial immediately when editor loads after processing
+        setShowTutorialModal(true)
+      }
+    }
+
+    window.addEventListener('showTutorialOnUpload', handleShowTutorialOnUpload)
+    return () => {
+      window.removeEventListener('showTutorialOnUpload', handleShowTutorialOnUpload)
+    }
+  }, [])
 
   const handleTutorialClose = () => {
     // TODO: localStorage 대신 DB에 튜토리얼 완료 상태 저장하도록 변경
@@ -1963,21 +1862,25 @@ export default function EditorPage() {
                 : 'h-[calc(100vh-120px)]' // Only header tabs
             }`}
           >
-            <div
-              className={`sticky top-0 transition-all duration-300 ease-in-out ${
-                isToolbarVisible
-                  ? 'h-[calc(100vh-176px)]'
-                  : 'h-[calc(100vh-120px)]'
-              }`}
-            >
-              <VideoSection width={videoPanelWidth} />
-            </div>
+            {clips.length > 0 && (
+              <>
+                <div
+                  className={`sticky top-0 transition-all duration-300 ease-in-out ${
+                    isToolbarVisible
+                      ? 'h-[calc(100vh-176px)]'
+                      : 'h-[calc(100vh-120px)]'
+                  }`}
+                >
+                  <VideoSection width={videoPanelWidth} />
+                </div>
 
-            <ResizablePanelDivider
-              orientation="vertical"
-              onResize={handlePanelResize}
-              className="z-10"
-            />
+                <ResizablePanelDivider
+                  orientation="vertical"
+                  onResize={handlePanelResize}
+                  className="z-10"
+                />
+              </>
+            )}
 
             <div
               className="flex-1 flex justify-center relative overflow-y-auto custom-scrollbar"
@@ -1992,7 +1895,25 @@ export default function EditorPage() {
                 } as React.CSSProperties
               }
             >
-              {editingMode === 'advanced' ? (
+              {clips.length === 0 ? (
+                // Empty state - show centered "새로 만들기" button
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                      새로운 프로젝트를 시작하세요
+                    </h2>
+                    <p className="text-gray-600 mb-8 max-w-md">
+                      영상 파일을 업로드하여 자막을 생성하고 편집해보세요.
+                    </p>
+                    <button
+                      onClick={() => uploadModal.openModal()}
+                      className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
+                    >
+                      새로 만들기
+                    </button>
+                  </div>
+                </div>
+              ) : editingMode === 'advanced' ? (
                 <SubtitleEditList
                   clips={clips}
                   selectedClipIds={selectedClipIds}
@@ -2067,18 +1988,20 @@ export default function EditorPage() {
             </div>
 
             {/* Right Sidebar - 슬라이드 애니메이션과 함께 */}
-            <div
-              className={`transition-all duration-300 ease-out overflow-hidden ${
-                rightSidebarType
-                  ? `w-[${assetSidebarWidth}px] opacity-100`
-                  : 'w-0 opacity-0'
-              }`}
-              style={{
-                width: rightSidebarType ? `${assetSidebarWidth}px` : '0px',
-              }}
-            >
-              <div className="flex h-full">
-                {rightSidebarType && (
+            {/* Only show sidebar when clips exist (not in init state) */}
+            {clips.length > 0 && (
+              <div
+                className={`transition-all duration-300 ease-out overflow-hidden ${
+                  rightSidebarType
+                    ? `w-[${assetSidebarWidth}px] opacity-100`
+                    : 'w-0 opacity-0'
+                }`}
+                style={{
+                  width: rightSidebarType ? `${assetSidebarWidth}px` : '0px',
+                }}
+              >
+                <div className="flex h-full">
+                  {rightSidebarType && (
                   <>
                     <ResizablePanelDivider
                       orientation="vertical"
@@ -2158,6 +2081,7 @@ export default function EditorPage() {
                 )}
               </div>
             </div>
+            )}
           </div>
 
           <NewUploadModal

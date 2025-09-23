@@ -701,19 +701,22 @@ export const useUploadModal = () => {
 
         updateState({ step: 'completed' })
 
-        // 3초 후 자동으로 에디터로 이동
-        setTimeout(() => {
-          goToEditor()
-        }, 3000)
+        // Check if this is the first time user and prepare tutorial trigger
+        const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+        if (!hasSeenEditorTutorial) {
+          // Set flag for immediate tutorial trigger
+          sessionStorage.setItem('showTutorialAfterProcessing', 'true')
+        }
+
+        // 즉시 에디터로 이동 (3초 대기 제거)
+        goToEditor()
       } catch (error) {
         log('useUploadModal', `❌ Failed to process result: ${error}`)
         log('useUploadModal', '⚠️ Proceeding to editor despite error')
 
-        // 에러가 발생해도 완료 처리하고 에디터로 이동
+        // 에러가 발생해도 완료 처리하고 즉시 에디터로 이동
         updateState({ step: 'completed' })
-        setTimeout(() => {
-          goToEditor()
-        }, 1000)
+        goToEditor()
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -848,8 +851,21 @@ export const useUploadModal = () => {
   // 에디터로 이동
   const goToEditor = useCallback(() => {
     log('useUploadModal', '🚀 Navigating to editor')
+    
+    // Check if this is the first time user - show tutorial modal immediately after upload completion
+    const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+    const shouldShowTutorial = !hasSeenEditorTutorial
+    
     closeModal()
     router.push('/editor')
+    
+    // Trigger tutorial modal immediately after navigation starts
+    if (shouldShowTutorial) {
+      // Use requestAnimationFrame to ensure DOM is updated after route change
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new CustomEvent('showTutorialOnUpload'))
+      })
+    }
   }, [closeModal, router])
 
   // 처리 취소
