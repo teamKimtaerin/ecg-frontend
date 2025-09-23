@@ -68,7 +68,6 @@ export const API_CONFIG = {
 
   // Polling intervals
   STATUS_POLL_INTERVAL: 2000, // 2 seconds
-
 }
 
 export default API_CONFIG

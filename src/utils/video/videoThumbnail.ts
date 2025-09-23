@@ -19,17 +19,13 @@ export const generateVideoThumbnail = async (
   file: File,
   options: VideoThumbnailOptions = {}
 ): Promise<string> => {
-  const {
-    width = 320,
-    height = 180,
-    quality = 0.8,
-  } = options
+  const { width = 320, height = 180, quality = 0.8 } = options
 
   console.log('🎬 Starting thumbnail generation:', {
     fileName: file.name,
     fileType: file.type,
     fileSize: file.size,
-    options
+    options,
   })
 
   return new Promise((resolve, reject) => {
@@ -91,8 +87,12 @@ export const generateVideoThumbnail = async (
     // 캡처 함수
     const captureFrame = () => {
       try {
-        console.log('📸 Attempting to capture frame at', video.currentTime, 'seconds')
-        
+        console.log(
+          '📸 Attempting to capture frame at',
+          video.currentTime,
+          'seconds'
+        )
+
         // Canvas 크기 설정
         canvas.width = width
         canvas.height = height
@@ -106,19 +106,24 @@ export const generateVideoThumbnail = async (
           throw new Error('Video not ready for capture')
         }
 
-        console.log('📹 Video dimensions:', video.videoWidth, 'x', video.videoHeight)
+        console.log(
+          '📹 Video dimensions:',
+          video.videoWidth,
+          'x',
+          video.videoHeight
+        )
         console.log('🎨 Canvas dimensions:', width, 'x', height)
 
         // 비디오 프레임을 canvas에 그리기
         ctx.drawImage(video, 0, 0, width, height)
-        
+
         console.log('✅ Frame drawn to canvas successfully')
 
         // Canvas를 Blob으로 변환
         canvas.toBlob(
           (blob) => {
             clearTimeout(timeoutId)
-            
+
             if (blob) {
               const thumbnailUrl = URL.createObjectURL(blob)
               console.log('🎉 Thumbnail generated successfully:', thumbnailUrl)
@@ -157,7 +162,7 @@ export const generateVideoThumbnail = async (
         duration: video.duration,
         videoWidth: video.videoWidth,
         videoHeight: video.videoHeight,
-        readyState: video.readyState
+        readyState: video.readyState,
       })
 
       // 1초 지점으로 고정 (비디오가 1초보다 짧으면 중간 지점)
@@ -191,7 +196,11 @@ export const generateVideoThumbnail = async (
       clearTimeout(timeoutId)
       cleanup()
       console.error('❌ Video error:', e, video.error)
-      safeReject(new Error(`Failed to load video: ${video.error?.message || 'Unknown error'}`))
+      safeReject(
+        new Error(
+          `Failed to load video: ${video.error?.message || 'Unknown error'}`
+        )
+      )
     })
 
     // Fallback: 만약 seeked 이벤트가 발생하지 않으면 일정 시간 후 시도
@@ -202,11 +211,13 @@ export const generateVideoThumbnail = async (
       videoUrl = URL.createObjectURL(file)
       console.log('🔗 Created video URL:', videoUrl)
       video.src = videoUrl
-      
+
       // Fallback 타이머 설정
       fallbackTimeoutId = setTimeout(() => {
         if (!hasResolved && video.readyState >= 2) {
-          console.log('⚠️ Seeked event did not fire, attempting fallback capture')
+          console.log(
+            '⚠️ Seeked event did not fire, attempting fallback capture'
+          )
           captureFrame()
         }
       }, 5000)

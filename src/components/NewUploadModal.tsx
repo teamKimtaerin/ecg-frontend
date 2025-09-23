@@ -4,7 +4,12 @@ import Modal from '@/components/ui/Modal'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FaVimeo, FaYoutube } from 'react-icons/fa'
 import { LuLink } from 'react-icons/lu'
-import { generateVideoThumbnail, revokeThumbnailUrl, isVideoFile, isAudioFile } from '@/utils/video/videoThumbnail'
+import {
+  generateVideoThumbnail,
+  revokeThumbnailUrl,
+  isVideoFile,
+  isAudioFile,
+} from '@/utils/video/videoThumbnail'
 
 interface NewUploadModalProps {
   isOpen: boolean
@@ -86,7 +91,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         if (validFiles.length > 0) {
           setSelectedFiles(validFiles)
           onFileSelect?.(validFiles)
-          
+
           // 첫 번째 파일이 비디오인 경우 썸네일 생성
           const firstFile = validFiles[0]
           if (isVideoFile(firstFile)) {
@@ -119,7 +124,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         if (validFiles.length > 0) {
           setSelectedFiles(validFiles)
           onFileSelect?.(validFiles)
-          
+
           // 첫 번째 파일이 비디오인 경우 썸네일 생성
           const firstFile = validFiles[0]
           if (isVideoFile(firstFile)) {
@@ -141,21 +146,26 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
   // 썸네일 생성 함수
   const generateThumbnailForFile = async (file: File) => {
     try {
-      console.log('Starting thumbnail generation for:', file.name, file.type, file.size)
+      console.log(
+        'Starting thumbnail generation for:',
+        file.name,
+        file.type,
+        file.size
+      )
       setIsGeneratingThumbnail(true)
-      
+
       // 이전 썸네일 URL 정리
       if (thumbnailUrl && thumbnailUrl.startsWith('blob:')) {
         revokeThumbnailUrl(thumbnailUrl)
       }
-      
+
       // 썸네일 생성 (1초 지점 고정)
       const thumbnail = await generateVideoThumbnail(file, {
         width: 384, // 썸네일 너비
         height: 216, // 썸네일 높이 (16:9 비율)
-        quality: 0.8
+        quality: 0.8,
       })
-      
+
       console.log('Thumbnail generated successfully:', thumbnail)
       setThumbnailUrl(thumbnail)
     } catch (error) {
@@ -286,33 +296,35 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                         <div className="w-full h-48 flex items-center justify-center bg-gray-200">
                           <div className="text-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
-                            <p className="text-sm text-gray-600">썸네일 생성 중...</p>
-                          </div>
-                        </div>
-                      ) : (
-                        thumbnailUrl ? (
-                          <img
-                            src={thumbnailUrl}
-                            alt="선택된 비디오 파일 썸네일"
-                            className="w-full h-48 object-cover"
-                            onError={() => {
-                              // 이미지 로드 실패 시 썸네일 제거
-                              setThumbnailUrl('')
-                            }}
-                          />
-                        ) : (
-                          // 썸네일이 없는 경우 파일 아이콘 표시
-                          <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center">
-                            <div className="text-6xl mb-2">
-                              {isVideoFile(selectedFiles[0]) ? '🎬' : '🎵'}
-                            </div>
                             <p className="text-sm text-gray-600">
-                              {isVideoFile(selectedFiles[0]) ? '비디오 파일' : '오디오 파일'}
+                              썸네일 생성 중...
                             </p>
                           </div>
-                        )
+                        </div>
+                      ) : thumbnailUrl ? (
+                        <img
+                          src={thumbnailUrl}
+                          alt="선택된 비디오 파일 썸네일"
+                          className="w-full h-48 object-cover"
+                          onError={() => {
+                            // 이미지 로드 실패 시 썸네일 제거
+                            setThumbnailUrl('')
+                          }}
+                        />
+                      ) : (
+                        // 썸네일이 없는 경우 파일 아이콘 표시
+                        <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center">
+                          <div className="text-6xl mb-2">
+                            {isVideoFile(selectedFiles[0]) ? '🎬' : '🎵'}
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            {isVideoFile(selectedFiles[0])
+                              ? '비디오 파일'
+                              : '오디오 파일'}
+                          </p>
+                        </div>
                       )}
-                      
+
                       {/* 썸네일 우상단 파일 변경 버튼 */}
                       <button
                         onClick={handleFileSelectClick}
@@ -321,7 +333,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       >
                         파일 변경
                       </button>
-                      
+
                       {/* 파일 타입 표시 */}
                       <div className="absolute bottom-2 left-2">
                         <span className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">

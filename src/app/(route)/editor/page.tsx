@@ -643,7 +643,10 @@ export default function EditorPage() {
         const autosaveManager = AutosaveManager.getInstance()
 
         // No automatic sample data loading for clean initial state
-        log('EditorPage.tsx', 'Skipping sample data loading for clean initial state')
+        log(
+          'EditorPage.tsx',
+          'Skipping sample data loading for clean initial state'
+        )
 
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
@@ -1648,17 +1651,23 @@ export default function EditorPage() {
   // Tutorial modal will now be triggered after upload completion, not page visit
   useEffect(() => {
     const handleShowTutorialOnUpload = () => {
-      const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+      const hasSeenEditorTutorial = localStorage.getItem(
+        'hasSeenEditorTutorial'
+      )
       if (!hasSeenEditorTutorial) {
         setShowTutorialModal(true)
       }
     }
 
     // Check for immediate tutorial trigger flag from upload completion
-    const showTutorialFlag = sessionStorage.getItem('showTutorialAfterProcessing')
+    const showTutorialFlag = sessionStorage.getItem(
+      'showTutorialAfterProcessing'
+    )
     if (showTutorialFlag) {
       sessionStorage.removeItem('showTutorialAfterProcessing')
-      const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+      const hasSeenEditorTutorial = localStorage.getItem(
+        'hasSeenEditorTutorial'
+      )
       if (!hasSeenEditorTutorial) {
         // Show tutorial immediately when editor loads after processing
         setShowTutorialModal(true)
@@ -1667,7 +1676,10 @@ export default function EditorPage() {
 
     window.addEventListener('showTutorialOnUpload', handleShowTutorialOnUpload)
     return () => {
-      window.removeEventListener('showTutorialOnUpload', handleShowTutorialOnUpload)
+      window.removeEventListener(
+        'showTutorialOnUpload',
+        handleShowTutorialOnUpload
+      )
     }
   }, [])
 
@@ -2002,85 +2014,85 @@ export default function EditorPage() {
               >
                 <div className="flex h-full">
                   {rightSidebarType && (
-                  <>
-                    <ResizablePanelDivider
-                      orientation="vertical"
-                      onResize={handleAssetSidebarResize}
-                      className="z-10"
-                    />
+                    <>
+                      <ResizablePanelDivider
+                        orientation="vertical"
+                        onResize={handleAssetSidebarResize}
+                        className="z-10"
+                      />
 
-                    {/* Animation Asset Sidebar */}
-                    {rightSidebarType === 'animation' && (
-                      <div
-                        className={`transform transition-all duration-300 ease-out w-full ${
-                          rightSidebarType === 'animation'
-                            ? 'translate-x-0 opacity-100'
-                            : 'translate-x-full opacity-0'
-                        }`}
-                      >
-                        <AnimationAssetSidebar
-                          onAssetSelect={(asset) => {
-                            console.log('Asset selected in editor:', asset)
-                            // TODO: Apply asset effect to focused clip
-                          }}
-                          onClose={handleCloseSidebar}
-                        />
-                      </div>
-                    )}
+                      {/* Animation Asset Sidebar */}
+                      {rightSidebarType === 'animation' && (
+                        <div
+                          className={`transform transition-all duration-300 ease-out w-full ${
+                            rightSidebarType === 'animation'
+                              ? 'translate-x-0 opacity-100'
+                              : 'translate-x-full opacity-0'
+                          }`}
+                        >
+                          <AnimationAssetSidebar
+                            onAssetSelect={(asset) => {
+                              console.log('Asset selected in editor:', asset)
+                              // TODO: Apply asset effect to focused clip
+                            }}
+                            onClose={handleCloseSidebar}
+                          />
+                        </div>
+                      )}
 
-                    {/* Template Sidebar */}
-                    {rightSidebarType === 'template' && (
-                      <div
-                        className={`transform transition-all duration-300 ease-out w-full ${
-                          rightSidebarType === 'template'
-                            ? 'translate-x-0 opacity-100'
-                            : 'translate-x-full opacity-0'
-                        }`}
-                      >
-                        <TemplateSidebar
-                          onTemplateSelect={(template) => {
-                            console.log(
-                              'Template selected in editor:',
-                              template
-                            )
-                            // TODO: Apply template to focused clip
-                          }}
-                          onClose={handleCloseSidebar}
-                        />
-                      </div>
-                    )}
+                      {/* Template Sidebar */}
+                      {rightSidebarType === 'template' && (
+                        <div
+                          className={`transform transition-all duration-300 ease-out w-full ${
+                            rightSidebarType === 'template'
+                              ? 'translate-x-0 opacity-100'
+                              : 'translate-x-full opacity-0'
+                          }`}
+                        >
+                          <TemplateSidebar
+                            onTemplateSelect={(template) => {
+                              console.log(
+                                'Template selected in editor:',
+                                template
+                              )
+                              // TODO: Apply template to focused clip
+                            }}
+                            onClose={handleCloseSidebar}
+                          />
+                        </div>
+                      )}
 
-                    {/* Speaker Management Sidebar */}
-                    {rightSidebarType === 'speaker' && (
-                      <div
-                        className={`sticky top-0 transition-all duration-300 ease-out transform w-full ${
-                          isToolbarVisible
-                            ? 'h-[calc(100vh-176px)]'
-                            : 'h-[calc(100vh-120px)]'
-                        } ${
-                          rightSidebarType === 'speaker'
-                            ? 'translate-x-0 opacity-100'
-                            : 'translate-x-full opacity-0'
-                        }`}
-                      >
-                        <SpeakerManagementSidebar
-                          isOpen={rightSidebarType === 'speaker'}
-                          onClose={handleCloseSidebar}
-                          speakers={globalSpeakers}
-                          clips={clips}
-                          speakerColors={speakerColors}
-                          onAddSpeaker={handleAddSpeaker}
-                          onRemoveSpeaker={handleRemoveSpeaker}
-                          onRenameSpeaker={handleRenameSpeaker}
-                          onBatchSpeakerChange={handleBatchSpeakerChange}
-                          onSpeakerColorChange={handleSpeakerColorChange}
-                        />
-                      </div>
-                    )}
-                  </>
-                )}
+                      {/* Speaker Management Sidebar */}
+                      {rightSidebarType === 'speaker' && (
+                        <div
+                          className={`sticky top-0 transition-all duration-300 ease-out transform w-full ${
+                            isToolbarVisible
+                              ? 'h-[calc(100vh-176px)]'
+                              : 'h-[calc(100vh-120px)]'
+                          } ${
+                            rightSidebarType === 'speaker'
+                              ? 'translate-x-0 opacity-100'
+                              : 'translate-x-full opacity-0'
+                          }`}
+                        >
+                          <SpeakerManagementSidebar
+                            isOpen={rightSidebarType === 'speaker'}
+                            onClose={handleCloseSidebar}
+                            speakers={globalSpeakers}
+                            clips={clips}
+                            speakerColors={speakerColors}
+                            onAddSpeaker={handleAddSpeaker}
+                            onRemoveSpeaker={handleRemoveSpeaker}
+                            onRenameSpeaker={handleRenameSpeaker}
+                            onBatchSpeakerChange={handleBatchSpeakerChange}
+                            onSpeakerColorChange={handleSpeakerColorChange}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
             )}
           </div>
 

@@ -33,7 +33,7 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
       try {
         const response = await fetch('/asset-store/assets-database.json')
         const data = await response.json()
-        
+
         // 인기 에셋 선별 (다운로드 수 기준 상위 12개)
         const popular = data.assets
           .sort((a: any, b: any) => b.downloads - a.downloads)
@@ -47,9 +47,9 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
             likes: asset.likes,
             iconName: asset.iconName,
             tags: asset.tags,
-            isPro: asset.isPro
+            isPro: asset.isPro,
           }))
-        
+
         setFeaturedAssets(popular)
         setIsLoading(false)
       } catch (error) {
@@ -57,15 +57,16 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
         setIsLoading(false)
       }
     }
-    
+
     loadFeaturedAssets()
   }, [])
 
   // 카테고리 필터링
   const categories = ['All', 'Smooth', 'Dynamic', 'Unique']
-  const filteredAssets = selectedCategory === 'All' 
-    ? featuredAssets 
-    : featuredAssets.filter(asset => asset.category === selectedCategory)
+  const filteredAssets =
+    selectedCategory === 'All'
+      ? featuredAssets
+      : featuredAssets.filter((asset) => asset.category === selectedCategory)
 
   // 에셋 스토어로 이동
   const handleAssetClick = (assetId: string) => {
@@ -75,7 +76,6 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
   const handleViewAllAssets = () => {
     router.push('/asset-store')
   }
-
 
   return (
     <section className="py-20 px-4 bg-gray-50">
@@ -87,7 +87,8 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
           <p className="text-base text-black max-w-3xl mx-auto leading-relaxed">
             다양한 무료 이펙트로 영상을 더욱 풍성하게 만드세요.
             <br />
-            상업적 이용 가능한 고품질 자막 애니메이션을 무제한으로 활용할 수 있어요
+            상업적 이용 가능한 고품질 자막 애니메이션을 무제한으로 활용할 수
+            있어요
           </p>
         </div>
 
@@ -104,9 +105,13 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
-                {category === 'All' ? '전체' : 
-                 category === 'Smooth' ? '부드러운' :
-                 category === 'Dynamic' ? '역동적' : '독특한'}
+                {category === 'All'
+                  ? '전체'
+                  : category === 'Smooth'
+                    ? '부드러운'
+                    : category === 'Dynamic'
+                      ? '역동적'
+                      : '독특한'}
               </button>
             ))}
           </div>
@@ -129,37 +134,44 @@ const FreeAssetsSection: React.FC<FreeAssetsSectionProps> = ({
                   style={{
                     animationDelay: `${index * 100}ms`,
                     opacity: 0,
-                    animation: `fadeInUp 0.6s ease-out ${index * 100}ms forwards`
+                    animation: `fadeInUp 0.6s ease-out ${index * 100}ms forwards`,
                   }}
                 >
-                  <div className={`rounded-xl p-6 h-32 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 ${
-                    asset.category === 'Smooth' 
-                      ? 'bg-gradient-to-br from-blue-50 to-cyan-100 group-hover:from-blue-100 group-hover:to-cyan-200' 
-                      : asset.category === 'Dynamic' 
-                      ? 'bg-gradient-to-br from-purple-50 to-pink-100 group-hover:from-purple-100 group-hover:to-pink-200'
-                      : 'bg-gradient-to-br from-amber-50 to-orange-100 group-hover:from-amber-100 group-hover:to-orange-200'
-                  }`}>
+                  <div
+                    className={`rounded-xl p-6 h-32 flex flex-col items-center justify-center relative overflow-hidden transition-all duration-300 ${
+                      asset.category === 'Smooth'
+                        ? 'bg-gradient-to-br from-blue-50 to-cyan-100 group-hover:from-blue-100 group-hover:to-cyan-200'
+                        : asset.category === 'Dynamic'
+                          ? 'bg-gradient-to-br from-purple-50 to-pink-100 group-hover:from-purple-100 group-hover:to-pink-200'
+                          : 'bg-gradient-to-br from-amber-50 to-orange-100 group-hover:from-amber-100 group-hover:to-orange-200'
+                    }`}
+                  >
                     {/* 배경 패턴 */}
                     <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/30 to-transparent"></div>
-                    
+
                     {/* 제목 */}
                     <h3 className="relative z-10 text-lg font-bold text-gray-800 text-center leading-tight mb-2 group-hover:scale-105 transition-transform duration-300">
                       {asset.title}
                     </h3>
-                    
+
                     {/* 카테고리 텍스트 */}
-                    <span className={`relative z-10 px-3 py-1 text-xs font-semibold rounded-full ${
-                      asset.category === 'Smooth' 
-                        ? 'bg-blue-200/80 text-blue-800' 
-                        : asset.category === 'Dynamic' 
-                        ? 'bg-purple-200/80 text-purple-800'
-                        : 'bg-amber-200/80 text-amber-800'
-                    }`}>
-                      {asset.category === 'Smooth' ? '부드러운' :
-                       asset.category === 'Dynamic' ? '역동적' : '독특한'}
+                    <span
+                      className={`relative z-10 px-3 py-1 text-xs font-semibold rounded-full ${
+                        asset.category === 'Smooth'
+                          ? 'bg-blue-200/80 text-blue-800'
+                          : asset.category === 'Dynamic'
+                            ? 'bg-purple-200/80 text-purple-800'
+                            : 'bg-amber-200/80 text-amber-800'
+                      }`}
+                    >
+                      {asset.category === 'Smooth'
+                        ? '부드러운'
+                        : asset.category === 'Dynamic'
+                          ? '역동적'
+                          : '독특한'}
                     </span>
                   </div>
-                  
+
                   {/* 통계 정보 */}
                   <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
                     <span className="flex items-center">

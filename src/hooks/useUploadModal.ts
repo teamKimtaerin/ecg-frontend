@@ -702,7 +702,9 @@ export const useUploadModal = () => {
         updateState({ step: 'completed' })
 
         // Check if this is the first time user and prepare tutorial trigger
-        const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
+        const hasSeenEditorTutorial = localStorage.getItem(
+          'hasSeenEditorTutorial'
+        )
         if (!hasSeenEditorTutorial) {
           // Set flag for immediate tutorial trigger
           sessionStorage.setItem('showTutorialAfterProcessing', 'true')
@@ -851,14 +853,14 @@ export const useUploadModal = () => {
   // 에디터로 이동
   const goToEditor = useCallback(() => {
     log('useUploadModal', '🚀 Navigating to editor')
-    
+
     // Check if this is the first time user - show tutorial modal immediately after upload completion
     const hasSeenEditorTutorial = localStorage.getItem('hasSeenEditorTutorial')
     const shouldShowTutorial = !hasSeenEditorTutorial
-    
+
     closeModal()
     router.push('/editor')
-    
+
     // Trigger tutorial modal immediately after navigation starts
     if (shouldShowTutorial) {
       // Use requestAnimationFrame to ensure DOM is updated after route change
