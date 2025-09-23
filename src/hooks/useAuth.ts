@@ -15,7 +15,7 @@ export const useAuth = () => {
       console.log('🔍 useAuth: Attempting to restore auth state')
       store.getCurrentUser()
     }
-  }, [store.hasAuthChecked, store.isLoading, store.getCurrentUser])
+  }, [store.hasAuthChecked, store.isLoading])
 
   return {
     // 상태

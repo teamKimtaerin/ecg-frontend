@@ -43,7 +43,13 @@ export const useUploadModal = () => {
   } = useEditorStore()
 
   // Progress store integration
-  const { addTask, updateTask, removeTask } = useProgressStore()
+  const {
+    addTask,
+    updateTask,
+    removeTask,
+    startGlobalPolling,
+    stopGlobalPolling,
+  } = useProgressStore()
 
   const [state, setState] = useState<UploadModalState>({
     isOpen: false,
@@ -68,17 +74,14 @@ export const useUploadModal = () => {
 
   // 모달 닫기
   const closeModal = useCallback(() => {
-    // 진행 중인 폴링 중단
+    // 진행 중인 로컬 폴링 중단 (전역 폴링은 유지)
     if (stopPollingRef.current) {
       stopPollingRef.current()
       stopPollingRef.current = null
     }
 
-    // Progress store task 제거 (진행 중인 경우만)
-    if (currentProgressTaskId) {
-      removeTask(currentProgressTaskId)
-      setCurrentProgressTaskId(undefined)
-    }
+    // 전역 폴링은 유지하고, progress task도 유지 (다른 페이지에서 확인 가능하도록)
+    // Progress store task는 제거하지 않음
 
     updateState({
       isOpen: false,
@@ -91,7 +94,8 @@ export const useUploadModal = () => {
       error: undefined,
     })
     setCurrentJobId(undefined)
-  }, [updateState, currentProgressTaskId, removeTask])
+    setCurrentProgressTaskId(undefined)
+  }, [updateState])
 
   // 파일 선택 처리
   const handleFileSelect = useCallback(
@@ -411,45 +415,52 @@ export const useUploadModal = () => {
         setCurrentJobId(job_id)
         updateState({ estimatedTimeRemaining: estimated_time || 180 })
 
-        log('useUploadModal', `🔄 Starting polling for job: ${job_id}`)
-        console.log('[useUploadModal] About to start polling for job:', job_id)
+        log('useUploadModal', `🔄 Starting global polling for job: ${job_id}`)
+        console.log(
+          '[useUploadModal] About to start global polling for job:',
+          job_id
+        )
 
-        // 5. 상태 폴링 시작
+        // 5. 전역 상태 폴링 시작 (페이지 이동해도 계속 폴링)
+        if (progressTaskId) {
+          startGlobalPolling(
+            job_id,
+            progressTaskId,
+            (result: ProcessingResult) => {
+              log(
+                'useUploadModal',
+                '🎉 Processing completed successfully via global polling'
+              )
+              handleProcessingComplete(result)
+            }
+          )
+        }
+
+        // 로컬 상태 업데이트를 위한 추가 폴링 (현재 페이지에 있을 때만)
         const stopPolling = uploadService.startPolling(
           job_id,
           (status: ProcessingStatus) => {
             log(
               'useUploadModal',
-              `📊 Status update: ${status.status} (${status.progress}%)`
+              `📊 Local status update: ${status.status} (${status.progress}%)`
             )
             updateState({
               processingProgress: status.progress,
               currentStage: status.current_stage,
               estimatedTimeRemaining: status.estimated_time_remaining,
             })
-            // Progress store 업데이트
-            if (progressTaskId) {
-              updateTask(progressTaskId, {
-                progress: status.progress,
-                currentStage: status.current_stage,
-                estimatedTimeRemaining: status.estimated_time_remaining,
-              })
-            }
           },
           (result: ProcessingResult) => {
-            log('useUploadModal', '🎉 Processing completed successfully')
-            if (progressTaskId) {
-              updateTask(progressTaskId, {
-                status: 'completed',
-                progress: 100,
-              })
-            }
-            handleProcessingComplete(result)
+            // 전역 폴링에서 이미 처리됨
+            log(
+              'useUploadModal',
+              '🎉 Local polling completed - handled by global polling'
+            )
           },
           (error) => {
             const errorMessage =
               error?.message || error?.error || 'Unknown error'
-            log('useUploadModal', `❌ Processing failed: ${errorMessage}`)
+            log('useUploadModal', `❌ Local polling failed: ${errorMessage}`)
 
             // 422 에러이고 이미 처리 완료된 경우 무시하고 완료 처리
             if (
@@ -460,12 +471,6 @@ export const useUploadModal = () => {
                 'useUploadModal',
                 '⚠️ Ignoring 422 error after completion - proceeding to editor'
               )
-              if (progressTaskId) {
-                updateTask(progressTaskId, {
-                  status: 'completed',
-                  progress: 100,
-                })
-              }
               updateState({ step: 'completed' })
               setTimeout(() => {
                 goToEditor()
@@ -473,11 +478,6 @@ export const useUploadModal = () => {
               return
             }
 
-            if (progressTaskId) {
-              updateTask(progressTaskId, {
-                status: 'failed',
-              })
-            }
             updateState({
               step: 'failed',
               error: errorMessage,
@@ -486,7 +486,7 @@ export const useUploadModal = () => {
         )
 
         console.log(
-          '[useUploadModal] Polling started, stopPolling function:',
+          '[useUploadModal] Local polling started, stopPolling function:',
           stopPolling
         )
         stopPollingRef.current = stopPolling
@@ -873,6 +873,9 @@ export const useUploadModal = () => {
     if (currentJobId) {
       log('useUploadModal', `🛑 Cancelling job: ${currentJobId}`)
       await uploadService.cancelProcessing(currentJobId)
+
+      // 전역 폴링도 중단
+      stopGlobalPolling(currentJobId)
     }
 
     if (stopPollingRef.current) {
@@ -887,7 +890,13 @@ export const useUploadModal = () => {
     }
 
     closeModal()
-  }, [currentJobId, currentProgressTaskId, removeTask, closeModal])
+  }, [
+    currentJobId,
+    currentProgressTaskId,
+    removeTask,
+    closeModal,
+    stopGlobalPolling,
+  ])
 
   // 재시도
   const retryUpload = useCallback(() => {

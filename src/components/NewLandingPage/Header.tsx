@@ -11,6 +11,7 @@ import DeployModal from '@/components/ui/DeployModal'
 import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
 import { useProgressTasks } from '@/hooks/useProgressTasks'
+import { useProgressStore } from '@/lib/store/progressStore'
 import { LuBell } from 'react-icons/lu'
 
 export interface HeaderProps {
@@ -31,11 +32,21 @@ const Header: React.FC<HeaderProps> = ({
   const {} = useAuthStatus()
   const router = useRouter()
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
-  const { openDeployModal, deployModalProps } = useDeployModal()
+  const { deployModalProps } = useDeployModal()
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Get real progress data
-  const { exportTasks, uploadTasks } = useProgressTasks()
+  // Get real progress data - variables kept for future use
+  // const { exportTasks, uploadTasks } = useProgressTasks()
+
+  // Get notification status
+  const { hasUnreadExportNotification, markNotificationAsRead } =
+    useProgressStore()
+
+  // 디버깅: 알림 상태 추적
+  console.log(
+    '[Header] hasUnreadExportNotification:',
+    hasUnreadExportNotification
+  )
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
       <div className="container flex h-16 items-center justify-between px-4 mx-auto max-w-7xl">
@@ -89,11 +100,24 @@ const Header: React.FC<HeaderProps> = ({
           <div className="relative">
             <button
               ref={buttonRef}
-              onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
+              onClick={() => {
+                setIsDocumentModalOpen(!isDocumentModalOpen)
+                // 모달을 열 때 알림을 읽음 처리
+                if (!isDocumentModalOpen) {
+                  markNotificationAsRead()
+                }
+              }}
               className="p-2 text-gray-700 hover:bg-gray-50 hover:text-black transition-colors cursor-pointer rounded-lg"
               title="알림"
             >
               <LuBell className="w-5 h-5" />
+              {/* Red notification dot */}
+              {hasUnreadExportNotification && (
+                <div
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"
+                  style={{ zIndex: 1000 }}
+                ></div>
+              )}
             </button>
 
             <DocumentModal

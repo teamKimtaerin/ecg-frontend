@@ -1,5 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { uploadService } from '@/services/api/uploadService'
+import type {
+  ProcessingResult,
+  UploadErrorResponse,
+} from '@/services/api/types/upload.types'
 
 export interface ProgressTask {
   id: number
@@ -15,6 +20,8 @@ export interface ProgressTask {
 
 interface ProgressStore {
   tasks: ProgressTask[]
+  globalPollingJobs: Map<string, { taskId: number; stopPolling: () => void }>
+  hasUnreadExportNotification: boolean
 
   // Task management
   addTask: (task: Omit<ProgressTask, 'id'>) => number
@@ -32,12 +39,27 @@ interface ProgressStore {
   getTask: (id: number) => ProgressTask | undefined
   expireOldTasks: () => void
   clearCompletedTasksByType: (type: 'upload' | 'export') => void
+
+  // Global polling management
+  startGlobalPolling: (
+    jobId: string,
+    taskId: number,
+    onComplete?: (result: ProcessingResult) => void
+  ) => void
+  stopGlobalPolling: (jobId: string) => void
+  stopAllPolling: () => void
+
+  // Notification management
+  setExportNotification: (hasNotification: boolean) => void
+  markNotificationAsRead: () => void
 }
 
 export const useProgressStore = create<ProgressStore>()(
   persist(
     (set, get) => ({
       tasks: [],
+      globalPollingJobs: new Map(),
+      hasUnreadExportNotification: false,
 
       addTask: (task) => {
         const id = Date.now() + Math.random()
@@ -190,6 +212,115 @@ export const useProgressStore = create<ProgressStore>()(
           }),
         }))
       },
+
+      // Global polling management
+      startGlobalPolling: (jobId, taskId, onComplete) => {
+        const state = get()
+
+        // 이미 폴링 중인 작업이면 무시
+        if (state.globalPollingJobs.has(jobId)) {
+          console.log(`[ProgressStore] Job ${jobId} is already being polled`)
+          return
+        }
+
+        console.log(`[ProgressStore] Starting global polling for job: ${jobId}`)
+
+        const stopPolling = uploadService.startPolling(
+          jobId,
+          (status) => {
+            // 상태 업데이트
+            get().updateTask(taskId, {
+              progress: status.progress,
+              currentStage: status.current_stage,
+              estimatedTimeRemaining: status.estimated_time_remaining,
+            })
+          },
+          (result) => {
+            // 완료 처리
+            get().updateTask(taskId, {
+              status: 'completed',
+              progress: 100,
+            })
+
+            // 폴링 작업 제거
+            set((state) => {
+              const newJobs = new Map(state.globalPollingJobs)
+              newJobs.delete(jobId)
+              return { globalPollingJobs: newJobs }
+            })
+
+            // 완료 콜백 호출
+            if (onComplete) {
+              onComplete(result)
+            }
+          },
+          (error) => {
+            // 에러 처리
+            get().updateTask(taskId, {
+              status: 'failed',
+            })
+
+            // 폴링 작업 제거
+            set((state) => {
+              const newJobs = new Map(state.globalPollingJobs)
+              newJobs.delete(jobId)
+              return { globalPollingJobs: newJobs }
+            })
+          }
+        )
+
+        // 폴링 작업 등록
+        set((state) => {
+          const newJobs = new Map(state.globalPollingJobs)
+          newJobs.set(jobId, { taskId, stopPolling })
+          return { globalPollingJobs: newJobs }
+        })
+      },
+
+      stopGlobalPolling: (jobId) => {
+        const state = get()
+        const job = state.globalPollingJobs.get(jobId)
+
+        if (job) {
+          console.log(
+            `[ProgressStore] Stopping global polling for job: ${jobId}`
+          )
+          job.stopPolling()
+
+          set((state) => {
+            const newJobs = new Map(state.globalPollingJobs)
+            newJobs.delete(jobId)
+            return { globalPollingJobs: newJobs }
+          })
+        }
+      },
+
+      stopAllPolling: () => {
+        const state = get()
+        console.log(
+          `[ProgressStore] Stopping all global polling (${state.globalPollingJobs.size} jobs)`
+        )
+
+        state.globalPollingJobs.forEach((job, jobId) => {
+          job.stopPolling()
+        })
+
+        set({ globalPollingJobs: new Map() })
+      },
+
+      // Notification management
+      setExportNotification: (hasNotification) => {
+        console.log(
+          '[ProgressStore] setExportNotification called with:',
+          hasNotification
+        )
+        set({ hasUnreadExportNotification: hasNotification })
+      },
+
+      markNotificationAsRead: () => {
+        console.log('[ProgressStore] markNotificationAsRead called')
+        set({ hasUnreadExportNotification: false })
+      },
     }),
     {
       name: 'ecg-progress-store',
@@ -212,6 +343,8 @@ export const useProgressStore = create<ProgressStore>()(
 
             return false
           }),
+          // globalPollingJobs는 persist하지 않음 (Map은 직렬화 불가)
+          hasUnreadExportNotification: state.hasUnreadExportNotification,
         }
       },
       // 스토어 복원 후 오래된 작업 자동 정리

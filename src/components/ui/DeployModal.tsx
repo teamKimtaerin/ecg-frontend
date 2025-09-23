@@ -222,11 +222,6 @@ const DeployModal: React.FC<DeployModalProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black"
                   placeholder="프로젝트 제목을 입력하세요"
                 />
-                {/* 디버깅용 - 현재 값 표시 */}
-                <div className="text-xs text-gray-500 mt-1">
-                  현재 값: &quot;{deployConfig.title}&quot; (길이:{' '}
-                  {deployConfig.title.length})
-                </div>
               </div>
 
               <div>
@@ -244,15 +239,10 @@ const DeployModal: React.FC<DeployModalProps> = ({
                       description: e.target.value,
                     }))
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-black"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-black placeholder:text-gray-400 placeholder:text-sm"
                   rows={3}
                   placeholder="프로젝트에 대한 설명을 입력하세요"
                 />
-                {/* 디버깅용 - 현재 값 표시 */}
-                <div className="text-xs text-gray-500 mt-1">
-                  현재 값: &quot;{deployConfig.description}&quot; (길이:{' '}
-                  {deployConfig.description.length})
-                </div>
               </div>
 
               <div className="space-y-3">

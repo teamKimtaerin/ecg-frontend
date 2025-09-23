@@ -1,11 +1,12 @@
 'use client'
 
 import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuilder'
+import { useProgressStore } from '@/lib/store/progressStore'
+import { useToastTimerStore } from '@/lib/store/toastTimerStore'
 import { showToast } from '@/utils/ui/toast'
 import { useEffect, useState } from 'react'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
-import { useToastTimerStore } from '@/lib/store/toastTimerStore'
 import CustomExportModal from './CustomExportModal'
 import VideoExportProgressModal from './VideoExportProgressModal'
 
@@ -28,25 +29,21 @@ export default function ServerVideoExportModal({
   const {
     isExporting,
     progress,
-    estimatedTime,
-    timeRemaining,
     status,
     error,
     downloadUrl,
-    selectedFileHandle,
-    startExport,
-    cancelExport,
     downloadFile,
     reset,
   } = useServerVideoExport()
 
-  const [phase, setPhase] = useState<
-    'ready' | 'exporting' | 'completed' | 'error'
-  >('ready')
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false)
+  const [phase, setPhase] = useState<string>('ready')
 
   // 전역 토스트 타이머 store 사용
-  const { startDelayedToast, cancelDelayedToast } = useToastTimerStore()
+  const { startDelayedToast } = useToastTimerStore()
+
+  // 내보내기 완료 알림 관리
+  const { setExportNotification } = useProgressStore()
 
   // 비디오 URL 결정 (props > store)
   const videoUrl = propVideoUrl || storeVideoUrl
@@ -155,7 +152,7 @@ export default function ServerVideoExportModal({
           clips: sampleClips.length,
           cues: mockScenario.cues.length,
         })
-      } catch (scenarioError) {
+      } catch {
         console.log('🧪 시나리오 생성 우회: 가상 시나리오 사용')
       }
 
@@ -199,6 +196,14 @@ export default function ServerVideoExportModal({
 
     // 전역 토스트 타이머로 30초 후 완료 토스트 표시
     startDelayedToast('영상 출력이 완료되었습니다', 30000)
+
+    // 30초 후 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
+    setTimeout(() => {
+      console.log(
+        '[ServerVideoExportModal] Setting export notification to true (after 30s)'
+      )
+      setExportNotification(true)
+    }, 30000)
   }
 
   const handleProgressModalComplete = () => {
@@ -211,53 +216,12 @@ export default function ServerVideoExportModal({
       lastToastTime = currentTime
     }
 
+    // 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
+    console.log('[ServerVideoExportModal] Setting export notification to true')
+    setExportNotification(true)
+
     setPhase('completed')
     onClose()
-  }
-
-  // 파일명 생성 함수
-  const getFileName = (): string => {
-    const baseName = videoName?.replace(/\.[^/.]+$/, '') || '파일 영상'
-    return `${baseName}.mp4`
-  }
-
-  // 🧪 테스트용: 진행률 모달 직접 열기 (개발환경 전용)
-  const handleTestProgressModal = () => {
-    setIsProgressModalOpen(true)
-  }
-
-  // 🧪 테스트용: 결과 토스트 직접 표시 (개발환경 전용)
-  const handleTestResultModalSuccess = () => {
-    setPhase('completed')
-    onClose()
-  }
-
-  const handleTestResultModalError = () => {
-    setPhase('error')
-    showToast('영상 출력 중 오류가 발생했습니다', 'error')
-    onClose()
-  }
-
-  const formatTime = (seconds: number | null): string => {
-    if (seconds === null) return '계산 중...'
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
-  }
-
-  const getProgressText = (): string => {
-    switch (status) {
-      case 'queued':
-        return '렌더링 대기 중...'
-      case 'processing':
-        return `처리 중... ${progress}%`
-      case 'completed':
-        return '렌더링 완료!'
-      case 'failed':
-        return '렌더링 실패'
-      default:
-        return '준비 중...'
-    }
   }
 
   return (
@@ -289,7 +253,7 @@ export default function ServerVideoExportModal({
                     defaultChecked
                     className="sr-only"
                   />
-                  <div className="w-4 h-4 bg-cyan-500 rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-brand-sub rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full"></div>
                   </div>
                 </div>
@@ -408,7 +372,7 @@ export default function ServerVideoExportModal({
             <button
               onClick={handleStartExport}
               disabled={isExporting}
-              className={`btn-modern-primary ${isExporting ? 'btn-modern-loading' : ''}`}
+              className={`btn-modern-black ${isExporting ? 'btn-modern-loading' : ''}`}
             >
               내보내기
             </button>

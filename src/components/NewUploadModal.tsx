@@ -143,13 +143,13 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      className="w-[700px] max-w-[90vw] max-h-[85vh]"
+      className="w-[512px] max-w-[90vw] max-h-[85vh]"
       closeOnBackdropClick={!isLoading}
       closeOnEsc={!isLoading}
       aria-label="파일 업로드"
       scrollable={true}
     >
-      <div className="bg-white rounded-xl p-8 relative">
+      <div className="bg-white rounded-xl p-6 relative">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-xl font-bold text-gray-900 mb-4">
@@ -162,7 +162,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               onClick={() => setActiveTab('upload')}
               className={`flex-1 h-12 text-base font-bold transition-colors cursor-pointer ${
                 activeTab === 'upload'
-                  ? 'bg-brand-main text-white rounded-l-lg'
+                  ? 'bg-black text-white rounded-l-lg'
                   : 'bg-gray-100 text-gray-900 rounded-l-lg border border-gray-300'
               }`}
             >
@@ -206,7 +206,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 
                     <button
                       onClick={handleFileSelectClick}
-                      className="bg-brand-main text-white px-6 py-2 rounded font-bold hover:bg-brand-dark transition-colors cursor-pointer"
+                      className="bg-black text-white px-6 py-2 rounded font-bold hover:bg-gray-800 hover:scale-105 transition-all duration-200 cursor-pointer"
                       disabled={isLoading}
                     >
                       파일 선택
@@ -226,7 +226,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       {/* 썸네일 우상단 파일 변경 버튼 */}
                       <button
                         onClick={handleFileSelectClick}
-                        className="absolute top-2 right-2 bg-brand-main bg-opacity-90 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-dark transition-all cursor-pointer"
+                        className="absolute top-2 right-2 bg-brand-sub bg-opacity-90 text-white px-3 py-1 rounded text-xs font-medium hover:bg-brand-dark transition-all cursor-pointer"
                         disabled={isLoading}
                       >
                         파일 변경
@@ -359,7 +359,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                       e.target.value as 'auto' | 'ko' | 'en' | 'ja' | 'zh'
                     )
                   }
-                  className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-sub focus:border-transparent"
                   disabled={isLoading}
                 >
                   <option value="auto">Auto Detect</option>
@@ -407,7 +407,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading
             }
-            className={`btn-modern-primary ${
+            className={`btn-modern-black ${
               (activeTab === 'upload' && selectedFiles.length === 0) ||
               (activeTab === 'link' && !videoUrl.trim()) ||
               isLoading

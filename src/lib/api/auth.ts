@@ -135,7 +135,7 @@ export class AuthAPI {
     return response.json()
   }
 
-  static async getCurrentUser(token?: string): Promise<User> {
+  static async getCurrentUser(token?: string): Promise<User | null> {
     const response = await fetch(`${BASE_URL}/api/auth/me`, {
       method: 'GET',
       headers: token
@@ -144,11 +144,23 @@ export class AuthAPI {
       credentials: 'include', // HttpOnly 쿠키 포함
     })
 
+    if (response.status === 401 || response.status === 403) {
+      // 비로그인 상태는 에러로 취급하지 않고 null 반환
+      return null
+    }
+
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(
-        errorData.detail || '사용자 정보를 가져오는데 실패했습니다.'
-      )
+      let message = '사용자 정보를 가져오는데 실패했습니다.'
+
+      try {
+        const errorData = await response.json()
+        message = errorData.detail || errorData.message || message
+      } catch (error) {
+        // JSON 파싱 실패 시 기본 메시지 유지
+        console.error('❌ getCurrentUser error payload parsing failed:', error)
+      }
+
+      throw new Error(message)
     }
 
     return response.json()

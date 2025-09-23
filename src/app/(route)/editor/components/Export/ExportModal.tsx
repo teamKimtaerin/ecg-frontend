@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { exportOptions, getIconComponent } from './exportOptions'
-import { ExportModalProps, ExportFormat, SocialPlatform } from './ExportTypes'
+import { ExportFormat, ExportModalProps, SocialPlatform } from './ExportTypes'
 import Portal from './Portal'
 
 export default function ExportModal({
@@ -95,11 +95,11 @@ export default function ExportModal({
           <div className="p-4">
             {/* 기본 선택 옵션 - 영상 파일 */}
             <div
-              className="flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 bg-blue-50 border border-blue-200"
+              className="flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 mb-4 bg-brand-light border border-brand-sub"
               onClick={() => handleExport('gpu-render')}
             >
               <div className="flex items-center flex-1">
-                <div className="w-6 h-6 mr-3 text-white flex items-center justify-center bg-blue-500 rounded p-1">
+                <div className="w-6 h-6 mr-3 text-white flex items-center justify-center bg-brand-sub rounded p-1">
                   <DefaultIcon className="w-full h-full" />
                 </div>
                 <div className="flex items-center gap-2">

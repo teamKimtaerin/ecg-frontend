@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useEditorStore } from '../../store'
+import { showToast } from '@/utils/ui/toast'
 
 // Components
 import SidebarHeader from './SidebarHeader'
@@ -37,17 +38,16 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
   }
 
   const handleTemplateSelect = (template: TemplateItem) => {
-    // Here you would typically apply the template to the focused clip
-    console.log('Selected template:', template)
-    onTemplateSelect?.(template)
+    // Show paid template notification for all templates
+    showToast('유료 템플릿입니다. 사용이 불가능합니다', 'error')
 
-    // TODO: Implement actual template application to focused clip
-    // This would integrate with the existing clip editing system
+    // Log for debugging but don't apply template
+    console.log('Template click blocked:', template)
   }
 
   const handleExpandTemplate = (templateId: string, templateName: string) => {
-    setExpandedTemplateId(templateId === expandedTemplateId ? null : templateId)
-    setExpandedTemplateName(templateName)
+    // Disabled: Don't expand template detail panel
+    // Keep toast notification only without showing detail options
   }
 
   return (
@@ -81,11 +81,11 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
         />
       </div>
 
-      {/* Control Panel */}
-      {expandedTemplateId && (
+      {/* Control Panel - Disabled to prevent template detail options */}
+      {false && expandedTemplateId && (
         <TemplateControlPanel
-          templateId={expandedTemplateId}
-          templateName={expandedTemplateName}
+          templateId={expandedTemplateId || ''}
+          templateName={expandedTemplateName || ''}
           onClose={() => {
             setExpandedTemplateId(null)
             setExpandedTemplateName(null)

@@ -1240,6 +1240,30 @@ body {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);
 }
+.btn-modern-black {
+  background-color: var(--color-black);
+  color: white;
+  border: none;
+  border-radius: 9999px; /* fully rounded */
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-modern-black:hover {
+  background-color: #1a1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(8, 8, 8, 0.25);
+}
+.btn-modern-black:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(8, 8, 8, 0.25);
+}
 
 .btn-modern-secondary {
   background-color: #f8fafc;

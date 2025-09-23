@@ -21,7 +21,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   buttonRef,
   onDeployClick,
 }) => {
-  const [activeTab, setActiveTab] = useState<'export' | 'upload'>('export')
+  const [activeTab, setActiveTab] = useState<'export' | 'upload'>('upload')
   const modalRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
@@ -88,16 +88,6 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       {/* Tab Bar */}
       <div className="flex border-b border-gray-200">
         <button
-          onClick={() => setActiveTab('export')}
-          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-            activeTab === 'export'
-              ? 'text-black border-b-2 border-black bg-gray-50'
-              : 'text-gray-600 hover:text-black'
-          }`}
-        >
-          내보내기
-        </button>
-        <button
           onClick={() => setActiveTab('upload')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'upload'
@@ -106,6 +96,16 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           }`}
         >
           업로드
+        </button>
+        <button
+          onClick={() => setActiveTab('export')}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'export'
+              ? 'text-black border-b-2 border-black bg-gray-50'
+              : 'text-gray-600 hover:text-black'
+          }`}
+        >
+          내보내기
         </button>
       </div>
 

@@ -44,8 +44,8 @@ export const EDITOR_COLORS = {
     },
     // 고급 편집 페이지용 어두운 툴바
     dark: {
-      background: 'bg-gray-800',
-      backgroundRaw: 'rgba(31, 41, 55, 1)',
+      background: 'bg-black',
+      backgroundRaw: 'rgba(0, 0, 0, 1)',
       border: 'border-b border-gray-700',
       divider: 'bg-gray-600',
       text: 'text-white',

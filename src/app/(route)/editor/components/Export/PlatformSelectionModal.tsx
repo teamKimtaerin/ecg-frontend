@@ -224,7 +224,7 @@ export default function PlatformSelectionModal({
           <button
             onClick={handleNext}
             disabled={selectedPlatforms.length === 0}
-            className="btn-modern-primary"
+            className="btn-modern-black"
           >
             다음
           </button>

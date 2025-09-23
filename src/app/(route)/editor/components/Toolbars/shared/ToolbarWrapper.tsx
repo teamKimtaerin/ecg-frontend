@@ -142,11 +142,7 @@ export default function ToolbarWrapper({
 
           {/* 내보내기 - variant에 따라 다른 스타일 적용 */}
           <button
-            className={`px-5 py-3 rounded hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer ${
-              variant === 'dark'
-                ? 'bg-white text-black hover:bg-gray-200'
-                : 'bg-gray-600 text-white hover:bg-black'
-            }`}
+            className="px-5 py-3 bg-brand-sub text-white rounded-lg hover:bg-brand-dark hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
             onClick={handleExportClick}
           >
             <AiOutlineExport className="w-4 h-4" />

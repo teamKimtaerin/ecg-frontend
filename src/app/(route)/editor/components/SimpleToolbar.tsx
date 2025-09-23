@@ -264,7 +264,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
 
           {/* 내보내기 - 원래 스타일 유지 */}
           <button
-            className="px-5 py-3 bg-brand-main text-white rounded-full hover:bg-brand-dark hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+            className="px-5 py-3 bg-brand-sub text-white rounded-lg hover:bg-brand-dark hover:scale-105 hover:shadow-lg transition-all duration-200 flex items-center gap-1.5 text-xs font-bold cursor-pointer"
             onClick={handleExportClick}
           >
             <AiOutlineExport className="w-4 h-4" />
