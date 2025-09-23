@@ -34,6 +34,7 @@ import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import { useSpeakerSync } from './hooks/useSpeakerSync'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -617,6 +618,9 @@ export default function EditorPage() {
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
+  
+  // 화자 동기화 훅 - 클립 변경 시 자동으로 화자 목록 동기화
+  useSpeakerSync()
 
   // URL 파라미터 감지 및 모달 상태 복원
   useEffect(() => {
