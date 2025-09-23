@@ -384,15 +384,15 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       if (videoRef.current) {
         const video = videoRef.current
         console.log('🔄 Forcing video element reset for new URL')
-        
+
         // Stop current playback
         video.pause()
         setIsPlaying(false)
-        
+
         // Clear current source to force reload
         video.removeAttribute('src')
         video.load()
-        
+
         // If we have a new URL, set it after a brief delay to ensure cleanup
         if (videoUrl) {
           setTimeout(() => {

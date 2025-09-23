@@ -600,7 +600,7 @@ export default function EditorPage() {
   useEffect(() => {
     return () => {
       console.log('🧹 Page unmounting - performing final blob URL cleanup')
-      
+
       // Cleanup any blob URLs on unmount to prevent memory leaks
       const urls = document.querySelectorAll('video[src^="blob:"]')
       urls.forEach((video) => {

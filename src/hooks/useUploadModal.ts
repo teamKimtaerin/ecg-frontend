@@ -121,7 +121,10 @@ export const useUploadModal = () => {
         log('useUploadModal', '🚀 Starting upload and transcription process')
 
         // 기존 데이터 초기화 (clearMedia는 자동으로 blob URL을 정리함)
-        log('useUploadModal', '🧹 Cleaning up previous video data and blob URLs')
+        log(
+          'useUploadModal',
+          '🧹 Cleaning up previous video data and blob URLs'
+        )
         cleanupPreviousBlobUrl() // 이전 blob URL 먼저 정리
         clearMedia() // 이전 영상 정보 제거 (내부적으로 blob URL도 정리)
         setClips([]) // 이전 클립 제거
@@ -522,7 +525,14 @@ export const useUploadModal = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [updateState, setMediaInfo, clearMedia, cleanupPreviousBlobUrl, setClips, state]
+    [
+      updateState,
+      setMediaInfo,
+      clearMedia,
+      cleanupPreviousBlobUrl,
+      setClips,
+      state,
+    ]
   )
 
   // 화자 정보 초기화 헬퍼 함수

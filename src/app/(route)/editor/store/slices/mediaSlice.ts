@@ -87,22 +87,25 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
   setMediaInfo: (info) => {
     set((state) => {
       log('mediaSlice.ts', 'Media info updated', info)
-      
+
       // If we're setting a new videoUrl and it's a blob URL, track it for cleanup
       const updates = { ...info }
       if (info.videoUrl && info.videoUrl.startsWith('blob:')) {
         updates.currentBlobUrl = info.videoUrl
         log('mediaSlice.ts', `🎬 Tracking new blob URL: ${info.videoUrl}`)
-        console.log('[VIDEO REPLACEMENT DEBUG] Store updated with new blob URL:', {
-          previousVideoUrl: state.videoUrl,
-          previousBlobUrl: state.currentBlobUrl,
-          newVideoUrl: info.videoUrl,
-          newBlobUrl: info.videoUrl,
-          isReplacement: state.videoUrl !== null,
-          timestamp: new Date().toISOString(),
-        })
+        console.log(
+          '[VIDEO REPLACEMENT DEBUG] Store updated with new blob URL:',
+          {
+            previousVideoUrl: state.videoUrl,
+            previousBlobUrl: state.currentBlobUrl,
+            newVideoUrl: info.videoUrl,
+            newBlobUrl: info.videoUrl,
+            isReplacement: state.videoUrl !== null,
+            timestamp: new Date().toISOString(),
+          }
+        )
       }
-      
+
       return {
         ...state,
         ...updates,
@@ -113,17 +116,20 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
   clearMedia: () => {
     set((state) => {
       log('mediaSlice.ts', 'Media cleared')
-      
+
       // Cleanup current blob URL before clearing
       if (state.currentBlobUrl) {
-        log('mediaSlice.ts', `🧹 Revoking blob URL during clearMedia: ${state.currentBlobUrl}`)
+        log(
+          'mediaSlice.ts',
+          `🧹 Revoking blob URL during clearMedia: ${state.currentBlobUrl}`
+        )
         try {
           URL.revokeObjectURL(state.currentBlobUrl)
         } catch (error) {
           log('mediaSlice.ts', 'Failed to revoke blob URL:', error)
         }
       }
-      
+
       return initialState
     })
   },
@@ -131,13 +137,16 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
   cleanupPreviousBlobUrl: () => {
     set((state) => {
       if (state.currentBlobUrl) {
-        log('mediaSlice.ts', `🧹 Manually revoking previous blob URL: ${state.currentBlobUrl}`)
+        log(
+          'mediaSlice.ts',
+          `🧹 Manually revoking previous blob URL: ${state.currentBlobUrl}`
+        )
         try {
           URL.revokeObjectURL(state.currentBlobUrl)
         } catch (error) {
           log('mediaSlice.ts', 'Failed to revoke previous blob URL:', error)
         }
-        
+
         return {
           ...state,
           currentBlobUrl: null,
