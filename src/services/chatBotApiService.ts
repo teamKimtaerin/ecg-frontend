@@ -36,6 +36,7 @@ export default class ChatBotApiService {
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
       const response = await fetch(`${apiUrl}/api/v1/chatbot`, {
+
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
