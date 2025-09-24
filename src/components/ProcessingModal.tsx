@@ -1,5 +1,7 @@
 'use client'
 
+import { useEditorStore } from '@/app/(route)/editor/store'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
 import React, { useRef, useState } from 'react'
 import { FaSpinner, FaTimes } from 'react-icons/fa'
 import { LuChevronDown, LuLightbulb } from 'react-icons/lu'
@@ -8,35 +10,35 @@ export interface ProcessingModalProps {
   isOpen: boolean
   onClose: () => void
   onCancel?: () => void
-  status: 'uploading' | 'processing' | 'completed' | 'failed' | 'select'
-  progress: number
-  currentStage?: string
-  estimatedTimeRemaining?: number
-  fileName?: string
-  canCancel?: boolean
   backdrop?: boolean
 }
-
-const STAGE_MESSAGES = {
-  file_validation: '파일 검증 중',
-  audio_extraction: '오디오 추출 중',
-  whisper_transcription: '음성 인식 중',
-  speaker_diarization: '화자 분리 중',
-  post_processing: '후처리 중',
-} as const
 
 export default function ProcessingModal({
   isOpen,
   onClose,
-  onCancel,
-  status,
-  progress,
-  currentStage,
-  estimatedTimeRemaining,
-  fileName,
-  canCancel = true,
   backdrop = true,
 }: ProcessingModalProps) {
+  // Get current upload task data from global state
+  const { uploadTasks } = useProgressTasks()
+
+  // Get video thumbnail from editor store
+  const { videoThumbnail } = useEditorStore()
+
+  // Find the currently active upload task
+  const activeUploadTask = uploadTasks.find(
+    (task) => task.status === 'uploading' || task.status === 'processing'
+  )
+
+  // If no active task and modal is open, check if there's any upload task at all
+  const latestUploadTask =
+    uploadTasks.length > 0 ? uploadTasks[uploadTasks.length - 1] : null
+  const currentTask = activeUploadTask || latestUploadTask
+
+  // Extract data from current task
+  const status = currentTask?.status || 'select'
+  const progress = currentTask?.progress || 0
+  const estimatedTimeRemaining = currentTask?.estimatedTimeRemaining
+  const fileName = currentTask?.filename
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [dragging, setDragging] = useState(false)
 
@@ -106,8 +108,6 @@ export default function ProcessingModal({
     return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
   }
 
-  const shouldShowCloseButton = status === 'completed' || status === 'failed'
-
   if (!isOpen) return null
 
   return (
@@ -140,7 +140,7 @@ export default function ProcessingModal({
             {getStatusText()}
           </h2>
           <button
-            onClick={shouldShowCloseButton ? onClose : onCancel}
+            onClick={onClose}
             onMouseDown={(e) => e.stopPropagation()}
             className="text-gray-400 hover:text-gray-600 transition-colors p-1 pointer-events-auto"
           >
@@ -160,13 +160,23 @@ export default function ProcessingModal({
             </div>
           )}
 
-          {/* Thumbnail Image */}
+          {/* Video Thumbnail */}
           <div className="mb-6 flex justify-center">
             <div className="w-full max-w-md bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center h-48">
-              <div className="text-center">
-                <div className="text-6xl mb-2">🎬</div>
-                <p className="text-sm text-gray-600">처리 중인 비디오</p>
-              </div>
+              {videoThumbnail ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src={videoThumbnail}
+                    alt="Video thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="text-6xl mb-2">🎬</div>
+                  <p className="text-sm text-gray-600">처리 중인 비디오</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -213,13 +223,6 @@ export default function ProcessingModal({
               </p>
             </div>
           )}
-
-          {/* Collapse Arrow */}
-          <div className="flex justify-center mt-4">
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <LuChevronDown className="w-5 h-5" />
-            </button>
-          </div>
 
           {/* Action Buttons for Completed/Failed States */}
           {status === 'completed' && (

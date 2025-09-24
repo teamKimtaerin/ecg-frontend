@@ -7,6 +7,7 @@
     "build": "next build",
     "build:static": "./scripts/build-static.sh",
     "start": "next start",
+    "serve": "npx serve@latest out -p 3000",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",

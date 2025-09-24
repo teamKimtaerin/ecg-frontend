@@ -9,6 +9,19 @@ export interface VideoThumbnailOptions {
   quality?: number
 }
 
+export interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
+
+export interface VideoThumbnailWithMetadata {
+  thumbnailUrl: string
+  metadata: VideoMetadata
+}
+
 /**
  * 비디오 파일에서 썸네일을 생성합니다 (1초 지점 고정 캡처)
  * @param file 비디오 파일
@@ -256,4 +269,125 @@ export const isAudioFile = (file: File): boolean => {
  */
 export const isVideoFile = (file: File): boolean => {
   return file.type.startsWith('video/')
+}
+
+/**
+ * 비디오 파일에서 메타데이터를 추출합니다
+ * @param file 비디오 파일
+ * @returns Promise<VideoMetadata>
+ */
+export const extractVideoMetadata = async (
+  file: File
+): Promise<VideoMetadata> => {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('video/')) {
+      resolve({
+        duration: 0,
+        size: file.size,
+        width: 0,
+        height: 0,
+        fps: 0,
+      })
+      return
+    }
+
+    const video = document.createElement('video')
+    let videoUrl: string | null = null
+    let hasResolved = false
+
+    const cleanup = () => {
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl)
+        videoUrl = null
+      }
+      video.src = ''
+      video.removeAttribute('src')
+      video.load()
+    }
+
+    const safeResolve = (metadata: VideoMetadata) => {
+      if (!hasResolved) {
+        hasResolved = true
+        cleanup()
+        resolve(metadata)
+      }
+    }
+
+    const safeReject = (error: Error) => {
+      if (!hasResolved) {
+        hasResolved = true
+        cleanup()
+        reject(error)
+      }
+    }
+
+    // 타임아웃 설정
+    const timeoutId = setTimeout(() => {
+      safeReject(new Error('Video metadata extraction timeout'))
+    }, 10000)
+
+    video.addEventListener('loadedmetadata', () => {
+      clearTimeout(timeoutId)
+
+      const metadata: VideoMetadata = {
+        duration: video.duration,
+        size: file.size,
+        width: video.videoWidth,
+        height: video.videoHeight,
+        fps: 30, // 기본값 (정확한 FPS는 복잡한 계산이 필요)
+      }
+
+      safeResolve(metadata)
+    })
+
+    video.addEventListener('error', () => {
+      clearTimeout(timeoutId)
+      safeReject(new Error('Failed to load video for metadata extraction'))
+    })
+
+    try {
+      video.muted = true
+      video.preload = 'metadata'
+      videoUrl = URL.createObjectURL(file)
+      video.src = videoUrl
+    } catch (error) {
+      clearTimeout(timeoutId)
+      safeReject(new Error('Failed to create video URL'))
+    }
+  })
+}
+
+/**
+ * 비디오 파일에서 썸네일과 메타데이터를 함께 생성합니다
+ * @param file 비디오 파일
+ * @param options 썸네일 생성 옵션
+ * @returns Promise<VideoThumbnailWithMetadata>
+ */
+export const generateVideoThumbnailWithMetadata = async (
+  file: File,
+  options: VideoThumbnailOptions = {}
+): Promise<VideoThumbnailWithMetadata> => {
+  if (!file.type.startsWith('video/')) {
+    return {
+      thumbnailUrl: '',
+      metadata: {
+        duration: 0,
+        size: file.size,
+        width: 0,
+        height: 0,
+        fps: 0,
+      },
+    }
+  }
+
+  // 썸네일과 메타데이터를 병렬로 생성
+  const [thumbnailUrl, metadata] = await Promise.all([
+    generateVideoThumbnail(file, options),
+    extractVideoMetadata(file),
+  ])
+
+  return {
+    thumbnailUrl,
+    metadata,
+  }
 }

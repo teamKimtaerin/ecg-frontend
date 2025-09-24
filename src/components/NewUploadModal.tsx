@@ -6,10 +6,19 @@ import { FaVimeo, FaYoutube } from 'react-icons/fa'
 import { LuLink } from 'react-icons/lu'
 import {
   generateVideoThumbnail,
+  generateVideoThumbnailWithMetadata,
   revokeThumbnailUrl,
   isVideoFile,
   isAudioFile,
 } from '@/utils/video/videoThumbnail'
+
+interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
 
 interface NewUploadModalProps {
   isOpen: boolean
@@ -19,6 +28,11 @@ interface NewUploadModalProps {
     files: File[]
     settings: TranscriptionSettings
   }) => Promise<void>
+  onVideoInfoReady?: (
+    file: File,
+    thumbnailUrl?: string,
+    metadata?: VideoMetadata
+  ) => void
   acceptedTypes?: string[]
   maxFileSize?: number
   multiple?: boolean
@@ -36,6 +50,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
   onClose,
   onFileSelect,
   onStartTranscription,
+  onVideoInfoReady,
   acceptedTypes = ['audio/*', 'video/*'],
   maxFileSize = 100 * 1024 * 1024, // 100MB
   multiple = true,
@@ -159,19 +174,50 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
         revokeThumbnailUrl(thumbnailUrl)
       }
 
-      // 썸네일 생성 (1초 지점 고정)
-      const thumbnail = await generateVideoThumbnail(file, {
-        width: 384, // 썸네일 너비
-        height: 216, // 썸네일 높이 (16:9 비율)
-        quality: 0.8,
-      })
+      if (isVideoFile(file)) {
+        // 비디오 파일: 썸네일과 메타데이터를 함께 생성
+        const result = await generateVideoThumbnailWithMetadata(file, {
+          width: 384, // 썸네일 너비
+          height: 216, // 썸네일 높이 (16:9 비율)
+          quality: 0.8,
+        })
 
-      console.log('Thumbnail generated successfully:', thumbnail)
-      setThumbnailUrl(thumbnail)
+        console.log('Thumbnail and metadata generated successfully:', result)
+        setThumbnailUrl(result.thumbnailUrl)
+
+        // onVideoInfoReady 콜백 호출
+        console.log('🎬 NewUploadModal calling onVideoInfoReady:', {
+          fileName: file.name,
+          thumbnailUrl: result.thumbnailUrl ? 'generated' : 'missing',
+          metadata: result.metadata,
+        })
+        onVideoInfoReady?.(file, result.thumbnailUrl, result.metadata)
+      } else {
+        // 비디오가 아닌 파일: 썸네일 없음
+        setThumbnailUrl('')
+
+        // 비디오가 아닌 파일도 정보를 전달 (오디오 파일 등)
+        onVideoInfoReady?.(file, '', {
+          duration: 0,
+          size: file.size,
+          width: 0,
+          height: 0,
+          fps: 0,
+        })
+      }
     } catch (error) {
       console.error('Failed to generate thumbnail:', error)
       // 썸네일 생성 실패 시 썸네일 없음
       setThumbnailUrl('')
+
+      // 에러가 발생해도 파일 정보는 전달
+      onVideoInfoReady?.(file, '', {
+        duration: 0,
+        size: file.size,
+        width: 0,
+        height: 0,
+        fps: 0,
+      })
     } finally {
       setIsGeneratingThumbnail(false)
     }

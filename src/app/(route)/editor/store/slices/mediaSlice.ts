@@ -2,17 +2,21 @@
  * 미디어 상태 관리 슬라이스
  */
 
-import { StateCreator } from 'zustand'
+import { WaveformData } from '@/utils/audio/waveformExtractor'
 import { log } from '@/utils/logger'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { StateCreator } from 'zustand'
 
 export interface MediaState {
   // Media information
   mediaId: string | null
   videoUrl: string | null
   currentBlobUrl: string | null // Track current blob URL for cleanup
+  storedMediaId: string | null // IndexedDB에 저장된 미디어 ID
   videoName: string | null
   videoType: string | null
   videoDuration: number | null
+  videoThumbnail: string | null // 비디오 썸네일 URL
   videoMetadata: {
     width?: number
     height?: number
@@ -22,6 +26,13 @@ export interface MediaState {
   } | null
   isVideoLoading: boolean
   videoError: string | null
+  isRestoringMedia: boolean // 미디어 복원 중 상태
+
+  // Audio waveform state
+  audioBuffer: AudioBuffer | null
+  globalWaveformData: WaveformData | null
+  isWaveformLoading: boolean
+  waveformError: string | null
 
   // Playback state
   currentTime: number
@@ -42,6 +53,15 @@ export interface MediaActions {
   cleanupPreviousBlobUrl: () => void // New action for blob URL cleanup
   setVideoLoading: (loading: boolean) => void
   setVideoError: (error: string | null) => void
+  restoreMediaFromStorage: (storedMediaId: string) => Promise<void> // 저장된 미디어에서 복원
+  validateAndRestoreBlobUrl: () => Promise<void> // blob URL 검증 및 복원
+
+  // Audio waveform actions
+  setAudioBuffer: (buffer: AudioBuffer | null) => void
+  setGlobalWaveformData: (data: WaveformData | null) => void
+  setWaveformLoading: (loading: boolean) => void
+  setWaveformError: (error: string | null) => void
+  clearWaveformData: () => void
 
   // Playback actions
   setCurrentTime: (time: number) => void
@@ -61,12 +81,21 @@ const initialState: MediaState = {
   mediaId: null,
   videoUrl: null,
   currentBlobUrl: null,
+  storedMediaId: null,
   videoName: null,
   videoType: null,
   videoDuration: null,
+  videoThumbnail: null,
   videoMetadata: null,
   isVideoLoading: false,
   videoError: null,
+  isRestoringMedia: false,
+
+  // Audio waveform state
+  audioBuffer: null,
+  globalWaveformData: null,
+  isWaveformLoading: false,
+  waveformError: null,
 
   // Playback state
   currentTime: 0,
@@ -81,11 +110,49 @@ const initialState: MediaState = {
   subtitlePosition: 'bottom',
 }
 
-export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
+export const createMediaSlice: StateCreator<MediaSlice> = (set, get) => ({
   ...initialState,
 
   setMediaInfo: (info) => {
     set((state) => {
+      // 새 썸네일이 있고 기존 썸네일과 다르면 기존 썸네일 정리
+      if (
+        info.videoThumbnail &&
+        state.videoThumbnail &&
+        state.videoThumbnail !== info.videoThumbnail &&
+        state.videoThumbnail.startsWith('blob:')
+      ) {
+        try {
+          URL.revokeObjectURL(state.videoThumbnail)
+          log(
+            'mediaSlice.ts',
+            'Revoked old thumbnail blob URL:',
+            state.videoThumbnail
+          )
+        } catch (error) {
+          log(
+            'mediaSlice.ts',
+            'Failed to revoke old thumbnail blob URL:',
+            error
+          )
+        }
+      }
+
+      // 새 비디오 URL이 있고 기존 비디오 URL과 다르면 기존 URL 정리
+      if (
+        info.videoUrl &&
+        state.videoUrl &&
+        state.videoUrl !== info.videoUrl &&
+        state.videoUrl.startsWith('blob:')
+      ) {
+        try {
+          URL.revokeObjectURL(state.videoUrl)
+          log('mediaSlice.ts', 'Revoked old video blob URL:', state.videoUrl)
+        } catch (error) {
+          log('mediaSlice.ts', 'Failed to revoke old video blob URL:', error)
+        }
+      }
+
       log('mediaSlice.ts', 'Media info updated', info)
 
       // If we're setting a new videoUrl and it's a blob URL, track it for cleanup
@@ -115,6 +182,30 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
 
   clearMedia: () => {
     set((state) => {
+      // 기존 썸네일이 blob URL이면 메모리 정리
+      if (state.videoThumbnail && state.videoThumbnail.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(state.videoThumbnail)
+          log(
+            'mediaSlice.ts',
+            'Revoked thumbnail blob URL:',
+            state.videoThumbnail
+          )
+        } catch (error) {
+          log('mediaSlice.ts', 'Failed to revoke thumbnail blob URL:', error)
+        }
+      }
+
+      // 기존 비디오 URL이 blob URL이면 메모리 정리
+      if (state.videoUrl && state.videoUrl.startsWith('blob:')) {
+        try {
+          URL.revokeObjectURL(state.videoUrl)
+          log('mediaSlice.ts', 'Revoked video blob URL:', state.videoUrl)
+        } catch (error) {
+          log('mediaSlice.ts', 'Failed to revoke video blob URL:', error)
+        }
+      }
+
       log('mediaSlice.ts', 'Media cleared')
 
       // Cleanup current blob URL before clearing
@@ -129,6 +220,9 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
           log('mediaSlice.ts', 'Failed to revoke blob URL:', error)
         }
       }
+
+      // Clear waveform data
+      log('mediaSlice.ts', 'Clearing waveform data')
 
       return initialState
     })
@@ -165,6 +259,46 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
       log('mediaSlice.ts', `Video error: ${error}`)
     }
     set({ videoError: error })
+  },
+
+  // Audio waveform actions
+  setAudioBuffer: (buffer) => {
+    set({ audioBuffer: buffer })
+    log('mediaSlice.ts', `Audio buffer ${buffer ? 'set' : 'cleared'}`)
+  },
+
+  setGlobalWaveformData: (data) => {
+    set({ globalWaveformData: data })
+    if (data) {
+      log(
+        'mediaSlice.ts',
+        `Waveform data set: ${data.peaks.length} peaks, ${data.duration.toFixed(2)}s duration`
+      )
+    } else {
+      log('mediaSlice.ts', 'Waveform data cleared')
+    }
+  },
+
+  setWaveformLoading: (loading) => {
+    set({ isWaveformLoading: loading })
+    log('mediaSlice.ts', `Waveform loading: ${loading}`)
+  },
+
+  setWaveformError: (error) => {
+    if (error) {
+      log('mediaSlice.ts', `Waveform error: ${error}`)
+    }
+    set({ waveformError: error })
+  },
+
+  clearWaveformData: () => {
+    set({
+      audioBuffer: null,
+      globalWaveformData: null,
+      isWaveformLoading: false,
+      waveformError: null,
+    })
+    log('mediaSlice.ts', 'All waveform data cleared')
   },
 
   // Playback actions
@@ -208,5 +342,93 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
 
   setSubtitlePosition: (position) => {
     set({ subtitlePosition: position })
+  },
+
+  // 저장된 미디어에서 복원
+  restoreMediaFromStorage: async (storedMediaId: string) => {
+    set({ isRestoringMedia: true, videoError: null })
+
+    try {
+      log('mediaSlice.ts', `🔄 Restoring media from storage: ${storedMediaId}`)
+
+      // IndexedDB에서 미디어 로드
+      const mediaFile = await mediaStorage.loadMedia(storedMediaId)
+      if (!mediaFile) {
+        throw new Error('Media file not found in storage')
+      }
+
+      // 새로운 blob URL 생성
+      const newBlobUrl = URL.createObjectURL(mediaFile.blob)
+
+      set((state) => {
+        // 기존 blob URL 정리
+        if (state.currentBlobUrl) {
+          try {
+            URL.revokeObjectURL(state.currentBlobUrl)
+            log(
+              'mediaSlice.ts',
+              `🧹 Revoked old blob URL: ${state.currentBlobUrl}`
+            )
+          } catch (error) {
+            log('mediaSlice.ts', 'Failed to revoke old blob URL:', error)
+          }
+        }
+
+        log(
+          'mediaSlice.ts',
+          `✅ Media restored successfully: ${mediaFile.fileName}`
+        )
+
+        return {
+          ...state,
+          videoUrl: newBlobUrl,
+          currentBlobUrl: newBlobUrl,
+          storedMediaId: storedMediaId,
+          videoName: mediaFile.fileName,
+          videoType: mediaFile.fileType,
+          videoDuration: mediaFile.duration || null,
+          isRestoringMedia: false,
+          videoError: null,
+        }
+      })
+    } catch (error) {
+      log('mediaSlice.ts', `❌ Failed to restore media: ${error}`)
+      set({
+        isRestoringMedia: false,
+        videoError: `미디어 복원 실패: ${error}`,
+      })
+    }
+  },
+
+  // blob URL 검증 및 복원
+  validateAndRestoreBlobUrl: async () => {
+    const state = get()
+
+    // storedMediaId가 없으면 복원할 수 없음
+    if (!state.storedMediaId) {
+      log('mediaSlice.ts', '⚠️ No stored media ID for restoration')
+      return
+    }
+
+    // 현재 blob URL이 유효한지 확인
+    if (state.videoUrl && state.videoUrl.startsWith('blob:')) {
+      try {
+        // Blob URL 유효성 검사를 위해 fetch 시도
+        const response = await fetch(state.videoUrl, { method: 'HEAD' })
+        if (response.ok) {
+          log('mediaSlice.ts', '✅ Current blob URL is valid')
+          return
+        }
+      } catch {
+        log(
+          'mediaSlice.ts',
+          '⚠️ Current blob URL is invalid, attempting restoration'
+        )
+      }
+    }
+
+    // blob URL이 무효하면 저장된 미디어에서 복원
+    const mediaSlice = get()
+    await mediaSlice.restoreMediaFromStorage(state.storedMediaId)
   },
 })

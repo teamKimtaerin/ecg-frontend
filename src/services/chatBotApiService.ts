@@ -33,10 +33,9 @@ export default class ChatBotApiService {
       }
 
       // ChatBot API 호출 (배포 환경에서는 NEXT_PUBLIC_API_URL 사용)
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
-      const response = await fetch(`${apiUrl}/api/v1/chatbot`, {
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
+      const response = await fetch(`${apiUrl}/api/v1/chatbot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

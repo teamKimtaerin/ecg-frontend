@@ -1,29 +1,41 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { uploadService } from '@/services/api/uploadService'
 import { useEditorStore } from '@/app/(route)/editor/store'
-import {
-  UploadFormData,
-  UploadStep,
-  ProcessingStatus,
-  ProcessingResult,
-  SegmentData,
-} from '@/services/api/types/upload.types'
 import { ClipItem, Word } from '@/app/(route)/editor/types'
 import { ProjectData } from '@/app/(route)/editor/types/project'
-import { projectStorage } from '@/utils/storage/projectStorage'
-import { log } from '@/utils/logger'
 import API_CONFIG from '@/config/api.config'
 import { useProgressStore } from '@/lib/store/progressStore'
-import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
 import {
+  ProcessingResult,
+  ProcessingStatus,
+  SegmentData,
+  UploadFormData,
+  UploadStep,
+} from '@/services/api/types/upload.types'
+import { uploadService } from '@/services/api/uploadService'
+import { getSpeakerColorByIndex } from '@/utils/editor/speakerColors'
+import { log } from '@/utils/logger'
+import {
+  ensureMinimumSpeakers,
   extractSpeakersFromClips,
   normalizeSpeakerList,
-  ensureMinimumSpeakers,
   normalizeSpeakerMapping,
 } from '@/utils/speaker/speakerUtils'
+import { useWaveformGeneration } from '@/hooks/useWaveformGeneration'
+import { projectStorage } from '@/utils/storage/projectStorage'
+import { mediaStorage } from '@/utils/storage/mediaStorage'
+import { processingResultStorage } from '@/utils/storage/processingResultStorage'
+import { showToast } from '@/utils/ui/toast'
+import { useRouter } from 'next/navigation'
+import { useCallback, useRef, useState } from 'react'
+
+export interface VideoMetadata {
+  duration?: number
+  size?: number
+  width?: number
+  height?: number
+  fps?: number
+}
 
 export interface UploadModalState {
   isOpen: boolean
@@ -34,6 +46,9 @@ export interface UploadModalState {
   estimatedTimeRemaining?: number
   fileName?: string
   videoUrl?: string // S3 업로드된 비디오 URL 저장
+  videoFile?: File // 원본 비디오 파일
+  videoThumbnail?: string // 비디오 썸네일 URL
+  videoMetadata?: VideoMetadata // 비디오 메타데이터
   error?: string
 }
 
@@ -69,7 +84,11 @@ export const useUploadModal = () => {
     removeTask,
     startGlobalPolling,
     stopGlobalPolling,
+    setUploadNotification,
   } = useProgressStore()
+
+  // Waveform generation hook
+  const { generateWaveform } = useWaveformGeneration()
 
   const [state, setState] = useState<UploadModalState>(getInitialModalState)
 
@@ -118,8 +137,19 @@ export const useUploadModal = () => {
     // 전역 폴링은 유지하고, progress task도 유지 (다른 페이지에서 확인 가능하도록)
     // Progress store task는 제거하지 않음
 
-    // 완전한 초기 상태로 리셋 (isOpen은 false로 설정)
-    setState(() => getInitialModalState())
+    updateState({
+      isOpen: false,
+      step: 'select',
+      uploadProgress: 0,
+      processingProgress: 0,
+      currentStage: undefined,
+      estimatedTimeRemaining: undefined,
+      fileName: undefined,
+      videoFile: undefined,
+      videoThumbnail: undefined,
+      videoMetadata: undefined,
+      error: undefined,
+    })
     setCurrentJobId(undefined)
     setCurrentProgressTaskId(undefined)
 
@@ -132,6 +162,26 @@ export const useUploadModal = () => {
       if (files.length > 0) {
         updateState({ fileName: files[0].name })
       }
+    },
+    [updateState]
+  )
+
+  // 비디오 정보 설정 함수
+  const setVideoInfo = useCallback(
+    (file: File, thumbnailUrl?: string, metadata?: VideoMetadata) => {
+      console.log('🎬 useUploadModal.setVideoInfo called:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        thumbnailUrl: thumbnailUrl ? 'present' : 'missing',
+        metadata: metadata || 'missing',
+      })
+      updateState({
+        videoFile: file,
+        videoThumbnail: thumbnailUrl,
+        videoMetadata: metadata,
+        fileName: file.name,
+      })
     },
     [updateState]
   )
@@ -157,6 +207,7 @@ export const useUploadModal = () => {
         // sessionStorage 초기화 (이전 프로젝트 정보 제거)
         sessionStorage.removeItem('currentProjectId')
         sessionStorage.removeItem('currentMediaId')
+        sessionStorage.removeItem('currentStoredMediaId')
         sessionStorage.removeItem('lastUploadProjectId')
 
         // 🔥 핵심 변경: 즉시 로컬 Blob URL 생성하여 비디오 플레이어에서 사용
@@ -172,6 +223,23 @@ export const useUploadModal = () => {
           blobUrl: blobUrl,
         })
 
+        // 🗃️ IndexedDB에 미디어 파일 저장 (백그라운드)
+        const projectId = `project-${Date.now()}`
+        let storedMediaId: string | null = null
+
+        try {
+          storedMediaId = await mediaStorage.saveMedia(projectId, data.file, {
+            duration: 0, // Duration은 비디오 로드 후 업데이트
+          })
+          log('useUploadModal', `💾 Media saved to IndexedDB: ${storedMediaId}`)
+        } catch (error) {
+          log(
+            'useUploadModal',
+            `⚠️ Failed to save media to IndexedDB: ${error}`
+          )
+          // IndexedDB 저장 실패해도 계속 진행
+        }
+
         // 즉시 비디오 플레이어 업데이트 - 업로드 전에 바로 재생 가능!
         log('useUploadModal', '📺 Setting new video in player with blob URL')
         setMediaInfo({
@@ -179,6 +247,8 @@ export const useUploadModal = () => {
           videoName: data.file.name,
           videoType: data.file.type,
           videoDuration: 0, // Duration은 비디오 로드 후 자동 설정
+          videoThumbnail: state.videoThumbnail, // 업로드 시 생성된 썸네일 저장
+          storedMediaId: storedMediaId, // IndexedDB에 저장된 미디어 ID
         })
         console.log('[VIDEO REPLACEMENT DEBUG] Media info set successfully:', {
           videoUrl: blobUrl,
@@ -187,6 +257,26 @@ export const useUploadModal = () => {
           blobUrlPrefix: blobUrl.substring(0, 20) + '...',
           timestamp: new Date().toISOString(),
         })
+
+        // 🎵 즉시 파형 생성 시작 (백그라운드로 처리)
+        log('useUploadModal', '🎵 Starting waveform generation in background')
+        generateWaveform(data.file)
+          .then((waveformData) => {
+            if (waveformData) {
+              log(
+                'useUploadModal',
+                '✅ Waveform generated successfully for immediate use'
+              )
+            } else {
+              log(
+                'useUploadModal',
+                '⚠️ Waveform generation failed, fallback will be used'
+              )
+            }
+          })
+          .catch((error) => {
+            log('useUploadModal', `❌ Waveform generation error: ${error}`)
+          })
 
         // State에도 Blob URL 저장 (S3 업로드 중에도 계속 사용)
         updateState({
@@ -455,6 +545,11 @@ export const useUploadModal = () => {
         setCurrentJobId(job_id)
         updateState({ estimatedTimeRemaining: estimated_time || 180 })
 
+        // jobId를 progress task에 추가
+        if (progressTaskId) {
+          updateTask(progressTaskId, { jobId: job_id })
+        }
+
         log('useUploadModal', `🔄 Starting global polling for job: ${job_id}`)
         console.log(
           '[useUploadModal] About to start global polling for job:',
@@ -619,9 +714,26 @@ export const useUploadModal = () => {
 
   // 처리 완료 핸들러
   const handleProcessingComplete = useCallback(
-    (result: ProcessingResult) => {
+    async (result: ProcessingResult) => {
       try {
         log('useUploadModal', '🔄 Converting segments to clips')
+
+        // 1. 결과를 IndexedDB에 저장
+        try {
+          await processingResultStorage.saveResult(result.job_id, result, {
+            fileName: state.fileName,
+            videoUrl: state.videoUrl,
+          })
+          log('useUploadModal', '💾 Processing result saved to IndexedDB')
+        } catch (error) {
+          log('useUploadModal', '⚠️ Failed to save processing result:', error)
+        }
+
+        // 2. 업로드 완료 토스트 메시지
+        showToast('음성 분석이 완료되었습니다', 'success')
+
+        // 3. 업로드 알림 설정 (벨 아이콘에 빨간 점)
+        setUploadNotification(true)
 
         // 🔥 중요: videoUrl 안정적 해결
         const resolvedVideoUrl =
@@ -680,6 +792,7 @@ export const useUploadModal = () => {
             videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
             videoName: state.fileName,
             videoType: 'video/mp4',
+            videoThumbnail: state.videoThumbnail, // 썸네일 유지
           })
 
           // 빈 프로젝트도 생성 및 저장 (중요: videoUrl 포함!)
@@ -698,6 +811,7 @@ export const useUploadModal = () => {
             videoDuration: result?.result?.metadata?.duration || 0,
             videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 저장!
             videoName: state.fileName,
+            storedMediaId: useEditorStore.getState().storedMediaId || undefined, // IndexedDB에 저장된 미디어 ID
           }
 
           setCurrentProject(emptyProject)
@@ -705,6 +819,11 @@ export const useUploadModal = () => {
           // sessionStorage 업데이트 (새로고침 시 이 프로젝트를 로드하도록)
           sessionStorage.setItem('currentProjectId', projectId)
           sessionStorage.setItem('lastUploadProjectId', projectId)
+          // storedMediaId도 백업 저장
+          const currentStoredMediaId = useEditorStore.getState().storedMediaId
+          if (currentStoredMediaId) {
+            sessionStorage.setItem('currentStoredMediaId', currentStoredMediaId)
+          }
 
           log(
             'useUploadModal',
@@ -752,10 +871,10 @@ export const useUploadModal = () => {
         // 메타데이터 업데이트 (Blob URL 유지!)
         setMediaInfo({
           videoDuration: videoDuration || 0,
-
           videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 사용!
           videoName: state.fileName,
           videoType: 'video/mp4', // 타입 명시
+          videoThumbnail: state.videoThumbnail, // 썸네일 유지
         })
         setClips(clips)
 
@@ -778,6 +897,7 @@ export const useUploadModal = () => {
           videoDuration: videoDuration || 0,
           videoUrl: resolvedVideoUrl, // ✅ 안정적으로 해결된 URL 저장!
           videoName: state.fileName,
+          storedMediaId: useEditorStore.getState().storedMediaId || undefined, // IndexedDB에 저장된 미디어 ID
         }
 
         // 프로젝트를 localStorage에 저장
@@ -790,6 +910,11 @@ export const useUploadModal = () => {
         // sessionStorage 업데이트 (새로고침 시 이 프로젝트를 로드하도록)
         sessionStorage.setItem('currentProjectId', projectId)
         sessionStorage.setItem('lastUploadProjectId', projectId)
+        // storedMediaId도 백업 저장
+        const currentStoredMediaId = useEditorStore.getState().storedMediaId
+        if (currentStoredMediaId) {
+          sessionStorage.setItem('currentStoredMediaId', currentStoredMediaId)
+        }
 
         log(
           'useUploadModal',
@@ -1017,6 +1142,7 @@ export const useUploadModal = () => {
     openModal,
     closeModal,
     handleFileSelect,
+    setVideoInfo,
     handleStartTranscription,
     goToEditor,
     cancelProcessing,

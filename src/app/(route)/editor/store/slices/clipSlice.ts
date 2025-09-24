@@ -292,6 +292,9 @@ export const createClipSlice: StateCreator<
               fullText: clip.words
                 .map((word) => (word.id === wordId ? newText : word.text))
                 .join(' '),
+              subtitle: clip.words
+                .map((word) => (word.id === wordId ? newText : word.text))
+                .join(' '), // Also update subtitle field
             }
           : clip
       ),
@@ -300,6 +303,8 @@ export const createClipSlice: StateCreator<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyGet = get() as any
       anyGet.rebuildIndexesFromClips?.()
+      // Also update the scenario to reflect text change
+      anyGet.updateWordTextInScenario?.(wordId, newText)
     } catch {}
   },
 
@@ -674,6 +679,7 @@ export const createClipSlice: StateCreator<
         videoType: state.videoType || undefined,
         videoDuration: state.videoDuration || undefined,
         videoMetadata: state.videoMetadata || undefined,
+        storedMediaId: state.storedMediaId || undefined, // IndexedDB 미디어 ID 포함
       }
     } else {
       // Update existing project
@@ -689,6 +695,7 @@ export const createClipSlice: StateCreator<
         videoType: state.videoType || project.videoType,
         videoDuration: state.videoDuration || project.videoDuration,
         videoMetadata: state.videoMetadata || project.videoMetadata,
+        storedMediaId: state.storedMediaId || project.storedMediaId, // IndexedDB 미디어 ID 포함
       }
     }
 
@@ -722,7 +729,10 @@ export const createClipSlice: StateCreator<
       })
 
       // Restore media information to MediaSlice if available
-      if (state.setMediaInfo && (project.mediaId || project.videoUrl)) {
+      if (
+        state.setMediaInfo &&
+        (project.mediaId || project.videoUrl || project.storedMediaId)
+      ) {
         state.setMediaInfo({
           mediaId: project.mediaId || null,
           videoUrl: project.videoUrl || null,
@@ -730,6 +740,7 @@ export const createClipSlice: StateCreator<
           videoType: project.videoType || null,
           videoDuration: project.videoDuration || null,
           videoMetadata: project.videoMetadata || null,
+          storedMediaId: project.storedMediaId || null, // IndexedDB 미디어 ID 포함
         })
       }
     }

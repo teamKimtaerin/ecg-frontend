@@ -43,8 +43,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     mediaId,
     videoUrl,
     videoName,
+    storedMediaId,
     setVideoLoading,
     setVideoError,
+    restoreMediaFromStorage,
     clips,
     deletedClipIds,
     // setFocusedWord, // Currently unused
@@ -203,9 +205,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           console.log('Video can play')
         }
       }
-      const handleError = (e: Event) => {
+      const handleError = async (e: Event) => {
         const video = e.target as HTMLVideoElement
         let errorMessage = 'Video playback error'
+        let shouldAttemptRestore = false
 
         if (video.error) {
           switch (video.error.code) {
@@ -214,12 +217,22 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
               break
             case 2: // MEDIA_ERR_NETWORK
               errorMessage = 'Network error while loading video'
+              // blob URL이 무효화된 경우 복원 시도
+              if (videoSrc?.startsWith('blob:') && storedMediaId) {
+                shouldAttemptRestore = true
+                errorMessage = 'Blob URL expired - attempting to restore...'
+              }
               break
             case 3: // MEDIA_ERR_DECODE
               errorMessage = 'Video decoding error'
               break
             case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
               errorMessage = 'Video format not supported or no valid source'
+              // blob URL이 무효화된 경우 복원 시도
+              if (videoSrc?.startsWith('blob:') && storedMediaId) {
+                shouldAttemptRestore = true
+                errorMessage = 'Invalid blob URL - attempting to restore...'
+              }
               console.error('Video URL:', videoSrc)
               console.error('Supported formats: MP4, WebM, OGG')
               break
@@ -231,9 +244,30 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           message: video.error?.message,
           videoSrc,
           videoUrl,
+          storedMediaId,
+          willAttemptRestore: shouldAttemptRestore,
         })
 
-        setVideoError(errorMessage)
+        // blob URL 오류 시 자동 복원 시도
+        if (shouldAttemptRestore) {
+          log(
+            'VideoPlayer.tsx',
+            '🔄 Attempting to restore video from IndexedDB...'
+          )
+          try {
+            setVideoError('비디오 복원 중...')
+            await restoreMediaFromStorage(storedMediaId!)
+            log('VideoPlayer.tsx', '✅ Video restored successfully')
+          } catch (restoreError) {
+            log(
+              'VideoPlayer.tsx',
+              `❌ Failed to restore video: ${restoreError}`
+            )
+            setVideoError('비디오 복원에 실패했습니다. 새로 업로드해주세요.')
+          }
+        } else {
+          setVideoError(errorMessage)
+        }
       }
 
       video.addEventListener('loadstart', handleLoadStart)
@@ -246,7 +280,15 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         video.removeEventListener('error', handleError)
       }
     }
-  }, [videoSrc, videoUrl, mediaId, videoName, setVideoError])
+  }, [
+    videoSrc,
+    videoUrl,
+    mediaId,
+    videoName,
+    storedMediaId,
+    setVideoError,
+    restoreMediaFromStorage,
+  ])
 
   // 재생/일시정지 토글
   const togglePlay = async () => {

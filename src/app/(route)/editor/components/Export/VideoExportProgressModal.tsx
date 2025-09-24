@@ -2,6 +2,7 @@
 
 import ProgressModal from '@/components/ui/ProgressModal'
 import { useEffect, useState } from 'react'
+import { useEditorStore } from '../../store'
 
 interface VideoExportProgressModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ export default function VideoExportProgressModal({
   onComplete,
 }: VideoExportProgressModalProps) {
   const [progress, setProgress] = useState(0)
+  const { videoThumbnail } = useEditorStore()
 
   // 진행률 시뮬레이션
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function VideoExportProgressModal({
       status="processing"
       progress={progress}
       estimatedTimeRemaining={remainingSeconds}
+      videoThumbnail={videoThumbnail || undefined}
       canCancel={true}
       closeOnBackdropClick={false}
       aria-label="내보내기 진행 상황"

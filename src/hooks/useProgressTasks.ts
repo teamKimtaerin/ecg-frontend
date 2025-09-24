@@ -24,6 +24,7 @@ export interface UploadTask {
   currentStage?: string
   estimatedTimeRemaining?: number
   isTimeout?: boolean
+  jobId?: string
 }
 
 /**

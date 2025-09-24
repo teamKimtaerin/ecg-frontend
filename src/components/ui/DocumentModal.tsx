@@ -1,12 +1,9 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import {
-  useProgressTasks,
-  ExportTask,
-  UploadTask,
-} from '@/hooks/useProgressTasks'
 
 export interface DocumentModalProps {
   isOpen: boolean
@@ -25,6 +22,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
+  const router = useRouter()
 
   // Get formatted progress data (automatic timeout checking is now handled in useProgressTasks)
   const {
@@ -74,6 +72,16 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
     }
   }, [isOpen, onClose, buttonRef])
 
+  // 완료된 업로드 클릭 핸들러
+  const handleUploadClick = (task: any) => {
+    if (task.status === 'completed' && task.jobId) {
+      // jobId를 세션에 저장하고 에디터로 이동
+      sessionStorage.setItem('pendingJobId', task.jobId)
+      router.push('/editor')
+      onClose()
+    }
+  }
+
   if (!isOpen || !isMounted) return null
 
   return createPortal(
@@ -91,8 +99,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           onClick={() => setActiveTab('upload')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'upload'
-              ? 'text-black border-b-2 border-black bg-gray-50'
-              : 'text-gray-600 hover:text-black'
+              ? 'text-black border-b-2 border-black'
+              : 'text-gray-600 hover:text-black bg-gray-50'
           }`}
         >
           업로드
@@ -101,8 +109,8 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
           onClick={() => setActiveTab('export')}
           className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
             activeTab === 'export'
-              ? 'text-black border-b-2 border-black bg-gray-50'
-              : 'text-gray-600 hover:text-black'
+              ? 'text-black border-b-2 border-black'
+              : 'text-gray-600 hover:text-black bg-gray-50'
           }`}
         >
           내보내기
@@ -417,11 +425,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                     .map((task) => (
                       <div
                         key={task.id}
-                        className={`rounded-lg p-3 border ${
+                        className={`rounded-lg p-3 border transition-colors ${
                           task.status === 'completed'
-                            ? 'bg-green-50 border-green-200'
+                            ? 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
                             : 'bg-red-50 border-red-200'
                         }`}
+                        onClick={() => handleUploadClick(task)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-gray-800 truncate">
@@ -446,9 +455,16 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                             </span>
                           </div>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {task.completedAt}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {task.completedAt}
+                          </span>
+                          {task.status === 'completed' && task.jobId && (
+                            <span className="text-xs text-purple-600 font-medium">
+                              에디터에서 열기 →
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                 </div>

@@ -14,6 +14,7 @@ export interface ProgressModalProps {
   currentStage?: string
   estimatedTimeRemaining?: number
   fileName?: string
+  videoThumbnail?: string // 비디오 썸네일 URL
   canCancel?: boolean
   closeOnBackdropClick?: boolean
   'aria-label'?: string
@@ -37,6 +38,7 @@ export default function ProgressModal({
   currentStage,
   estimatedTimeRemaining,
   fileName,
+  videoThumbnail,
   canCancel = true,
   closeOnBackdropClick = false,
   'aria-label': ariaLabel,
@@ -198,18 +200,28 @@ export default function ProgressModal({
           {/* 썸네일 이미지 */}
           <div className="mb-6">
             <div className="w-full bg-gray-100 rounded-lg overflow-hidden relative flex items-center justify-center h-48">
-              <div className="text-center">
-                <div className="text-6xl mb-2">🎬</div>
-                <p className="text-sm text-gray-600">
-                  {type === 'upload' ? '업로드 처리 중' : '변환 처리 중'}
-                </p>
-              </div>
-              {/* 오버레이 텍스트 */}
-              <div className="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-2 rounded">
-                {type === 'upload'
-                  ? '업로드를 처리하는 중입니다...'
-                  : '비디오를 내보내는 중입니다...'}
-              </div>
+              {videoThumbnail ? (
+                <div className="relative w-full h-full">
+                  <img
+                    src={videoThumbnail}
+                    alt="Video thumbnail"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* 오버레이 텍스트 */}
+                  <div className="absolute bottom-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-2 rounded">
+                    {type === 'upload'
+                      ? '업로드를 처리하는 중입니다...'
+                      : '비디오를 내보내는 중입니다...'}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="text-6xl mb-2">🎬</div>
+                  <p className="text-sm text-gray-600">
+                    {type === 'upload' ? '업로드 처리 중' : '변환 처리 중'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

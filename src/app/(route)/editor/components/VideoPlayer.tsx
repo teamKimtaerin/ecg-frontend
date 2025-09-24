@@ -288,6 +288,20 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           return
         }
 
+        // Check if word editing is active - don't handle arrow keys during editing
+        const editorState = useEditorStore.getState()
+        const isEditingWord = editorState.editingWordId !== null
+
+        // Also check for contentEditable elements (used in word editing)
+        const activeElement = document.activeElement
+        const isContentEditable =
+          activeElement?.getAttribute('contenteditable') === 'true'
+
+        if (isEditingWord || isContentEditable) {
+          // Don't interfere with word editing
+          return
+        }
+
         switch (e.key) {
           case ' ':
             e.preventDefault()
