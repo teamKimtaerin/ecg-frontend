@@ -22,10 +22,15 @@ export interface ChatBotApiResponse {
   processing_time_ms?: number
   error?: string
   details?: string
-  
+
   // 시나리오 편집 관련 필드
   edit_result?: {
-    type: 'text_edit' | 'style_edit' | 'animation_request' | 'info_request' | 'error'
+    type:
+      | 'text_edit'
+      | 'style_edit'
+      | 'animation_request'
+      | 'info_request'
+      | 'error'
     success: boolean
     explanation: string
     error?: string
