@@ -1,10 +1,13 @@
 import { ChatMessage } from '@/app/(route)/editor/types/chatBot'
+import type { RendererConfigV2 } from '@/app/shared/motiontext'
 
 export interface ChatBotApiRequest {
   prompt: string
   conversation_history?: ChatMessage[]
+  scenario_data?: RendererConfigV2
   max_tokens?: number
   temperature?: number
+  use_langchain?: boolean
 }
 
 export interface ChatBotApiResponse {
@@ -17,19 +20,36 @@ export interface ChatBotApiResponse {
   processing_time_ms?: number
   error?: string
   details?: string
+  
+  // 시나리오 편집 관련 필드
+  edit_result?: {
+    type: 'text_edit' | 'style_edit' | 'animation_request' | 'info_request' | 'error'
+    success: boolean
+    explanation: string
+    error?: string
+  }
+  json_patches?: Array<{
+    op: 'replace' | 'add' | 'remove'
+    path: string
+    value?: any
+  }>
+  has_scenario_edits?: boolean
 }
 
 export default class ChatBotApiService {
   async sendMessage(
     message: string,
-    conversationHistory: ChatMessage[] = []
+    conversationHistory: ChatMessage[] = [],
+    scenarioData?: RendererConfigV2
   ): Promise<string> {
     try {
       const request: ChatBotApiRequest = {
         prompt: message,
         conversation_history: conversationHistory,
+        scenario_data: scenarioData,
         max_tokens: 1000,
         temperature: 0.7,
+        use_langchain: true, // LangChain 사용하여 시나리오 인식 기능 활성화
       }
 
       // ChatBot API 호출 (배포 환경에서는 NEXT_PUBLIC_API_URL 사용)

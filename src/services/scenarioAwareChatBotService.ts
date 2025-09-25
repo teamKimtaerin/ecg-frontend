@@ -1,5 +1,5 @@
 import ChatBotApiService from './chatBotApiService'
-import MessageClassifier, { MessageClassification } from './messageClassifier'
+import MessageClassifier from './messageClassifier'
 import { ChatMessage } from '@/app/(route)/editor/types/chatBot'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
 import type { ClipItem } from '@/app/(route)/editor/types'
@@ -34,22 +34,13 @@ export default class ScenarioAwareChatBotService {
     currentClips?: ClipItem[]
   ): Promise<string> {
     try {
-      // 1. 메시지 분류
-      const classification = MessageClassifier.classifyMessage(message)
-
-      // 2. 자막 관련이면 시나리오 컨텍스트 포함
-      if (classification.isSubtitleRelated && currentScenario && currentClips) {
-        return await this.handleScenarioMessage(
-          message,
-          classification,
-          conversationHistory,
-          currentScenario,
-          currentClips
-        )
-      }
-
-      // 3. 일반 메시지는 기본 처리
-      return await this.handleGeneralMessage(message, conversationHistory)
+      // 무조건 시나리오 데이터를 포함하여 메시지 전송
+      const response = await this.chatBotApiService.sendMessage(
+        message,
+        conversationHistory,
+        currentScenario // 항상 시나리오 데이터 전달 (없으면 undefined)
+      )
+      return response
     } catch (error) {
       console.error('ChatBot 메시지 전송 실패:', error)
       throw new Error(
@@ -58,32 +49,6 @@ export default class ScenarioAwareChatBotService {
     }
   }
 
-  private async handleScenarioMessage(
-    message: string,
-    _classification: MessageClassification,
-    conversationHistory: ChatMessage[],
-    _currentScenario: RendererConfigV2,
-    _currentClips: ClipItem[]
-  ): Promise<string> {
-    // API 서비스 사용 - 시나리오 컨텍스트는 buildScenarioPrompt 없이 직접 전달
-    const response = await this.chatBotApiService.sendMessage(
-      message,
-      conversationHistory
-    )
-    return response
-  }
-
-  private async handleGeneralMessage(
-    message: string,
-    conversationHistory: ChatMessage[]
-  ): Promise<string> {
-    // API 서비스 사용
-    const response = await this.chatBotApiService.sendMessage(
-      message,
-      conversationHistory
-    )
-    return response
-  }
 
   // 시나리오 편집 전용 메서드 (향후 확장용)
   async requestScenarioEdit(
