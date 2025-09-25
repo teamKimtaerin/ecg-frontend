@@ -350,7 +350,7 @@ export const createClipSlice: StateCreator<
           const wordEnd = wordStart + wordDuration
 
           return {
-            id: originalWords[index]?.id || `${clipId}-word-${index}`,
+            id: originalWords[index]?.id || `${clipId.replace('clip-', '')}-${index}`,
             text: word,
             start: wordStart,
             end: wordEnd,
