@@ -31,15 +31,18 @@ export default function ClipText({
   }, [isEditing])
 
   const handleClick = () => {
-    if (onFullTextEdit || onFullTextEditAdvanced) {
+    // 쉬운편집 모드에서는 항상 편집 가능, 고급편집 모드에서는 prop이 있을 때만 편집 가능
+    if (editingMode === 'simple' || onFullTextEdit || onFullTextEditAdvanced) {
       setIsEditing(true)
     }
   }
 
   const handleSave = () => {
     if (inputValue.trim() !== fullText) {
-      // 고급 편집 모드에서는 고급 함수 사용, 그렇지 않으면 일반 함수 사용
-      if (editingMode === 'advanced' && onFullTextEditAdvanced) {
+      // 편집 모드에 따른 적절한 함수 호출
+      if (editingMode === 'simple' && onFullTextEdit) {
+        onFullTextEdit(clipId, inputValue.trim())
+      } else if (editingMode === 'advanced' && onFullTextEditAdvanced) {
         onFullTextEditAdvanced(clipId, inputValue.trim())
       } else if (onFullTextEdit) {
         onFullTextEdit(clipId, inputValue.trim())
