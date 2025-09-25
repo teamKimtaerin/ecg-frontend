@@ -12,7 +12,7 @@ export default function ClipText({
   clipId,
   fullText,
   onFullTextEdit,
-  onFullTextEditAdvanced
+  onFullTextEditAdvanced,
 }: ClipTextProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [inputValue, setInputValue] = useState(fullText)

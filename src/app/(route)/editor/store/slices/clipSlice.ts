@@ -344,30 +344,37 @@ export const createClipSlice: StateCreator<
           const newWords = newText.trim().split(/\s+/).filter(Boolean)
 
           // 시작 시간과 끝 시간 계산 (기존 words 배열 기반)
-          const startTime = originalWords.length > 0 ? originalWords[0].start : 0
-          const endTime = originalWords.length > 0 ? originalWords[originalWords.length - 1].end : startTime + 3
+          const startTime =
+            originalWords.length > 0 ? originalWords[0].start : 0
+          const endTime =
+            originalWords.length > 0
+              ? originalWords[originalWords.length - 1].end
+              : startTime + 3
           const totalDuration = endTime - startTime
 
           // 기존 단어들의 애니메이션 정보를 텍스트 매칭으로 보존
-          const existingAnimations = new Map<string, {
-            appliedAssets: string[]
-            animationTracks: any[]
-            wordAnimationTracks?: any[]
-          }>()
+          const existingAnimations = new Map<
+            string,
+            {
+              appliedAssets: string[]
+              animationTracks: any[]
+              wordAnimationTracks?: any[]
+            }
+          >()
 
           originalWords.forEach((word) => {
             const wordKey = word.text.toLowerCase().trim()
             existingAnimations.set(wordKey, {
               appliedAssets: word.appliedAssets || [],
               animationTracks: word.animationTracks || [],
-              wordAnimationTracks: wordAnimationTracks.get(word.id)
+              wordAnimationTracks: wordAnimationTracks.get(word.id),
             })
           })
 
           // 새로운 단어들에 대해 시간을 균등 분배하고 애니메이션 정보 보존
           const updatedWords = newWords.map((word, index) => {
             const wordDuration = totalDuration / newWords.length
-            const wordStart = startTime + (wordDuration * index)
+            const wordStart = startTime + wordDuration * index
             const wordEnd = wordStart + wordDuration
 
             // 기존 단어가 있으면 기존 ID 유지, 없으면 새 ID 생성
@@ -390,8 +397,12 @@ export const createClipSlice: StateCreator<
                 appliedAssets = existingData.appliedAssets
                 animationTracks = existingData.animationTracks
                 // 기존 ID 찾기 (텍스트 매칭)
-                const matchingOriginal = originalWords.find(w => w.text.toLowerCase().trim() === wordKey)
-                wordId = matchingOriginal?.id || `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
+                const matchingOriginal = originalWords.find(
+                  (w) => w.text.toLowerCase().trim() === wordKey
+                )
+                wordId =
+                  matchingOriginal?.id ||
+                  `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
               } else {
                 // 완전히 새로운 단어면 새 ID 생성
                 wordId = `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
@@ -416,7 +427,7 @@ export const createClipSlice: StateCreator<
             fullText: newText,
             subtitle: newText,
           }
-        })
+        }),
       }
     })
 
