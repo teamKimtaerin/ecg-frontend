@@ -2,6 +2,7 @@ import { ClipItem, Word } from '@/app/(route)/editor/types'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
 import { TextMeasurementService } from '../subtitle/textMeasurement'
 import { calculateMaxWidthForFontSize } from '../subtitle/safeAreaCalculator'
+import { generateMergedClipId, generateSplitClipId } from './clipIdGenerator'
 
 export enum SplitMode {
   MANUAL_HALF = 'manual_half', // 기존 수동 절반 분할
@@ -273,7 +274,7 @@ export class UnifiedClipProcessor {
     const firstClip = clips[0]
     const mergedClip: ClipItem = {
       ...firstClip,
-      id: `merged_${Date.now()}`,
+      id: generateMergedClipId(),
       words: mergedWords,
       subtitle: mergedWords.map((w) => w.text).join(' '),
       fullText: mergedWords.map((w) => w.text).join(' '),
@@ -423,8 +424,7 @@ export class UnifiedClipProcessor {
     words: Word[],
     index: number
   ): ClipItem {
-    const timestamp = Date.now()
-    const clipId = `${originalClip.id}_split_${index}_${timestamp}`
+    const clipId = generateSplitClipId(originalClip.id, index)
 
     // Word ID는 유지 - 애니메이션 트랙 보존을 위해
     const updatedWords = words
