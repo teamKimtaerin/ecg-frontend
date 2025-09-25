@@ -330,45 +330,95 @@ export const createClipSlice: StateCreator<
   },
 
   updateClipFullTextAdvanced: (clipId, newText) => {
-    set((state) => ({
-      clips: state.clips.map((clip) => {
-        if (clip.id !== clipId) return clip
+    set((state) => {
+      // wordAnimationTracks에서 현재 clip의 애니메이션 정보 수집
+      const fullState = get() as any
+      const wordAnimationTracks = fullState.wordAnimationTracks || new Map()
 
-        // displayTime 구간 보존하면서 새로운 단어 배열 생성
-        const originalWords = clip.words || []
-        const newWords = newText.trim().split(/\s+/).filter(Boolean)
+      return {
+        clips: state.clips.map((clip) => {
+          if (clip.id !== clipId) return clip
 
-        // 시작 시간과 끝 시간 계산 (기존 words 배열 기반)
-        const startTime = originalWords.length > 0 ? originalWords[0].start : 0
-        const endTime = originalWords.length > 0 ? originalWords[originalWords.length - 1].end : startTime + 3
-        const totalDuration = endTime - startTime
+          // displayTime 구간 보존하면서 새로운 단어 배열 생성
+          const originalWords = clip.words || []
+          const newWords = newText.trim().split(/\s+/).filter(Boolean)
 
-        // 새로운 단어들에 대해 시간을 균등 분배
-        const updatedWords = newWords.map((word, index) => {
-          const wordDuration = totalDuration / newWords.length
-          const wordStart = startTime + (wordDuration * index)
-          const wordEnd = wordStart + wordDuration
+          // 시작 시간과 끝 시간 계산 (기존 words 배열 기반)
+          const startTime = originalWords.length > 0 ? originalWords[0].start : 0
+          const endTime = originalWords.length > 0 ? originalWords[originalWords.length - 1].end : startTime + 3
+          const totalDuration = endTime - startTime
+
+          // 기존 단어들의 애니메이션 정보를 텍스트 매칭으로 보존
+          const existingAnimations = new Map<string, {
+            appliedAssets: string[]
+            animationTracks: any[]
+            wordAnimationTracks?: any[]
+          }>()
+
+          originalWords.forEach((word) => {
+            const wordKey = word.text.toLowerCase().trim()
+            existingAnimations.set(wordKey, {
+              appliedAssets: word.appliedAssets || [],
+              animationTracks: word.animationTracks || [],
+              wordAnimationTracks: wordAnimationTracks.get(word.id)
+            })
+          })
+
+          // 새로운 단어들에 대해 시간을 균등 분배하고 애니메이션 정보 보존
+          const updatedWords = newWords.map((word, index) => {
+            const wordDuration = totalDuration / newWords.length
+            const wordStart = startTime + (wordDuration * index)
+            const wordEnd = wordStart + wordDuration
+
+            // 기존 단어가 있으면 기존 ID 유지, 없으면 새 ID 생성
+            let wordId: string
+            let appliedAssets: string[] = []
+            let animationTracks: any[] = []
+
+            if (originalWords[index] && originalWords[index].text === word) {
+              // 정확히 같은 위치의 같은 텍스트면 기존 ID와 애니메이션 정보 유지
+              wordId = originalWords[index].id
+              appliedAssets = originalWords[index].appliedAssets || []
+              animationTracks = originalWords[index].animationTracks || []
+            } else {
+              // 텍스트 매칭으로 애니메이션 정보 찾기
+              const wordKey = word.toLowerCase().trim()
+              const existingData = existingAnimations.get(wordKey)
+
+              if (existingData) {
+                // 기존에 같은 텍스트가 있었다면 해당 애니메이션 정보 사용
+                appliedAssets = existingData.appliedAssets
+                animationTracks = existingData.animationTracks
+                // 기존 ID 찾기 (텍스트 매칭)
+                const matchingOriginal = originalWords.find(w => w.text.toLowerCase().trim() === wordKey)
+                wordId = matchingOriginal?.id || `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
+              } else {
+                // 완전히 새로운 단어면 새 ID 생성
+                wordId = `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
+              }
+            }
+
+            return {
+              id: wordId,
+              text: word,
+              start: wordStart,
+              end: wordEnd,
+              isEditable: true,
+              confidence: originalWords[index]?.confidence || 0.95,
+              appliedAssets,
+              animationTracks,
+            }
+          })
 
           return {
-            id: originalWords[index]?.id || `${clipId.replace('clip-', '')}-${index}`,
-            text: word,
-            start: wordStart,
-            end: wordEnd,
-            isEditable: true,
-            confidence: originalWords[index]?.confidence || 0.95,
-            appliedAssets: originalWords[index]?.appliedAssets || [],
-            animationTracks: originalWords[index]?.animationTracks || [],
+            ...clip,
+            words: updatedWords,
+            fullText: newText,
+            subtitle: newText,
           }
         })
-
-        return {
-          ...clip,
-          words: updatedWords,
-          fullText: newText,
-          subtitle: newText,
-        }
-      }),
-    }))
+      }
+    })
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
