@@ -73,6 +73,7 @@ export default class ScenarioAwareChatBotService {
     }
   }
 
+
   // 시나리오 편집 전용 메서드 (향후 확장용)
   async requestScenarioEdit(
     message: string,
