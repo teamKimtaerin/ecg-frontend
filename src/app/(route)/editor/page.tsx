@@ -1503,6 +1503,19 @@ export default function EditorPage() {
     }
   }
 
+  // 전체 선택/해제 핸들러
+  const handleSelectAll = (selectAll: boolean) => {
+    if (selectAll) {
+      // 모든 클립 선택
+      const allClipIds = new Set(clips.map(clip => clip.id))
+      setSelectedClipIds(allClipIds)
+    } else {
+      // 모든 선택 해제
+      setSelectedClipIds(new Set())
+      setActiveClipId(null) // 포커스도 해제
+    }
+  }
+
   const handleClipSelect = (clipId: string) => {
     // Clear multi-word selection when clicking on clips
     clearMultiSelection()
@@ -2386,6 +2399,7 @@ export default function EditorPage() {
                   onAddSpeaker={handleAddSpeaker}
                   onRenameSpeaker={handleRenameSpeaker}
                   onEmptySpaceClick={handleEmptySpaceClick}
+                  onSelectAll={handleSelectAll}
                 />
               ) : (
                 <div className="flex-1 bg-white p-4 flex flex-col overflow-y-auto items-center">
