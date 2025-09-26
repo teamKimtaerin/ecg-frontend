@@ -1557,8 +1557,14 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       return {
         multiSelectedWordIds: allWordIds,
         multiSelectedClipIds: allClipIds,
-        lastSelectedWordId: allWordIds.size > 0 ? Array.from(allWordIds)[allWordIds.size - 1] : null,
-        lastSelectedClipId: allClipIds.size > 0 ? Array.from(allClipIds)[allClipIds.size - 1] : null,
+        lastSelectedWordId:
+          allWordIds.size > 0
+            ? Array.from(allWordIds)[allWordIds.size - 1]
+            : null,
+        lastSelectedClipId:
+          allClipIds.size > 0
+            ? Array.from(allClipIds)[allClipIds.size - 1]
+            : null,
       }
     }),
 
@@ -1593,7 +1599,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
     return {
       selected: selectedWordIds.size,
-      total: totalWords
+      total: totalWords,
     }
   },
 

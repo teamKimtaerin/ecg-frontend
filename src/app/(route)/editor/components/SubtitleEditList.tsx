@@ -41,7 +41,16 @@ export default function SubtitleEditList({
   onEmptySpaceClick,
   onSelectAllWords,
 }: SubtitleEditListProps) {
-  const { overId, activeId, deleteText, setClips, selectAllWords, clearMultiSelection, isAllWordsSelected, getSelectedWordsCount } = useEditorStore()
+  const {
+    overId,
+    activeId,
+    deleteText,
+    setClips,
+    selectAllWords,
+    clearMultiSelection,
+    isAllWordsSelected,
+    getSelectedWordsCount,
+  } = useEditorStore()
 
   // Sticker deletion modal state
   const [stickerToDelete, setStickerToDelete] = useState<{
@@ -125,7 +134,8 @@ export default function SubtitleEditList({
   // 전체 단어 선택 상태 계산
   const wordsCount = getSelectedWordsCount()
   const isAllWordsSelectedState = isAllWordsSelected()
-  const isSomeWordsSelected = wordsCount.selected > 0 && !isAllWordsSelectedState
+  const isSomeWordsSelected =
+    wordsCount.selected > 0 && !isAllWordsSelectedState
 
   // 전체 단어 선택/해제 핸들러
   const handleSelectAllWords = () => {
