@@ -94,9 +94,17 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
       ) {
         try {
           URL.revokeObjectURL(state.videoThumbnail)
-          log('mediaSlice.ts', 'Revoked old thumbnail blob URL:', state.videoThumbnail)
+          log(
+            'mediaSlice.ts',
+            'Revoked old thumbnail blob URL:',
+            state.videoThumbnail
+          )
         } catch (error) {
-          log('mediaSlice.ts', 'Failed to revoke old thumbnail blob URL:', error)
+          log(
+            'mediaSlice.ts',
+            'Failed to revoke old thumbnail blob URL:',
+            error
+          )
         }
       }
 
@@ -129,7 +137,11 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set) => ({
       if (state.videoThumbnail && state.videoThumbnail.startsWith('blob:')) {
         try {
           URL.revokeObjectURL(state.videoThumbnail)
-          log('mediaSlice.ts', 'Revoked thumbnail blob URL:', state.videoThumbnail)
+          log(
+            'mediaSlice.ts',
+            'Revoked thumbnail blob URL:',
+            state.videoThumbnail
+          )
         } catch (error) {
           log('mediaSlice.ts', 'Failed to revoke thumbnail blob URL:', error)
         }

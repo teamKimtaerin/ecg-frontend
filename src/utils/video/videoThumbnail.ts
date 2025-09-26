@@ -276,7 +276,9 @@ export const isVideoFile = (file: File): boolean => {
  * @param file 비디오 파일
  * @returns Promise<VideoMetadata>
  */
-export const extractVideoMetadata = async (file: File): Promise<VideoMetadata> => {
+export const extractVideoMetadata = async (
+  file: File
+): Promise<VideoMetadata> => {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('video/')) {
       resolve({

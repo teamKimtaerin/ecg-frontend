@@ -1,8 +1,6 @@
 'use client'
 
-import {
-  useProgressTasks
-} from '@/hooks/useProgressTasks'
+import { useProgressTasks } from '@/hooks/useProgressTasks'
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 

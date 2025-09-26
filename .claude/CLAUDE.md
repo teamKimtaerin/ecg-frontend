@@ -264,13 +264,14 @@ interface VideoMetadata {
 
 interface ProcessingModalProps {
   // ... existing props
-  videoFile?: File          // For automatic thumbnail generation
-  videoThumbnail?: string   // Pre-generated thumbnail URL
+  videoFile?: File // For automatic thumbnail generation
+  videoThumbnail?: string // Pre-generated thumbnail URL
   videoMetadata?: VideoMetadata // Video information display
 }
 ```
 
 **Features:**
+
 - Automatic thumbnail generation from video files using `generateVideoThumbnail`
 - Video metadata display (size, duration, resolution, FPS)
 - Graceful fallback to emoji placeholder when thumbnail generation fails
@@ -289,9 +290,11 @@ When creating animation plugins:
 ### Windows Development Notes
 
 #### Webpack Cache Issues
+
 If you encounter `EPERM: operation not permitted, rename` errors on Windows:
 
 1. **Clear Cache Directories**:
+
    ```bash
    # Remove webpack cache
    rm -rf .next/cache
@@ -299,6 +302,7 @@ If you encounter `EPERM: operation not permitted, rename` errors on Windows:
    ```
 
 2. **Restart Development Server**:
+
    ```bash
    # Kill existing process and restart
    yarn dev
@@ -309,6 +313,7 @@ If you encounter `EPERM: operation not permitted, rename` errors on Windows:
    - Exclude from real-time scanning
 
 #### File System Access API
+
 - Modern browsers support direct file saving without downloads
 - Used in GPU rendering for automatic video export
 - Graceful fallback to traditional downloads

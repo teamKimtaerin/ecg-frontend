@@ -13,7 +13,6 @@ export interface ProcessingModalProps {
   backdrop?: boolean
 }
 
-
 export default function ProcessingModal({
   isOpen,
   onClose,
@@ -31,7 +30,8 @@ export default function ProcessingModal({
   )
 
   // If no active task and modal is open, check if there's any upload task at all
-  const latestUploadTask = uploadTasks.length > 0 ? uploadTasks[uploadTasks.length - 1] : null
+  const latestUploadTask =
+    uploadTasks.length > 0 ? uploadTasks[uploadTasks.length - 1] : null
   const currentTask = activeUploadTask || latestUploadTask
 
   // Extract data from current task
@@ -107,7 +107,6 @@ export default function ProcessingModal({
     const secs = Math.floor(seconds % 60)
     return mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`
   }
-
 
   if (!isOpen) return null
 
@@ -224,7 +223,6 @@ export default function ProcessingModal({
               </p>
             </div>
           )}
-
 
           {/* Action Buttons for Completed/Failed States */}
           {status === 'completed' && (

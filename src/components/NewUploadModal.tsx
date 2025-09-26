@@ -28,7 +28,11 @@ interface NewUploadModalProps {
     files: File[]
     settings: TranscriptionSettings
   }) => Promise<void>
-  onVideoInfoReady?: (file: File, thumbnailUrl?: string, metadata?: VideoMetadata) => void
+  onVideoInfoReady?: (
+    file: File,
+    thumbnailUrl?: string,
+    metadata?: VideoMetadata
+  ) => void
   acceptedTypes?: string[]
   maxFileSize?: number
   multiple?: boolean
