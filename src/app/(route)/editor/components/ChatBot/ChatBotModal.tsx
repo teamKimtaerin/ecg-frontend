@@ -7,13 +7,23 @@ import { ChatBotProps } from '../../types/chatBot'
 import ChatMessage from './ChatMessage'
 import FloatingQuestion from './FloatingQuestion'
 import { sampleQuestions } from './sampleQuestions'
+import { CloseIcon } from '@/components/icons'
 
-const ChatBotModal: React.FC<ChatBotProps> = ({
+interface ChatBotModalProps extends ChatBotProps {
+  selectedClipsCount?: number
+  selectedWordsCount?: number
+  onClearSelection?: () => void
+}
+
+const ChatBotModal: React.FC<ChatBotModalProps> = ({
   isOpen,
   onClose,
   messages,
   isTyping = false,
   onSendMessage,
+  selectedClipsCount = 0,
+  selectedWordsCount = 0,
+  onClearSelection,
 }) => {
   const [inputValue, setInputValue] = useState('')
   const [activeQuestionIndices, setActiveQuestionIndices] = useState<number[]>(
@@ -144,6 +154,31 @@ const ChatBotModal: React.FC<ChatBotProps> = ({
       className="max-w-lg"
     >
       <div className="flex flex-col h-[550px]" onKeyDown={handleModalKeyDown}>
+        {/* Selected items indicator */}
+        {(selectedClipsCount > 0 || selectedWordsCount > 0) && (
+          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-sm text-blue-800 font-medium">
+                {selectedClipsCount > 0 && selectedWordsCount > 0
+                  ? `${selectedClipsCount}개 클립, ${selectedWordsCount}개 단어 선택됨`
+                  : selectedClipsCount > 0
+                  ? `${selectedClipsCount}개 클립 선택됨`
+                  : `${selectedWordsCount}개 단어 선택됨`}
+              </span>
+            </div>
+            {onClearSelection && (
+              <button
+                onClick={onClearSelection}
+                className="p-1 hover:bg-blue-100 rounded-full transition-colors"
+                title="선택 해제"
+              >
+                <CloseIcon size={16} className="text-blue-600" />
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Messages container */}
         <div className="flex-1 overflow-y-auto p-4 bg-gray-50 rounded-lg mb-4">
           {messages.length === 0 ? (

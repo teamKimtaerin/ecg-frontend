@@ -4,6 +4,7 @@ import ScenarioAwareChatBotService from '@/services/scenarioAwareChatBotService'
 import { useEditorStore } from '../store'
 import MessageClassifier from '@/services/messageClassifier'
 import ScenarioEditParser from '@/services/scenarioEditParser'
+import { compressScenarioBySelection } from '../utils/scenarioCompressor'
 
 const useChatBot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -21,11 +22,31 @@ const useChatBot = () => {
   )
   const updateClips = useEditorStore((state) => state.updateClips)
 
+  // Selection state
+  const selectedClipIds = useEditorStore((state) => state.selectedClipIds)
+  const multiSelectedWordIds = useEditorStore((state) => state.multiSelectedWordIds)
+  const clearSelection = useEditorStore((state) => state.clearSelection)
+  const clearGroupSelection = useEditorStore((state) => state.clearGroupSelection)
+
+  // Calculate selected counts
+  const selectedClipsCount = selectedClipIds.size
+  const selectedWordsCount = multiSelectedWordIds.size
+
   // ChatBot 서비스 인스턴스 생성 (API 기반으로 변경, 자격 증명 불필요)
   const chatBotService = useMemo(() => new ScenarioAwareChatBotService(), [])
 
   const sendMessage = useCallback(
     async (content: string) => {
+      // 최신 선택 상태 가져오기
+      const latestState = useEditorStore.getState()
+      const currentSelectedClipIds = latestState.selectedClipIds
+      const currentMultiSelectedWordIds = latestState.multiSelectedWordIds
+      const currentClips = latestState.clips || []
+
+      // 최신 선택 개수 계산
+      const currentSelectedClipsCount = currentSelectedClipIds.size
+      const currentSelectedWordsCount = currentMultiSelectedWordIds.size
+
       // 사용자 메시지 추가
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
@@ -46,28 +67,60 @@ const useChatBot = () => {
         if (
           classification.isSubtitleRelated &&
           !currentScenario &&
-          clips.length > 0
+          currentClips.length > 0
         ) {
-          workingScenario = buildInitialScenario(clips)
+          workingScenario = buildInitialScenario(currentClips)
         }
 
-        // 3. AI 응답 요청 (시나리오 컨텍스트 포함)
+        // 3. 선택된 클립/워드에 따른 시나리오 압축 (최신 상태 사용)
+        console.log('🔍 Selection state (latest):', {
+          selectedClipIds: Array.from(currentSelectedClipIds),
+          selectedClipsCount: currentSelectedClipsCount,
+          multiSelectedWordIds: Array.from(currentMultiSelectedWordIds),
+          selectedWordsCount: currentSelectedWordsCount,
+          workingScenarioExists: !!workingScenario,
+          totalCues: workingScenario?.cues?.length
+        })
+
+        let scenarioToSend = workingScenario
+        if (workingScenario && (currentSelectedClipIds.size > 0 || currentMultiSelectedWordIds.size > 0)) {
+          console.log('✅ Calling compressScenarioBySelection with latest state')
+          scenarioToSend = compressScenarioBySelection(
+            workingScenario,
+            currentSelectedClipIds,
+            currentMultiSelectedWordIds,
+            currentClips
+          )
+          console.log(`🗜️ Compressed scenario: ${scenarioToSend.cues.length}/${workingScenario.cues.length} cues`)
+        } else {
+          console.log('❌ Skipping compression - no selection or scenario')
+        }
+
+        // 4. 디버그 정보 준비 (최신 상태 사용)
+        const debugInfo = {
+          selectedClipsCount: currentSelectedClipsCount,
+          selectedWordsCount: currentSelectedWordsCount,
+          originalCuesCount: workingScenario?.cues?.length,
+        }
+
+        // 5. AI 응답 요청 (압축된 시나리오 컨텍스트 포함)
         const response = await chatBotService.sendMessage(
           content,
           messages,
-          workingScenario || undefined,
-          clips.length > 0 ? clips : undefined
+          scenarioToSend || undefined,
+          currentClips.length > 0 ? currentClips : undefined,
+          debugInfo
         )
 
-        // 4. AI 응답 파싱 및 편집 적용
+        // 6. AI 응답 파싱 및 편집 적용
         const parsedResponse = ScenarioEditParser.parseAIResponse(response)
 
-        // 5. 실제 편집 적용
+        // 7. 실제 편집 적용
         if (parsedResponse.isEdit) {
           // 클립 변경사항 적용
-          if (parsedResponse.clipChanges && clips.length > 0) {
+          if (parsedResponse.clipChanges && currentClips.length > 0) {
             const updatedClips = ScenarioEditParser.applyClipChanges(
-              clips,
+              currentClips,
               parsedResponse.clipChanges
             )
             updateClips(updatedClips)
@@ -83,7 +136,7 @@ const useChatBot = () => {
           }
         }
 
-        // 6. AI 응답 메시지 추가 (편집 설명)
+        // 8. AI 응답 메시지 추가 (편집 설명)
         const botMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           content: parsedResponse.explanation,
@@ -132,6 +185,11 @@ const useChatBot = () => {
     setMessages([])
   }, [])
 
+  const handleClearSelection = useCallback(() => {
+    clearSelection()
+    clearGroupSelection()
+  }, [clearSelection, clearGroupSelection])
+
   return {
     messages,
     isTyping,
@@ -140,6 +198,9 @@ const useChatBot = () => {
     openChatBot,
     closeChatBot,
     clearMessages,
+    selectedClipsCount,
+    selectedWordsCount,
+    clearSelection: handleClearSelection,
   }
 }
 

@@ -31,15 +31,20 @@ export default class ScenarioAwareChatBotService {
     message: string,
     conversationHistory: ChatMessage[] = [],
     currentScenario?: RendererConfigV2,
-    currentClips?: ClipItem[]
+    currentClips?: ClipItem[],
+    debugInfo?: {
+      selectedClipsCount: number
+      selectedWordsCount: number
+      originalCuesCount?: number
+    }
   ): Promise<string> {
     try {
-      // 무조건 시나리오 데이터와 클립 데이터를 포함하여 메시지 전송
+      // 시나리오 데이터를 포함하여 메시지 전송 (클립 데이터는 시나리오에 포함됨)
       const response = await this.chatBotApiService.sendMessage(
         message,
         conversationHistory,
-        currentScenario, // 항상 시나리오 데이터 전달 (없으면 undefined)
-        currentClips // 클립 데이터도 함께 전달 (없으면 undefined)
+        currentScenario, // 시나리오 데이터 전달 (클립 데이터 포함)
+        debugInfo // 디버그 정보 전달
       )
       return response
     } catch (error) {

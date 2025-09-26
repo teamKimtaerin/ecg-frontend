@@ -1,14 +1,10 @@
 import { ChatMessage } from '@/app/(route)/editor/types/chatBot'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
-import type { ClipItem } from '@/app/(route)/editor/types'
 
 export interface ChatBotApiRequest {
   prompt: string
   conversation_history?: ChatMessage[]
   scenario_data?: RendererConfigV2
-  clips_data?: ClipItem[]
-  max_tokens?: number
-  temperature?: number
   use_langchain?: boolean
 }
 
@@ -38,7 +34,7 @@ export interface ChatBotApiResponse {
   json_patches?: Array<{
     op: 'replace' | 'add' | 'remove'
     path: string
-    value?: any
+    value?: unknown
   }>
   has_scenario_edits?: boolean
 }
@@ -48,17 +44,51 @@ export default class ChatBotApiService {
     message: string,
     conversationHistory: ChatMessage[] = [],
     scenarioData?: RendererConfigV2,
-    clipsData?: ClipItem[]
+    debugInfo?: {
+      selectedClipsCount: number
+      selectedWordsCount: number
+      originalCuesCount?: number
+    }
   ): Promise<string> {
     try {
       const request: ChatBotApiRequest = {
         prompt: message,
         conversation_history: conversationHistory,
         scenario_data: scenarioData,
-        clips_data: clipsData,
-        max_tokens: 1000,
-        temperature: 0.7,
         use_langchain: true, // LangChain 사용하여 시나리오 인식 기능 활성화
+      }
+
+      // REQUEST_TEST 모드 확인
+      const isRequestTestMode = process.env.NEXT_PUBLIC_REQUEST_TEST === 'true'
+
+      if (isRequestTestMode) {
+        // 디버깅용 정보 생성
+        const requestSize = JSON.stringify(request).length
+        const scenarioSize = scenarioData ? JSON.stringify(scenarioData).length : 0
+
+        const debugResponse = `🔍 [REQUEST TEST MODE]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📤 Request Details:
+• Prompt: "${message}"
+• Selected Clips: ${debugInfo?.selectedClipsCount || 0}개
+• Selected Words: ${debugInfo?.selectedWordsCount || 0}개
+• Scenario Cues: ${scenarioData?.cues?.length || 0}${debugInfo?.originalCuesCount ? `/${debugInfo.originalCuesCount} (압축됨)` : ''}
+• Conversation History: ${conversationHistory.length} messages
+• LangChain: enabled
+
+📊 Request Size:
+• Total: ~${(requestSize / 1024).toFixed(1)} KB
+• Scenario: ~${(scenarioSize / 1024).toFixed(1)} KB
+
+📝 Raw Request:
+\`\`\`json
+${JSON.stringify(request, null, 2)}
+\`\`\`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+
+        // 짧은 지연으로 실제 API 호출 시뮬레이션
+        await new Promise(resolve => setTimeout(resolve, 500))
+        return debugResponse
       }
 
       // ChatBot API 호출 (배포 환경에서는 NEXT_PUBLIC_API_URL 사용)
