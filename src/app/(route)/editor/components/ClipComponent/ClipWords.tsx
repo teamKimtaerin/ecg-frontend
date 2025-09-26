@@ -76,6 +76,9 @@ export default function ClipWords({
     // For updating clip data
     setClips,
     clips,
+    // For scenario-based seeking
+    currentScenario,
+    nodeIndex,
   } = useEditorStore()
 
   // Asset related state with icon support
@@ -357,7 +360,7 @@ export default function ClipWords({
       }
       lastClickTimeRef.current = now
 
-      // Seek video player to word start time
+      // Seek video player to word start time using scenario textNode baseTime
       const videoPlayer = (
         window as {
           videoPlayer?: {
@@ -367,7 +370,31 @@ export default function ClipWords({
         }
       ).videoPlayer
       if (videoPlayer) {
-        videoPlayer.seekTo(word.start)
+        let seekTime = word.start // fallback to word.start
+
+        // Try to get accurate time from scenario textNode
+        if (currentScenario && nodeIndex) {
+          // Check both with and without word- prefix
+          const possibleIds = [wordId, `word-${wordId}`]
+          let nodeEntry = null
+
+          for (const id of possibleIds) {
+            if (nodeIndex[id]) {
+              nodeEntry = nodeIndex[id]
+              break
+            }
+          }
+
+          if (nodeEntry) {
+            const cue = currentScenario.cues[nodeEntry.cueIndex]
+            const node = cue?.root?.children?.[nodeEntry.path[0]]
+            if (node?.baseTime && Array.isArray(node.baseTime)) {
+              seekTime = node.baseTime[0] // Use baseTime[0] as the accurate start time
+            }
+          }
+        }
+
+        videoPlayer.seekTo(seekTime)
         // Pause auto word selection for a few seconds when user manually selects a word
         if (videoPlayer.pauseAutoWordSelection) {
           videoPlayer.pauseAutoWordSelection()
@@ -392,6 +419,8 @@ export default function ClipWords({
       setCurrentWordAssets,
       selectedWordAssets,
       expandClip,
+      currentScenario,
+      nodeIndex,
     ]
   )
 
