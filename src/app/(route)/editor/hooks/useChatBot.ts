@@ -124,34 +124,46 @@ const useChatBot = () => {
           debugInfo
         )
 
-        // 6. AI 응답 파싱 및 편집 적용
-        const parsedResponse = ScenarioEditParser.parseAIResponse(response)
+        // 6. REQUEST_TEST 모드 확인 및 응답 처리
+        const isRequestTestMode = process.env.NEXT_PUBLIC_REQUEST_TEST === 'true'
 
-        // 7. 실제 편집 적용
-        if (parsedResponse.isEdit) {
-          // 클립 변경사항 적용
-          if (parsedResponse.clipChanges && currentClips.length > 0) {
-            const updatedClips = ScenarioEditParser.applyClipChanges(
-              currentClips,
-              parsedResponse.clipChanges
-            )
-            updateClips(updatedClips)
+        let botMessageContent: string
+
+        if (isRequestTestMode) {
+          // REQUEST_TEST 모드에서는 파싱하지 않고 디버그 응답을 그대로 표시
+          botMessageContent = response
+        } else {
+          // 일반 모드에서만 AI 응답 파싱 및 편집 적용
+          const parsedResponse = ScenarioEditParser.parseAIResponse(response)
+
+          // 7. 실제 편집 적용
+          if (parsedResponse.isEdit) {
+            // 클립 변경사항 적용
+            if (parsedResponse.clipChanges && currentClips.length > 0) {
+              const updatedClips = ScenarioEditParser.applyClipChanges(
+                currentClips,
+                parsedResponse.clipChanges
+              )
+              updateClips(updatedClips)
+            }
+
+            // 시나리오 변경사항 적용
+            if (parsedResponse.scenarioChanges && workingScenario) {
+              const updatedScenario = ScenarioEditParser.applyScenarioChanges(
+                workingScenario,
+                parsedResponse.scenarioChanges
+              )
+              setScenarioFromJson(updatedScenario)
+            }
           }
 
-          // 시나리오 변경사항 적용
-          if (parsedResponse.scenarioChanges && workingScenario) {
-            const updatedScenario = ScenarioEditParser.applyScenarioChanges(
-              workingScenario,
-              parsedResponse.scenarioChanges
-            )
-            setScenarioFromJson(updatedScenario)
-          }
+          botMessageContent = parsedResponse.explanation
         }
 
-        // 8. AI 응답 메시지 추가 (편집 설명)
+        // 8. AI 응답 메시지 추가
         const botMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
-          content: parsedResponse.explanation,
+          content: botMessageContent,
           sender: 'bot',
           timestamp: new Date(),
         }
