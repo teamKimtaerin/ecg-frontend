@@ -21,7 +21,7 @@ interface SubtitleEditListProps {
   onAddSpeaker?: (name: string) => void
   onRenameSpeaker?: (oldName: string, newName: string) => void
   onEmptySpaceClick?: () => void
-  onSelectAll?: (selectAll: boolean) => void
+  onSelectAllWords?: (selectAll: boolean) => void
 }
 
 export default function SubtitleEditList({
@@ -39,9 +39,9 @@ export default function SubtitleEditList({
   onAddSpeaker,
   onRenameSpeaker,
   onEmptySpaceClick,
-  onSelectAll,
+  onSelectAllWords,
 }: SubtitleEditListProps) {
-  const { overId, activeId, deleteText, setClips } = useEditorStore()
+  const { overId, activeId, deleteText, setClips, selectAllWords, clearMultiSelection, isAllWordsSelected, getSelectedWordsCount } = useEditorStore()
 
   // Sticker deletion modal state
   const [stickerToDelete, setStickerToDelete] = useState<{
@@ -122,16 +122,20 @@ export default function SubtitleEditList({
   const draggedIndex = clips.findIndex((clip) => clip.id === activeId)
   const overIndex = clips.findIndex((clip) => clip.id === overId)
 
-  // 전체 선택 상태 계산
-  const isAllSelected =
-    clips.length > 0 && selectedClipIds.size === clips.length
-  const isSomeSelected =
-    selectedClipIds.size > 0 && selectedClipIds.size < clips.length
+  // 전체 단어 선택 상태 계산
+  const wordsCount = getSelectedWordsCount()
+  const isAllWordsSelectedState = isAllWordsSelected()
+  const isSomeWordsSelected = wordsCount.selected > 0 && !isAllWordsSelectedState
 
-  // 전체 선택/해제 핸들러
-  const handleSelectAll = () => {
-    if (onSelectAll) {
-      onSelectAll(!isAllSelected)
+  // 전체 단어 선택/해제 핸들러
+  const handleSelectAllWords = () => {
+    if (isAllWordsSelectedState) {
+      clearMultiSelection()
+    } else {
+      selectAllWords()
+    }
+    if (onSelectAllWords) {
+      onSelectAllWords(!isAllWordsSelectedState)
     }
   }
 
@@ -140,29 +144,29 @@ export default function SubtitleEditList({
       className="w-[800px] bg-gray-50 p-4 cursor-pointer"
       onClick={handleEmptySpaceClick}
     >
-      {/* 전체 선택 버튼 */}
-      {clips.length > 0 && onSelectAll && (
+      {/* 전체 단어 선택 버튼 */}
+      {clips.length > 0 && onSelectAllWords && (
         <div className="mb-4 flex items-center justify-between">
           <button
-            onClick={handleSelectAll}
+            onClick={handleSelectAllWords}
             className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-              isAllSelected
+              isAllWordsSelectedState
                 ? 'bg-brand-sub text-white hover:bg-brand-sub/80'
-                : isSomeSelected
+                : isSomeWordsSelected
                   ? 'bg-brand-sub/20 text-brand-sub border border-brand-sub hover:bg-brand-sub/30'
                   : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
             }`}
           >
             <div
               className={`w-3 h-3 border rounded-sm flex items-center justify-center ${
-                isAllSelected
+                isAllWordsSelectedState
                   ? 'bg-white border-white'
-                  : isSomeSelected
+                  : isSomeWordsSelected
                     ? 'bg-brand-sub border-brand-sub'
                     : 'bg-white border-gray-400'
               }`}
             >
-              {isAllSelected && (
+              {isAllWordsSelectedState && (
                 <svg
                   className="w-2 h-2 text-brand-sub"
                   fill="currentColor"
@@ -175,15 +179,15 @@ export default function SubtitleEditList({
                   />
                 </svg>
               )}
-              {isSomeSelected && !isAllSelected && (
+              {isSomeWordsSelected && !isAllWordsSelectedState && (
                 <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
               )}
             </div>
-            {isAllSelected ? '전체 해제' : '전체 선택'}
+            {isAllWordsSelectedState ? '전체 단어 해제' : '전체 단어 선택'}
           </button>
           <div className="text-xs text-gray-500">
-            {selectedClipIds.size > 0 &&
-              `${selectedClipIds.size}/${clips.length} 선택됨`}
+            {wordsCount.selected > 0 &&
+              `${wordsCount.selected}/${wordsCount.total} 단어 선택됨`}
           </div>
         </div>
       )}

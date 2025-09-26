@@ -217,6 +217,11 @@ export interface WordSlice extends WordDragState {
   getSelectedWordsByClip: () => Map<string, string[]>
   setLastSelectedWord: (clipId: string, wordId: string) => void
 
+  // Select all words functionality
+  selectAllWords: () => void
+  isAllWordsSelected: () => boolean
+  getSelectedWordsCount: () => { selected: number; total: number }
+
   // Video playback synchronization
   setPlayingWord: (clipId: string | null, wordId: string | null) => void
   clearPlayingWord: () => void
@@ -1528,6 +1533,69 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       lastSelectedWordId: null,
       lastSelectedClipId: null,
     }),
+
+  selectAllWords: () =>
+    set((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      const clips = anyGet.clips || []
+
+      const allWordIds = new Set<string>()
+      const allClipIds = new Set<string>()
+
+      clips.forEach((clip: any) => {
+        if (clip.words && Array.isArray(clip.words)) {
+          allClipIds.add(clip.id)
+          clip.words.forEach((word: any) => {
+            if (word.id) {
+              allWordIds.add(word.id)
+            }
+          })
+        }
+      })
+
+      return {
+        multiSelectedWordIds: allWordIds,
+        multiSelectedClipIds: allClipIds,
+        lastSelectedWordId: allWordIds.size > 0 ? Array.from(allWordIds)[allWordIds.size - 1] : null,
+        lastSelectedClipId: allClipIds.size > 0 ? Array.from(allClipIds)[allClipIds.size - 1] : null,
+      }
+    }),
+
+  isAllWordsSelected: () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyGet = get() as any
+    const clips = anyGet.clips || []
+    const selectedWordIds = get().multiSelectedWordIds
+
+    let totalWords = 0
+    clips.forEach((clip: any) => {
+      if (clip.words && Array.isArray(clip.words)) {
+        totalWords += clip.words.length
+      }
+    })
+
+    return totalWords > 0 && selectedWordIds.size === totalWords
+  },
+
+  getSelectedWordsCount: () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyGet = get() as any
+    const clips = anyGet.clips || []
+    const selectedWordIds = get().multiSelectedWordIds
+
+    let totalWords = 0
+    clips.forEach((clip: any) => {
+      if (clip.words && Array.isArray(clip.words)) {
+        totalWords += clip.words.length
+      }
+    })
+
+    return {
+      selected: selectedWordIds.size,
+      total: totalWords
+    }
+  },
 
   deleteSelectedWords: () =>
     set(() => {

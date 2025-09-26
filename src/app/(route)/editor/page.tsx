@@ -1503,17 +1503,11 @@ export default function EditorPage() {
     }
   }
 
-  // 전체 선택/해제 핸들러
-  const handleSelectAll = (selectAll: boolean) => {
-    if (selectAll) {
-      // 모든 클립 선택
-      const allClipIds = new Set(clips.map((clip) => clip.id))
-      setSelectedClipIds(allClipIds)
-    } else {
-      // 모든 선택 해제
-      setSelectedClipIds(new Set())
-      setActiveClipId(null) // 포커스도 해제
-    }
+  // 전체 단어 선택/해제 핸들러
+  const handleSelectAllWords = (selectAll: boolean) => {
+    // 단어 선택은 SubtitleEditList 컴포넌트 내에서 직접 처리됩니다.
+    // 이 함수는 필요시 추가 로직을 위해 남겨두었습니다.
+    console.log('전체 단어 선택/해제:', selectAll ? '선택' : '해제')
   }
 
   const handleClipSelect = (clipId: string) => {
@@ -2399,7 +2393,7 @@ export default function EditorPage() {
                   onAddSpeaker={handleAddSpeaker}
                   onRenameSpeaker={handleRenameSpeaker}
                   onEmptySpaceClick={handleEmptySpaceClick}
-                  onSelectAll={handleSelectAll}
+                  onSelectAllWords={handleSelectAllWords}
                 />
               ) : (
                 <div className="flex-1 bg-white p-4 flex flex-col overflow-y-auto items-center">
