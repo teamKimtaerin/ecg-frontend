@@ -64,7 +64,9 @@ export default class ChatBotApiService {
       if (isRequestTestMode) {
         // 디버깅용 정보 생성
         const requestSize = JSON.stringify(request).length
-        const scenarioSize = scenarioData ? JSON.stringify(scenarioData).length : 0
+        const scenarioSize = scenarioData
+          ? JSON.stringify(scenarioData).length
+          : 0
 
         const debugResponse = `🔍 [REQUEST TEST MODE]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -87,7 +89,7 @@ ${JSON.stringify(request, null, 2)}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
 
         // 짧은 지연으로 실제 API 호출 시뮬레이션
-        await new Promise(resolve => setTimeout(resolve, 500))
+        await new Promise((resolve) => setTimeout(resolve, 500))
         return debugResponse
       }
 

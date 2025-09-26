@@ -163,8 +163,8 @@ const ChatBotModal: React.FC<ChatBotModalProps> = ({
                 {selectedClipsCount > 0 && selectedWordsCount > 0
                   ? `${selectedClipsCount}개 클립, ${selectedWordsCount}개 단어 선택됨`
                   : selectedClipsCount > 0
-                  ? `${selectedClipsCount}개 클립 선택됨`
-                  : `${selectedWordsCount}개 단어 선택됨`}
+                    ? `${selectedClipsCount}개 클립 선택됨`
+                    : `${selectedWordsCount}개 단어 선택됨`}
               </span>
             </div>
             {onClearSelection && (

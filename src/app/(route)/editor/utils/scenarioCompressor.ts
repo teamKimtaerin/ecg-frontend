@@ -22,17 +22,15 @@ export function compressScenarioWithSelectedCues(
   // 선택된 클립들의 cue ID 추출 (cue-${clip.id} 형태)
   const selectedCueIds = new Set<string>()
 
-  Array.from(selectedClipIds).forEach(clipId => {
-    const clip = clips.find(c => c.id === clipId)
+  Array.from(selectedClipIds).forEach((clipId) => {
+    const clip = clips.find((c) => c.id === clipId)
     if (clip) {
       selectedCueIds.add(`cue-${clip.id}`)
     }
   })
 
   // cues 필터링 - 선택된 cue만 포함
-  const filteredCues = scenario.cues.filter(cue =>
-    selectedCueIds.has(cue.id)
-  )
+  const filteredCues = scenario.cues.filter((cue) => selectedCueIds.has(cue.id))
 
   // 압축된 시나리오 생성
   const compressedScenario: RendererConfigV2 = {
@@ -53,7 +51,7 @@ export function compressScenarioWithSelectedWords(
 ): RendererConfigV2 {
   console.log('📝 compressScenarioWithSelectedWords:', {
     selectedWordIdsArray: Array.from(selectedWordIds),
-    selectedWordIdsSize: selectedWordIds.size
+    selectedWordIdsSize: selectedWordIds.size,
   })
 
   if (selectedWordIds.size === 0) {
@@ -64,14 +62,17 @@ export function compressScenarioWithSelectedWords(
   // 선택된 워드들이 포함된 클립들의 cue ID 추출
   const selectedCueIds = new Set<string>()
 
-  clips.forEach(clip => {
-    console.log(`🔍 Checking clip ${clip.id} with ${clip.words.length} words:`,
-      clip.words.map(w => ({ id: w.id, text: w.text }))
+  clips.forEach((clip) => {
+    console.log(
+      `🔍 Checking clip ${clip.id} with ${clip.words.length} words:`,
+      clip.words.map((w) => ({ id: w.id, text: w.text }))
     )
 
-    const hasSelectedWord = clip.words.some(word => {
+    const hasSelectedWord = clip.words.some((word) => {
       const isSelected = selectedWordIds.has(word.id)
-      console.log(`  Word "${word.text}" (${word.id}): ${isSelected ? '✅ SELECTED' : '❌ not selected'}`)
+      console.log(
+        `  Word "${word.text}" (${word.id}): ${isSelected ? '✅ SELECTED' : '❌ not selected'}`
+      )
       return isSelected
     })
 
@@ -85,13 +86,15 @@ export function compressScenarioWithSelectedWords(
   console.log('🎯 Selected cue IDs:', Array.from(selectedCueIds))
 
   // cues 필터링
-  const filteredCues = scenario.cues.filter(cue => {
+  const filteredCues = scenario.cues.filter((cue) => {
     const isIncluded = selectedCueIds.has(cue.id)
     console.log(`Cue ${cue.id}: ${isIncluded ? '✅ INCLUDED' : '❌ excluded'}`)
     return isIncluded
   })
 
-  console.log(`📊 Final compression result: ${filteredCues.length}/${scenario.cues.length} cues`)
+  console.log(
+    `📊 Final compression result: ${filteredCues.length}/${scenario.cues.length} cues`
+  )
 
   return {
     ...scenario,
@@ -112,7 +115,7 @@ export function compressScenarioBySelection(
     selectedClipIds: Array.from(selectedClipIds),
     selectedWordIds: Array.from(selectedWordIds),
     clipsCount: clips.length,
-    totalCues: scenario.cues.length
+    totalCues: scenario.cues.length,
   })
 
   // 클립 선택이 우선순위

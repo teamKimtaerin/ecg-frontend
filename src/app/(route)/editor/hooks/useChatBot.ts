@@ -24,9 +24,13 @@ const useChatBot = () => {
 
   // Selection state
   const selectedClipIds = useEditorStore((state) => state.selectedClipIds)
-  const multiSelectedWordIds = useEditorStore((state) => state.multiSelectedWordIds)
+  const multiSelectedWordIds = useEditorStore(
+    (state) => state.multiSelectedWordIds
+  )
   const clearSelection = useEditorStore((state) => state.clearSelection)
-  const clearGroupSelection = useEditorStore((state) => state.clearGroupSelection)
+  const clearGroupSelection = useEditorStore(
+    (state) => state.clearGroupSelection
+  )
 
   // Calculate selected counts
   const selectedClipsCount = selectedClipIds.size
@@ -79,19 +83,27 @@ const useChatBot = () => {
           multiSelectedWordIds: Array.from(currentMultiSelectedWordIds),
           selectedWordsCount: currentSelectedWordsCount,
           workingScenarioExists: !!workingScenario,
-          totalCues: workingScenario?.cues?.length
+          totalCues: workingScenario?.cues?.length,
         })
 
         let scenarioToSend = workingScenario
-        if (workingScenario && (currentSelectedClipIds.size > 0 || currentMultiSelectedWordIds.size > 0)) {
-          console.log('✅ Calling compressScenarioBySelection with latest state')
+        if (
+          workingScenario &&
+          (currentSelectedClipIds.size > 0 ||
+            currentMultiSelectedWordIds.size > 0)
+        ) {
+          console.log(
+            '✅ Calling compressScenarioBySelection with latest state'
+          )
           scenarioToSend = compressScenarioBySelection(
             workingScenario,
             currentSelectedClipIds,
             currentMultiSelectedWordIds,
             currentClips
           )
-          console.log(`🗜️ Compressed scenario: ${scenarioToSend.cues.length}/${workingScenario.cues.length} cues`)
+          console.log(
+            `🗜️ Compressed scenario: ${scenarioToSend.cues.length}/${workingScenario.cues.length} cues`
+          )
         } else {
           console.log('❌ Skipping compression - no selection or scenario')
         }
