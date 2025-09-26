@@ -27,47 +27,23 @@ export default class ScenarioAwareChatBotService {
     this.chatBotApiService = new ChatBotApiService()
   }
 
-  async sendMessage(
-    message: string,
-    conversationHistory: ChatMessage[] = [],
-    currentScenario?: RendererConfigV2,
-    currentClips?: ClipItem[],
-    debugInfo?: {
-      selectedClipsCount: number
-      selectedWordsCount: number
-      originalCuesCount?: number
-    }
-  ): Promise<string> {
-    try {
-      // 시나리오 데이터를 포함하여 메시지 전송 (클립 데이터는 시나리오에 포함됨)
-      const response = await this.chatBotApiService.sendMessage(
-        message,
-        conversationHistory,
-        currentScenario, // 시나리오 데이터 전달 (클립 데이터 포함)
-        debugInfo // 디버그 정보 전달
-      )
-      return response
-    } catch (error) {
-      console.error('ChatBot 메시지 전송 실패:', error)
-      throw new Error(
-        '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
-      )
-    }
-  }
-
   // 전체 응답 데이터를 반환하는 메서드 (JSON Patch 처리용)
   async sendMessageWithFullResponse(
     message: string,
     conversationHistory: ChatMessage[] = [],
     currentScenario?: RendererConfigV2,
-    currentClips?: ClipItem[]
+    debugInfo?: {
+      selectedClipsCount: number
+      selectedWordsCount: number
+      originalCuesCount?: number
+    }
   ): Promise<ChatBotApiResponse> {
     try {
       const response = await this.chatBotApiService.sendMessageWithFullResponse(
         message,
         conversationHistory,
         currentScenario,
-        currentClips
+        debugInfo
       )
       return response
     } catch (error) {

@@ -5,7 +5,11 @@ import { useEditorStore } from '../store'
 import MessageClassifier from '@/services/messageClassifier'
 import ScenarioEditParser from '@/services/scenarioEditParser'
 import { JsonPatchApplier } from '@/utils/jsonPatch'
-import { compressScenarioBySelection } from '../utils/scenarioCompressor'
+import { PatchMapper } from '@/utils/patchMapper'
+import {
+  compressScenarioBySelection,
+  type CompressionMapping,
+} from '../utils/scenarioCompressor'
 
 const useChatBot = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -28,14 +32,17 @@ const useChatBot = () => {
   const multiSelectedWordIds = useEditorStore(
     (state) => state.multiSelectedWordIds
   )
+  const selectedWordId = useEditorStore((state) => state.selectedWordId)
   const clearSelection = useEditorStore((state) => state.clearSelection)
   const clearGroupSelection = useEditorStore(
     (state) => state.clearGroupSelection
   )
+  const setSelectedWordId = useEditorStore((state) => state.setSelectedWordId)
 
   // Calculate selected counts
   const selectedClipsCount = selectedClipIds.size
-  const selectedWordsCount = multiSelectedWordIds.size
+  const selectedWordsCount =
+    multiSelectedWordIds.size + (selectedWordId ? 1 : 0)
 
   // ChatBot 서비스 인스턴스 생성 (API 기반으로 변경, 자격 증명 불필요)
   const chatBotService = useMemo(() => new ScenarioAwareChatBotService(), [])
@@ -46,11 +53,19 @@ const useChatBot = () => {
       const latestState = useEditorStore.getState()
       const currentSelectedClipIds = latestState.selectedClipIds
       const currentMultiSelectedWordIds = latestState.multiSelectedWordIds
+      const currentSelectedWordId = latestState.selectedWordId
       const currentClips = latestState.clips || []
 
       // 최신 선택 개수 계산
       const currentSelectedClipsCount = currentSelectedClipIds.size
-      const currentSelectedWordsCount = currentMultiSelectedWordIds.size
+      const currentSelectedWordsCount =
+        currentMultiSelectedWordIds.size + (currentSelectedWordId ? 1 : 0)
+
+      // 단일 워드 선택을 multiSelectedWordIds에 포함시켜서 압축 로직에서 처리할 수 있도록 함
+      const allSelectedWordIds = new Set(currentMultiSelectedWordIds)
+      if (currentSelectedWordId) {
+        allSelectedWordIds.add(currentSelectedWordId)
+      }
 
       // 사용자 메시지 추가
       const userMessage: ChatMessage = {
@@ -82,26 +97,30 @@ const useChatBot = () => {
           selectedClipIds: Array.from(currentSelectedClipIds),
           selectedClipsCount: currentSelectedClipsCount,
           multiSelectedWordIds: Array.from(currentMultiSelectedWordIds),
+          selectedWordId: currentSelectedWordId,
+          allSelectedWordIds: Array.from(allSelectedWordIds),
           selectedWordsCount: currentSelectedWordsCount,
           workingScenarioExists: !!workingScenario,
           totalCues: workingScenario?.cues?.length,
         })
 
         let scenarioToSend = workingScenario
+        let compressionMapping: CompressionMapping | null = null
         if (
           workingScenario &&
-          (currentSelectedClipIds.size > 0 ||
-            currentMultiSelectedWordIds.size > 0)
+          (currentSelectedClipIds.size > 0 || allSelectedWordIds.size > 0)
         ) {
           console.log(
             '✅ Calling compressScenarioBySelection with latest state'
           )
-          scenarioToSend = compressScenarioBySelection(
+          const compressionResult = compressScenarioBySelection(
             workingScenario,
             currentSelectedClipIds,
-            currentMultiSelectedWordIds,
+            allSelectedWordIds,
             currentClips
           )
+          scenarioToSend = compressionResult.scenario
+          compressionMapping = compressionResult.mapping
           console.log(
             `🗜️ Compressed scenario: ${scenarioToSend.cues.length}/${workingScenario.cues.length} cues`
           )
@@ -121,7 +140,7 @@ const useChatBot = () => {
           content,
           messages,
           scenarioToSend || undefined,
-          currentClips.length > 0 ? currentClips : undefined
+          debugInfo
         )
 
         // 6. REQUEST_TEST 모드 확인 및 응답 처리
@@ -162,9 +181,24 @@ const useChatBot = () => {
             // 시나리오 데이터에 JSON Patch 적용
             if (workingScenario) {
               try {
+                let patchesToApply = fullResponse.json_patches
+
+                // 압축 매핑이 있는 경우 경로 변환
+                if (compressionMapping && compressionMapping.cues.size > 0) {
+                  console.log(
+                    '🗺️ Mapping compressed patches to full scenario paths'
+                  )
+                  patchesToApply = PatchMapper.mapCompressedPatchesToFull(
+                    fullResponse.json_patches,
+                    compressionMapping,
+                    workingScenario
+                  )
+                  console.log('✅ Patch mapping completed')
+                }
+
                 const updatedScenario = JsonPatchApplier.applyPatches(
                   workingScenario,
-                  fullResponse.json_patches
+                  patchesToApply
                 )
                 setScenarioFromJson(updatedScenario)
                 editApplied = true
@@ -266,7 +300,8 @@ const useChatBot = () => {
   const handleClearSelection = useCallback(() => {
     clearSelection()
     clearGroupSelection()
-  }, [clearSelection, clearGroupSelection])
+    setSelectedWordId(null)
+  }, [clearSelection, clearGroupSelection, setSelectedWordId])
 
   return {
     messages,

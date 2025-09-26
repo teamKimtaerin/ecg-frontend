@@ -6,6 +6,24 @@ import type { RendererConfigV2 } from '@/app/shared/motiontext'
 import type { ClipItem } from '../types'
 
 /**
+ * 압축 매핑 정보
+ */
+export interface CompressionMapping {
+  // 압축된 cue 인덱스 -> 원본 cue ID
+  cues: Map<number, string>
+  // cue ID -> (압축된 children 인덱스 -> 원본 word ID)
+  children: Map<string, Map<number, string>>
+}
+
+/**
+ * 압축 결과와 매핑 정보
+ */
+export interface CompressionResult {
+  scenario: RendererConfigV2
+  mapping: CompressionMapping
+}
+
+/**
  * 선택된 클립 ID들을 기반으로 시나리오를 압축
  * tracks, stage, define 등은 그대로 유지하고 cues만 필터링
  */
@@ -13,10 +31,16 @@ export function compressScenarioWithSelectedCues(
   scenario: RendererConfigV2,
   selectedClipIds: Set<string>,
   clips: ClipItem[]
-): RendererConfigV2 {
+): CompressionResult {
   if (selectedClipIds.size === 0) {
     // 선택된 클립이 없으면 전체 시나리오 반환
-    return scenario
+    return {
+      scenario,
+      mapping: {
+        cues: new Map(),
+        children: new Map(),
+      },
+    }
   }
 
   // 선택된 클립들의 cue ID 추출 (cue-${clip.id} 형태)
@@ -29,26 +53,46 @@ export function compressScenarioWithSelectedCues(
     }
   })
 
-  // cues 필터링 - 선택된 cue만 포함
-  const filteredCues = scenario.cues.filter((cue) => selectedCueIds.has(cue.id))
-
-  // 압축된 시나리오 생성
-  const compressedScenario: RendererConfigV2 = {
-    ...scenario,
-    cues: filteredCues,
+  // 매핑 정보 생성 (clip-based compression은 간단함)
+  const mapping: CompressionMapping = {
+    cues: new Map(),
+    children: new Map(),
   }
 
-  return compressedScenario
+  // cues 필터링 - 선택된 cue만 포함
+  const filteredCues = scenario.cues.filter((cue, originalIndex) => {
+    const isIncluded = selectedCueIds.has(cue.id)
+    if (isIncluded) {
+      // 매핑 정보 저장: 압축된 인덱스 -> 원본 cue ID
+      const compressedIndex = mapping.cues.size
+      mapping.cues.set(compressedIndex, cue.id)
+      mapping.children.set(cue.id, new Map())
+
+      // children 매핑 정보도 저장 (전체 children 포함)
+      cue.root.children?.forEach((child, childIndex) => {
+        mapping.children.get(cue.id)!.set(childIndex, child.id)
+      })
+    }
+    return isIncluded
+  })
+
+  return {
+    scenario: {
+      ...scenario,
+      cues: filteredCues,
+    },
+    mapping,
+  }
 }
 
 /**
- * 선택된 워드들을 기반으로 시나리오를 압축 (향후 확장용)
+ * 선택된 워드들을 기반으로 시나리오를 압축 (매핑 정보 포함)
  */
 export function compressScenarioWithSelectedWords(
   scenario: RendererConfigV2,
   selectedWordIds: Set<string>,
   clips: ClipItem[]
-): RendererConfigV2 {
+): CompressionResult {
   console.log('📝 compressScenarioWithSelectedWords:', {
     selectedWordIdsArray: Array.from(selectedWordIds),
     selectedWordIdsSize: selectedWordIds.size,
@@ -56,7 +100,13 @@ export function compressScenarioWithSelectedWords(
 
   if (selectedWordIds.size === 0) {
     console.log('❌ No selected words - returning original scenario')
-    return scenario
+    return {
+      scenario,
+      mapping: {
+        cues: new Map(),
+        children: new Map(),
+      },
+    }
   }
 
   // 선택된 워드들이 포함된 클립들의 cue ID 추출
@@ -85,20 +135,66 @@ export function compressScenarioWithSelectedWords(
 
   console.log('🎯 Selected cue IDs:', Array.from(selectedCueIds))
 
-  // cues 필터링
-  const filteredCues = scenario.cues.filter((cue) => {
-    const isIncluded = selectedCueIds.has(cue.id)
-    console.log(`Cue ${cue.id}: ${isIncluded ? '✅ INCLUDED' : '❌ excluded'}`)
-    return isIncluded
-  })
+  // 매핑 정보 생성
+  const mapping: CompressionMapping = {
+    cues: new Map(),
+    children: new Map(),
+  }
+
+  // cues 필터링 및 children 필터링
+  const filteredCues = scenario.cues
+    .filter((cue) => {
+      const isIncluded = selectedCueIds.has(cue.id)
+      console.log(
+        `Cue ${cue.id}: ${isIncluded ? '✅ INCLUDED' : '❌ excluded'}`
+      )
+      return isIncluded
+    })
+    .map((cue, compressedCueIndex) => {
+      // 매핑 정보 저장: 압축된 인덱스 -> 원본 cue ID
+      mapping.cues.set(compressedCueIndex, cue.id)
+      mapping.children.set(cue.id, new Map())
+
+      // 해당 cue의 children 중에서 선택된 단어만 필터링
+      const originalChildrenCount = cue.root.children?.length || 0
+      const filteredChildren = cue.root.children?.filter((child) => {
+        // child.id를 selectedWordIds와 비교
+        const isSelectedWord = selectedWordIds.has(child.id)
+        console.log(
+          `  Child "${child.text}" (${child.id}): ${isSelectedWord ? '✅ SELECTED' : '❌ filtered out'}`
+        )
+        return isSelectedWord
+      })
+
+      // children 매핑 정보 저장
+      filteredChildren?.forEach((child, compressedChildIndex) => {
+        mapping.children.get(cue.id)!.set(compressedChildIndex, child.id)
+      })
+
+      const filteredChildrenCount = filteredChildren?.length || 0
+      console.log(
+        `🔧 Cue ${cue.id}: filtered children ${filteredChildrenCount}/${originalChildrenCount}`
+      )
+
+      return {
+        ...cue,
+        root: {
+          ...cue.root,
+          children: filteredChildren,
+        },
+      }
+    })
 
   console.log(
-    `📊 Final compression result: ${filteredCues.length}/${scenario.cues.length} cues`
+    `📊 Final compression result: ${filteredCues.length}/${scenario.cues.length} cues with filtered children`
   )
 
   return {
-    ...scenario,
-    cues: filteredCues,
+    scenario: {
+      ...scenario,
+      cues: filteredCues,
+    },
+    mapping,
   }
 }
 
@@ -110,7 +206,7 @@ export function compressScenarioBySelection(
   selectedClipIds: Set<string>,
   selectedWordIds: Set<string>,
   clips: ClipItem[]
-): RendererConfigV2 {
+): CompressionResult {
   console.log('🗜️ compressScenarioBySelection called:', {
     selectedClipIds: Array.from(selectedClipIds),
     selectedWordIds: Array.from(selectedWordIds),
@@ -132,5 +228,11 @@ export function compressScenarioBySelection(
 
   // 선택이 없으면 전체 시나리오 반환
   console.log('❌ No selection - returning full scenario')
-  return scenario
+  return {
+    scenario,
+    mapping: {
+      cues: new Map(),
+      children: new Map(),
+    },
+  }
 }

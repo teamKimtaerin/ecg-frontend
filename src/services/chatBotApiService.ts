@@ -1,14 +1,10 @@
 import { ChatMessage } from '@/app/(route)/editor/types/chatBot'
 import type { RendererConfigV2 } from '@/app/shared/motiontext'
-import type { ClipItem } from '@/app/(route)/editor/types'
 
 export interface ChatBotApiRequest {
   prompt: string
   conversation_history?: ChatMessage[]
   scenario_data?: RendererConfigV2
-  clips_data?: ClipItem[]
-  max_tokens?: number
-  temperature?: number
   use_langchain?: boolean
 }
 
@@ -44,7 +40,8 @@ export interface ChatBotApiResponse {
 }
 
 export default class ChatBotApiService {
-  async sendMessage(
+  // 전체 응답 데이터를 반환하는 새로운 메서드
+  async sendMessageWithFullResponse(
     message: string,
     conversationHistory: ChatMessage[] = [],
     scenarioData?: RendererConfigV2,
@@ -53,13 +50,13 @@ export default class ChatBotApiService {
       selectedWordsCount: number
       originalCuesCount?: number
     }
-  ): Promise<string> {
+  ): Promise<ChatBotApiResponse> {
     try {
       const request: ChatBotApiRequest = {
         prompt: message,
         conversation_history: conversationHistory,
         scenario_data: scenarioData,
-        use_langchain: true, // LangChain 사용하여 시나리오 인식 기능 활성화
+        use_langchain: true,
       }
 
       // REQUEST_TEST 모드 확인
@@ -94,60 +91,14 @@ ${JSON.stringify(request, null, 2)}
 
         // 짧은 지연으로 실제 API 호출 시뮬레이션
         await new Promise((resolve) => setTimeout(resolve, 500))
-        return debugResponse
-      }
 
-      // ChatBot API 호출 (배포 환경에서는 NEXT_PUBLIC_API_URL 사용)
-
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
-      const response = await fetch(`${apiUrl}/api/v1/chatbot`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(
-          errorData.detail?.error || errorData.detail || 'API 호출 실패'
-        )
-      }
-
-      const data: ChatBotApiResponse = await response.json()
-
-      if (data.error) {
-        throw new Error(data.error)
-      }
-
-      return data.completion.trim()
-    } catch (error) {
-      console.error('ChatBot API 메시지 전송 실패:', error)
-      throw new Error(
-        error instanceof Error
-          ? error.message
-          : '죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
-      )
-    }
-  }
-
-  // 전체 응답 데이터를 반환하는 새로운 메서드
-  async sendMessageWithFullResponse(
-    message: string,
-    conversationHistory: ChatMessage[] = [],
-    scenarioData?: RendererConfigV2,
-    clipsData?: ClipItem[]
-  ): Promise<ChatBotApiResponse> {
-    try {
-      const request: ChatBotApiRequest = {
-        prompt: message,
-        conversation_history: conversationHistory,
-        scenario_data: scenarioData,
-        clips_data: clipsData,
-        max_tokens: 1000,
-        temperature: 0.7,
-        use_langchain: true,
+        // Mock 응답 반환
+        return {
+          completion: debugResponse,
+          stop_reason: 'test_mode',
+          has_scenario_edits: false,
+          json_patches: [],
+        }
       }
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://ho-it.site'
