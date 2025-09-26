@@ -4,7 +4,7 @@ import Modal from '@/components/ui/Modal'
 import {
   generateVideoThumbnailWithMetadata,
   isVideoFile,
-  revokeThumbnailUrl
+  revokeThumbnailUrl,
 } from '@/utils/video/videoThumbnail'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FaVimeo, FaYoutube } from 'react-icons/fa'
@@ -56,9 +56,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('upload')
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const [language, setLanguage] = useState<'ko' | 'en' | 'ja' | 'zh'>(
-    'en'
-  )
+  const [language, setLanguage] = useState<'ko' | 'en' | 'ja' | 'zh'>('en')
   const [isDragOver, setIsDragOver] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
   const [thumbnailUrl, setThumbnailUrl] = useState<string>('')
@@ -508,9 +506,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                 <select
                   value={language}
                   onChange={(e) =>
-                    setLanguage(
-                      e.target.value as 'ko' | 'en' | 'ja' | 'zh'
-                    )
+                    setLanguage(e.target.value as 'ko' | 'en' | 'ja' | 'zh')
                   }
                   className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-sub focus:border-transparent"
                   disabled={isLoading}

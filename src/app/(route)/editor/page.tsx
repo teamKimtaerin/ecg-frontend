@@ -1507,7 +1507,7 @@ export default function EditorPage() {
   const handleSelectAll = (selectAll: boolean) => {
     if (selectAll) {
       // 모든 클립 선택
-      const allClipIds = new Set(clips.map(clip => clip.id))
+      const allClipIds = new Set(clips.map((clip) => clip.id))
       setSelectedClipIds(allClipIds)
     } else {
       // 모든 선택 해제
