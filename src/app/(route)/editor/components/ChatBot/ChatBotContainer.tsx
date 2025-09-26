@@ -6,8 +6,17 @@ import ChatBotFloatingButton from './ChatBotFloatingButton'
 import useChatBot from '../../hooks/useChatBot'
 
 const ChatBotContainer: React.FC = () => {
-  const { messages, isTyping, isOpen, sendMessage, openChatBot, closeChatBot } =
-    useChatBot()
+  const {
+    messages,
+    isTyping,
+    isOpen,
+    sendMessage,
+    openChatBot,
+    closeChatBot,
+    selectedClipsCount,
+    selectedWordsCount,
+    clearSelection,
+  } = useChatBot()
 
   return (
     <>
@@ -19,6 +28,9 @@ const ChatBotContainer: React.FC = () => {
         messages={messages}
         isTyping={isTyping}
         onSendMessage={sendMessage}
+        selectedClipsCount={selectedClipsCount}
+        selectedWordsCount={selectedWordsCount}
+        onClearSelection={clearSelection}
       />
     </>
   )

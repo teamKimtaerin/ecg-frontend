@@ -426,14 +426,35 @@ Creates commit, pushes, and generates PR with Claude Code analysis.
 #### `pronly` - PR from Existing Commits
 
 ```bash
-pronly  # Analyze all commits since dev
+pronly  # Analyze all commits since main
 ```
 
 Creates PR from already committed changes.
 
+#### Setup Instructions
+
+First-time setup for PR automation:
+
+```bash
+# 1. Install GitHub CLI
+brew install gh      # macOS
+winget install Github.cli  # Windows
+
+# 2. Run installation script
+chmod +x install.sh
+./install.sh
+
+# 3. Apply PATH changes
+source ~/.zshrc  # zsh users (macOS default)
+source ~/.bashrc # bash users
+
+# 4. Login to GitHub
+gh auth login
+```
+
 ### Branch Conventions
 
-- Base branch: `dev` (not main)
+- Base branch: `main`
 - Branch prefixes: `feature/`, `fix/`, `refactor/`
 - Commit prefixes: `[Feat]`, `[Fix]`, `[Refactor]`, `[Docs]`, `[Test]`
 
@@ -448,7 +469,7 @@ git commit -m "[Feat] Your feature description"
 git push -u origin your-branch
 
 # Create PR via GitHub CLI
-gh pr create --title "Your PR Title" --base dev --body "Your description"
+gh pr create --title "Your PR Title" --base main --body "Your description"
 ```
 
 ## 🐳 Docker Support

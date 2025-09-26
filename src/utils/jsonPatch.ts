@@ -9,11 +9,19 @@ export interface JsonPatch {
   value?: any
 }
 
+export interface JsonPatchOptions {
+  smartReplace?: boolean // true면 replace 실패 시 add 자동 시도 (기본값: true)
+}
+
 export class JsonPatchApplier {
   /**
    * JSON Patch 배열을 객체에 적용
    */
-  static applyPatches<T>(target: T, patches: JsonPatch[]): T {
+  static applyPatches<T>(
+    target: T,
+    patches: JsonPatch[],
+    options: JsonPatchOptions = { smartReplace: true }
+  ): T {
     if (!target || !patches || patches.length === 0) {
       return target
     }
@@ -23,7 +31,7 @@ export class JsonPatchApplier {
 
     for (const patch of patches) {
       try {
-        result = this.applyPatch(result, patch)
+        result = this.applyPatch(result, patch, options)
       } catch (error) {
         console.warn(`JSON Patch 적용 실패: ${patch.path}`, error)
         // 개별 패치 실패 시 계속 진행
@@ -37,13 +45,21 @@ export class JsonPatchApplier {
   /**
    * 단일 JSON Patch 적용
    */
-  private static applyPatch(target: any, patch: JsonPatch): any {
+  private static applyPatch(
+    target: any,
+    patch: JsonPatch,
+    options: JsonPatchOptions = { smartReplace: true }
+  ): any {
     const { op, path, value } = patch
     const pathArray = this.parsePath(path)
 
     switch (op) {
       case 'replace':
-        return this.replacePath(target, pathArray, value)
+        if (options.smartReplace) {
+          return this.replaceOrAdd(target, pathArray, value)
+        } else {
+          return this.replacePath(target, pathArray, value)
+        }
       case 'add':
         return this.addPath(target, pathArray, value)
       case 'remove':
@@ -201,6 +217,73 @@ export class JsonPatchApplier {
     }
 
     return target
+  }
+
+  /**
+   * 경로가 존재하는지 확인
+   */
+  private static pathExists(target: any, pathArray: string[]): boolean {
+    if (!target) return false
+
+    let current = target
+    for (const segment of pathArray) {
+      if (current === null || current === undefined) {
+        return false
+      }
+
+      if (Array.isArray(current)) {
+        const index = parseInt(segment, 10)
+        if (isNaN(index) || index < 0 || index >= current.length) {
+          return false
+        }
+        current = current[index]
+      } else if (typeof current === 'object') {
+        if (!(segment in current)) {
+          return false
+        }
+        current = current[segment]
+      } else {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /**
+   * replace 실패 시 add로 폴백하는 메서드
+   */
+  private static replaceOrAdd(
+    target: any,
+    pathArray: string[],
+    value: any
+  ): any {
+    try {
+      // 먼저 경로가 존재하는지 확인
+      const exists = this.pathExists(target, pathArray)
+
+      if (exists) {
+        // 존재하면 replace
+        console.log(`📝 Path exists, using replace: /${pathArray.join('/')}`)
+        return this.replacePath(target, pathArray, value)
+      } else {
+        // 존재하지 않으면 add
+        console.log(`➕ Path not found, using add: /${pathArray.join('/')}`)
+        return this.addPath(target, pathArray, value)
+      }
+    } catch (error) {
+      // replace 실패 시 add 시도
+      try {
+        console.log(`🔄 Replace failed, trying add: /${pathArray.join('/')}`)
+        return this.addPath(target, pathArray, value)
+      } catch (addError) {
+        // add도 실패하면 원래 에러 throw
+        console.warn(
+          `❌ Both replace and add failed for path: /${pathArray.join('/')}`
+        )
+        throw error
+      }
+    }
   }
 
   /**

@@ -123,9 +123,11 @@ export default function ClipWord({
         return // Prevent single-click logic from running
       } else if (isShiftClick) {
         // Shift+click for range selection
+        setSelectedWordId(null) // Clear single selection when entering multi-select mode
         selectWordRange(clipId, word.id)
       } else if (isCtrlOrCmdClick) {
         // Ctrl/Cmd+click for toggle selection
+        setSelectedWordId(null) // Clear single selection when entering multi-select mode
         toggleMultiSelectWord(clipId, word.id)
       } else {
         // Single click - handle selection
