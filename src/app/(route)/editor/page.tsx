@@ -1528,11 +1528,21 @@ export default function EditorPage() {
         // 방법 1: Words 배열의 첫 번째 단어 시작 시간 사용 (가장 정확)
         if (selectedClip.words && selectedClip.words.length > 0) {
           timeInSeconds = selectedClip.words[0].start
-          console.log('🎯 Using word-based start time:', timeInSeconds, 'for clip:', clipId)
-        } 
+          console.log(
+            '🎯 Using word-based start time:',
+            timeInSeconds,
+            'for clip:',
+            clipId
+          )
+        }
         // 방법 2: Timeline 문자열 파싱 (fallback)
         else if (selectedClip.timeline) {
-          console.log('📋 Timeline string:', selectedClip.timeline, 'for clip:', clipId)
+          console.log(
+            '📋 Timeline string:',
+            selectedClip.timeline,
+            'for clip:',
+            clipId
+          )
           const timelineParts = selectedClip.timeline.split(' → ')
           if (timelineParts.length >= 1) {
             const [startTimeStr] = timelineParts
@@ -1541,12 +1551,23 @@ export default function EditorPage() {
               const [mins, secs] = timeParts.map(Number)
               if (!isNaN(mins) && !isNaN(secs)) {
                 timeInSeconds = mins * 60 + secs
-                console.log('📋 Parsed timeline start time:', timeInSeconds, 'for clip:', clipId)
+                console.log(
+                  '📋 Parsed timeline start time:',
+                  timeInSeconds,
+                  'for clip:',
+                  clipId
+                )
               } else {
-                console.warn('❌ Invalid time format in timeline:', startTimeStr)
+                console.warn(
+                  '❌ Invalid time format in timeline:',
+                  startTimeStr
+                )
               }
             } else {
-              console.warn('❌ Unexpected timeline format:', selectedClip.timeline)
+              console.warn(
+                '❌ Unexpected timeline format:',
+                selectedClip.timeline
+              )
             }
           }
         } else {
@@ -1558,7 +1579,12 @@ export default function EditorPage() {
           window as { videoPlayer?: { seekTo: (time: number) => void } }
         ).videoPlayer
         if (videoPlayer && timeInSeconds >= 0) {
-          console.log('🎬 Seeking to:', timeInSeconds, 'seconds for clip:', clipId)
+          console.log(
+            '🎬 Seeking to:',
+            timeInSeconds,
+            'seconds for clip:',
+            clipId
+          )
           videoPlayer.seekTo(timeInSeconds)
         } else if (!videoPlayer) {
           console.warn('❌ Video player not found')
