@@ -59,6 +59,8 @@ export interface ClipComponentProps {
   onSelect: (clipId: string) => void
   onCheck?: (clipId: string, checked: boolean) => void
   onWordEdit: (clipId: string, wordId: string, newText: string) => void
+  onFullTextEdit?: (clipId: string, newText: string) => void
+  onFullTextEditAdvanced?: (clipId: string, newText: string) => void
   onSpeakerChange?: (clipId: string, newSpeaker: string) => void
   onBatchSpeakerChange?: (clipIds: string[], newSpeaker: string) => void
   onOpenSpeakerManagement?: () => void

@@ -1,7 +1,6 @@
 'use client'
 
 import ProgressModal from '@/components/ui/ProgressModal'
-import { generateVideoThumbnail } from '@/utils/video/videoThumbnail'
 import { useEffect, useState } from 'react'
 import { useEditorStore } from '../../store'
 
@@ -20,7 +19,7 @@ export default function VideoExportProgressModal({
   const [currentThumbnail, setCurrentThumbnail] = useState<string>('')
   const { videoThumbnail, videoUrl } = useEditorStore()
 
-  // 🧪 [임시 하드코딩] 썸네일 생성/설정 - friends-thumbnail.png 사용
+  // 🧪 [임시 하드코딩] 썸네일 생성/설정
   useEffect(() => {
     if (!isOpen) {
       setCurrentThumbnail('')
@@ -28,11 +27,11 @@ export default function VideoExportProgressModal({
     }
 
     console.log(
-      '🧪 [VideoExportProgressModal] 하드코딩된 썸네일 사용: friends-thumbnail.png'
+      '🧪 [VideoExportProgressModal] 하드코딩된 썸네일 사용: notebook-thumbnail.png'
     )
 
     // 하드코딩된 썸네일 경로 설정
-    setCurrentThumbnail('/friends-thumbnail.png')
+    setCurrentThumbnail('/notebook-thumbnail.png')
   }, [isOpen])
 
   // 진행률 시뮬레이션

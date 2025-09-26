@@ -32,7 +32,12 @@ export default function ClipComponent({
   onStickerDeleteRequest,
 }: ClipComponentProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const { expandedClipId, focusedWordId } = useEditorStore()
+  const {
+    expandedClipId,
+    focusedWordId,
+    updateClipFullText,
+    updateClipFullTextAdvanced,
+  } = useEditorStore()
   const isExpanded = expandedClipId === clip.id
 
   const { dragProps, isDragging } = useClipDragAndDrop(
@@ -140,7 +145,12 @@ export default function ClipComponent({
             <div className="border-t border-[#383842]" />
 
             {/* Lower section */}
-            <ClipText fullText={clip.fullText} />
+            <ClipText
+              clipId={clip.id}
+              fullText={clip.fullText}
+              onFullTextEdit={updateClipFullText}
+              onFullTextEditAdvanced={updateClipFullTextAdvanced}
+            />
           </div>
 
           {/* Expanded Waveform Editor - positioned beside sidebar */}

@@ -300,7 +300,7 @@ export default function ServerVideoExportModal({
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-700 mb-3">해상도</h3>
             <div className="relative">
-              <select className="w-full px-3 py-2.5 text-sm border text-gray-900 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 appearance-none">
+              <select className="w-full px-3 py-2.5 text-sm border text-gray-900 border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-brand-sub focus:border-brand-sub appearance-none">
                 <option value="원본 (640 x 360)" className="text-gray-900">
                   원본 (640 x 360)
                 </option>
