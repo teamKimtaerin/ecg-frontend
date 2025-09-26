@@ -40,6 +40,8 @@ jobs:
           echo "NEXT_PUBLIC_CHATBOT_TEMPERATURE=${{ secrets.NEXT_PUBLIC_CHATBOT_TEMPERATURE }}" >> .env
           echo "NEXT_PUBLIC_DEBUG_UI=${{ secrets.NEXT_PUBLIC_DEBUG_UI }}" >> .env
           echo "NEXT_PUBLIC_USE_MOCK_DATA=${{ secrets.NEXT_PUBLIC_USE_MOCK_DATA }}" >> .env
+          echo "NEXT_PUBLIC_GOOGLE_FONTS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_FONTS_API_KEY }}" >> .env
+          echo "NEXT_PUBLIC_REQUEST_TEST=${{ secrets.NEXT_PUBLIC_REQUEST_TEST }}" >> .env
           echo "AWS_BEDROCK_REGION=${{ secrets.AWS_BEDROCK_REGION }}" >> .env
 
       # 5. Next.js 빌드
@@ -56,6 +58,8 @@ jobs:
           NEXT_PUBLIC_CHATBOT_TEMPERATURE: ${{ secrets.NEXT_PUBLIC_CHATBOT_TEMPERATURE }}
           NEXT_PUBLIC_DEBUG_UI: ${{ secrets.NEXT_PUBLIC_DEBUG_UI }}
           NEXT_PUBLIC_USE_MOCK_DATA: ${{ secrets.NEXT_PUBLIC_USE_MOCK_DATA }}
+          NEXT_PUBLIC_GOOGLE_FONTS_API_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_FONTS_API_KEY }}
+          NEXT_PUBLIC_REQUEST_TEST: ${{ secrets.NEXT_PUBLIC_REQUEST_TEST }}
           AWS_BEDROCK_REGION: ${{ secrets.AWS_BEDROCK_REGION }}
 
       # 6. AWS 자격 증명 설정
