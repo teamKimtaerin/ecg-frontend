@@ -16,12 +16,14 @@ export interface ProgressTask {
   currentStage?: string
   estimatedTimeRemaining?: number
   isTimeout?: boolean
+  jobId?: string // 업로드 작업의 jobId (에디터로 이동 시 사용)
 }
 
 interface ProgressStore {
   tasks: ProgressTask[]
   globalPollingJobs: Map<string, { taskId: number; stopPolling: () => void }>
   hasUnreadExportNotification: boolean
+  hasUnreadUploadNotification: boolean
 
   // Task management
   addTask: (task: Omit<ProgressTask, 'id'>) => number
@@ -51,6 +53,7 @@ interface ProgressStore {
 
   // Notification management
   setExportNotification: (hasNotification: boolean) => void
+  setUploadNotification: (hasNotification: boolean) => void
   markNotificationAsRead: () => void
 }
 
@@ -60,6 +63,7 @@ export const useProgressStore = create<ProgressStore>()(
       tasks: [],
       globalPollingJobs: new Map(),
       hasUnreadExportNotification: false,
+      hasUnreadUploadNotification: false,
 
       addTask: (task) => {
         const id = Date.now() + Math.random()
@@ -317,9 +321,20 @@ export const useProgressStore = create<ProgressStore>()(
         set({ hasUnreadExportNotification: hasNotification })
       },
 
+      setUploadNotification: (hasNotification) => {
+        console.log(
+          '[ProgressStore] setUploadNotification called with:',
+          hasNotification
+        )
+        set({ hasUnreadUploadNotification: hasNotification })
+      },
+
       markNotificationAsRead: () => {
         console.log('[ProgressStore] markNotificationAsRead called')
-        set({ hasUnreadExportNotification: false })
+        set({
+          hasUnreadExportNotification: false,
+          hasUnreadUploadNotification: false,
+        })
       },
     }),
     {
@@ -345,6 +360,7 @@ export const useProgressStore = create<ProgressStore>()(
           }),
           // globalPollingJobs는 persist하지 않음 (Map은 직렬화 불가)
           hasUnreadExportNotification: state.hasUnreadExportNotification,
+          hasUnreadUploadNotification: state.hasUnreadUploadNotification,
         }
       },
       // 스토어 복원 후 오래된 작업 자동 정리

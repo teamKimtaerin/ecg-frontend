@@ -24,6 +24,7 @@ export interface UploadTask {
   currentStage?: string
   estimatedTimeRemaining?: number
   isTimeout?: boolean
+  jobId?: string
 }
 
 /**
@@ -94,7 +95,7 @@ export const useProgressTasks = () => {
     // 종료된 내보내기들
     {
       id: 2,
-      filename: 'friends.mp4',
+      filename: 'notebook.mp4',
       progress: 100,
       status: 'completed',
       completedAt: '2025-09-27',

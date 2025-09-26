@@ -7,6 +7,7 @@ import TabItem from '@/components/ui/TabItem'
 import UserDropdown from '@/components/ui/UserDropdown'
 import { useDeployModal } from '@/hooks/useDeployModal'
 import { useProgressTasks } from '@/hooks/useProgressTasks'
+import { useProgressStore } from '@/lib/store/progressStore'
 import { AutosaveManager } from '@/utils/managers/AutosaveManager'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -66,6 +67,13 @@ export default function EditorHeaderTabs({
 
   // Get real progress data
   const { exportTasks, uploadTasks } = useProgressTasks()
+
+  // Get notification states from progressStore
+  const {
+    hasUnreadExportNotification,
+    hasUnreadUploadNotification,
+    markNotificationAsRead,
+  } = useProgressStore()
 
   const handleDeployClick = (task: { id: number; filename: string }) => {
     // 플랫폼 선택 모달을 먼저 열기 (상위 컴포넌트에서 처리)
@@ -303,11 +311,24 @@ export default function EditorHeaderTabs({
           <div className="relative">
             <button
               ref={documentButtonRef}
-              onClick={() => setIsDocumentModalOpen(!isDocumentModalOpen)}
-              className={`p-2 ${getTextClasses()} ${getHoverClasses()} hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer`}
+              onClick={() => {
+                setIsDocumentModalOpen(!isDocumentModalOpen)
+                // Mark notifications as read when opening modal
+                if (!isDocumentModalOpen) {
+                  markNotificationAsRead()
+                }
+              }}
+              className={`relative p-2 ${getTextClasses()} ${getHoverClasses()} hover:scale-110 hover:shadow-md rounded-lg transition-all duration-200 cursor-pointer`}
               title="알림"
             >
               <LuBell className="w-5 h-5" />
+              {/* Notification Badge */}
+              {hasUnreadExportNotification && (
+                <div
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"
+                  style={{ zIndex: 1000 }}
+                ></div>
+              )}
             </button>
 
             <DocumentModal

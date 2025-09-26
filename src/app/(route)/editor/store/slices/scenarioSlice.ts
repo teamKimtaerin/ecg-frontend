@@ -41,8 +41,17 @@ export interface ScenarioSlice {
     }
   ) => void
 
+  // Update word text in scenario
+  updateWordTextInScenario: (wordId: string, newText: string) => void
+
+  // Update scenario from clips (for real-time updates)
+  updateScenarioFromClips: () => void
+
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
+
+  // Clear scenario (for reset)
+  clearScenario: () => void
 }
 
 export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
@@ -177,14 +186,35 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
         timeOffset, // seconds relative to baseTime[0]
       }
     })
-    node.pluginChain = pluginChain
-    // Make word node visible if it has any animations
-    node.style = {
-      ...(node.style || {}),
-      opacity: pluginChain.length > 0 ? 1 : (node.style?.opacity ?? 0),
+    // Create a deep copy of the scenario to ensure state changes are detected
+    const updatedScenario = { ...currentScenario }
+    updatedScenario.cues = [...currentScenario.cues]
+    updatedScenario.cues[entry.cueIndex] = {
+      ...cue,
+      root: {
+        ...cue.root,
+        children: [...(cue.root.children || [])],
+      },
     }
+
+    // Create a new node object with updated pluginChain and style
+    const updatedNode = {
+      ...node,
+      pluginChain,
+      style: {
+        ...(node.style || {}),
+        opacity: pluginChain.length > 0 ? 1 : (node.style?.opacity ?? 0),
+      },
+    }
+
+    // Replace the specific node in the children array
+    const targetCue = updatedScenario.cues[entry.cueIndex]
+    if (targetCue?.root?.children) {
+      targetCue.root.children[childIdx] = updatedNode
+    }
+
     set({
-      currentScenario: { ...currentScenario },
+      currentScenario: updatedScenario,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },
@@ -401,6 +431,69 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     })
   },
 
+  updateWordTextInScenario: (wordId, newText) => {
+    let { currentScenario, nodeIndex } = get()
+
+    // Lazily build scenario if it doesn't exist
+    if (!currentScenario) {
+      try {
+        const anyGet = get() as unknown as {
+          clips?: import('../../types').ClipItem[]
+          deletedClipIds?: Set<string>
+          buildInitialScenario?: ScenarioSlice['buildInitialScenario']
+          insertedTexts?: any[]
+        }
+        const clipsAll = anyGet.clips || []
+        const deleted = anyGet.deletedClipIds || new Set<string>()
+        const activeClips = clipsAll.filter((c) => !deleted.has(c.id))
+        anyGet.buildInitialScenario?.(activeClips)
+        // Refresh local refs
+        currentScenario = get().currentScenario
+        nodeIndex = get().nodeIndex
+      } catch {
+        return // Cannot proceed without scenario
+      }
+    }
+
+    if (!currentScenario || !currentScenario.cues) return
+
+    // Find the word node in the scenario
+    const entry = nodeIndex[wordId]
+    if (!entry) {
+      console.warn(`Word node not found in scenario index: ${wordId}`)
+      return
+    }
+
+    const cue = currentScenario.cues[entry.cueIndex]
+    const childIdx = entry.path[0]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const node: any = cue?.root?.children?.[childIdx]
+
+    if (!node) {
+      console.warn(`Word node not found in cue children: ${wordId}`)
+      return
+    }
+
+    // Update the word text (use 'text' field, not 'content')
+    node.text = newText
+
+    // Deep clone the cues array to ensure React detects the change
+    const updatedCues = [...currentScenario.cues]
+    updatedCues[entry.cueIndex] = {
+      ...cue,
+      root: {
+        ...cue.root,
+        children: cue.root.children ? [...cue.root.children] : [],
+      },
+    }
+
+    // Create new scenario object to trigger re-render
+    set({
+      currentScenario: { ...currentScenario, cues: updatedCues },
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
   setScenarioFromJson: (config) => {
     // Rebuild a minimal index for children by id under each cue root
     const index: Record<string, NodeIndexEntry> = {}
@@ -419,6 +512,31 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
       currentScenario: config,
       nodeIndex: index,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateScenarioFromClips: () => {
+    // Get current clips from clipSlice
+    const fullState = get() as any
+    const clips = fullState.clips || []
+
+    if (clips.length === 0) return
+
+    // Rebuild scenario from current clips with their current state
+    const newScenario = get().buildInitialScenario(clips)
+
+    // Update current scenario and increment version for reactivity
+    set({
+      currentScenario: newScenario,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  clearScenario: () => {
+    set({
+      currentScenario: null,
+      nodeIndex: {},
+      scenarioVersion: 0,
     })
   },
 })

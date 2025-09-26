@@ -33,9 +33,8 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({
     string | null
   >(null)
 
-  if (rightSidebarType !== 'template') {
-    return null
-  }
+  // Template sidebar is disabled
+  return null
 
   const handleTemplateSelect = (template: TemplateItem) => {
     // Show paid template notification for all templates

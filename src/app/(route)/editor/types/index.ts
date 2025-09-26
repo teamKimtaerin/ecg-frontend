@@ -101,7 +101,7 @@ export interface ClipTableProps {
 export const INITIAL_CLIPS: ClipItem[] = []
 
 // Constants
-export const DRAG_ACTIVATION_DISTANCE = 8
+export const DRAG_ACTIVATION_DISTANCE = 15
 
 export const EDITOR_TABS: EditorTab[] = [
   'home',

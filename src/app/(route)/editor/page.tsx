@@ -34,6 +34,7 @@ import { useDragAndDrop } from './hooks/useDragAndDrop'
 import { useGlobalWordDragAndDrop } from './hooks/useGlobalWordDragAndDrop'
 import { useSelectionBox } from './hooks/useSelectionBox'
 import { useUnsavedChanges } from './hooks/useUnsavedChanges'
+import { useSpeakerSync } from './hooks/useSpeakerSync'
 
 // Components
 import SelectionBox from '@/components/DragDrop/SelectionBox'
@@ -53,7 +54,6 @@ import PlatformSelectionModal from './components/Export/PlatformSelectionModal'
 import SimpleToolbar from './components/SimpleToolbar'
 import SpeakerManagementSidebar from './components/SpeakerManagementSidebar'
 import SubtitleEditList from './components/SubtitleEditList'
-import TemplateSidebar from './components/TemplateSidebar'
 import Toolbars from './components/Toolbars'
 import VideoSection from './components/VideoSection'
 
@@ -69,6 +69,7 @@ import { PasteClipsCommand } from '@/utils/editor/commands/PasteClipsCommand'
 import { RemoveSpeakerCommand } from '@/utils/editor/commands/RemoveSpeakerCommand'
 import { SplitClipCommand } from '@/utils/editor/commands/SplitClipCommand'
 import { showToast } from '@/utils/ui/toast'
+import { processingResultStorage } from '@/utils/storage/processingResultStorage'
 
 // TimelineClipCard 컴포넌트
 interface TimelineClipCardProps {
@@ -83,6 +84,7 @@ interface TimelineClipCardProps {
   onAddSpeaker: (name: string) => void
   onRenameSpeaker: (oldName: string, newName: string) => void
   onOpenSpeakerManagement: () => void
+  onTextEdit: (clipId: string, newText: string) => void
   formatTime: (seconds: number) => string
 }
 
@@ -98,11 +100,14 @@ function TimelineClipCard({
   onAddSpeaker,
   onRenameSpeaker,
   onOpenSpeakerManagement,
+  onTextEdit,
   formatTime,
 }: TimelineClipCardProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [editingSpeaker, setEditingSpeaker] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [isEditingText, setIsEditingText] = useState(false)
+  const [editingText, setEditingText] = useState('')
   const [showRenameModal, setShowRenameModal] = useState(false)
   const [pendingRename, setPendingRename] = useState<{
     oldName: string
@@ -110,6 +115,7 @@ function TimelineClipCard({
   } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const textInputRef = useRef<HTMLTextAreaElement>(null)
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -206,6 +212,43 @@ function TimelineClipCard({
     }
   }
 
+  const handleTextClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsEditingText(true)
+    setEditingText(clip.fullText)
+  }
+
+  const handleTextSave = () => {
+    if (editingText.trim() !== clip.fullText && editingText.trim() !== '') {
+      onTextEdit(clip.id, editingText.trim())
+    }
+    setIsEditingText(false)
+    setEditingText('')
+  }
+
+  const handleTextCancel = () => {
+    setIsEditingText(false)
+    setEditingText('')
+  }
+
+  const handleTextKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleTextSave()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleTextCancel()
+    }
+  }
+
+  // 텍스트 편집 시 자동 포커스
+  useEffect(() => {
+    if (isEditingText && textInputRef.current) {
+      textInputRef.current.focus()
+      textInputRef.current.select()
+    }
+  }, [isEditingText])
+
   return (
     <>
       <div
@@ -282,7 +325,7 @@ function TimelineClipCard({
                       className={`truncate overflow-hidden whitespace-nowrap ${!clip.speaker ? 'text-orange-500' : ''}`}
                       style={{ maxWidth: '70px' }}
                     >
-                      {clip.speaker || '미지정'}
+                      {clip.speaker || '화자 없음'}
                     </span>
                   </div>
                   <ChevronDownIcon
@@ -406,11 +449,24 @@ function TimelineClipCard({
 
           {/* 텍스트 영역 */}
           <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
-            <div
-              className={`text-sm ${isActive ? 'font-medium text-gray-900' : 'text-gray-700'}`}
-            >
-              {clip.fullText}
-            </div>
+            {isEditingText ? (
+              <textarea
+                ref={textInputRef}
+                value={editingText}
+                onChange={(e) => setEditingText(e.target.value)}
+                onKeyDown={handleTextKeyDown}
+                onBlur={handleTextSave}
+                className="w-full text-sm text-black bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                rows={2}
+              />
+            ) : (
+              <div
+                className={`text-sm cursor-text hover:bg-gray-50 rounded px-2 py-1 transition-colors ${isActive ? 'font-medium text-gray-900' : 'text-gray-700'}`}
+                onClick={handleTextClick}
+              >
+                {clip.fullText}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -474,6 +530,8 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
+    updateClipFullText,
+    updateClipFullTextAdvanced,
     // updateClipTiming, // Currently unused
     saveProject,
     activeClipId,
@@ -497,6 +555,9 @@ export default function EditorPage() {
     removeSpeakerColor,
     speakers: globalSpeakers,
     setSpeakers: setGlobalSpeakers,
+    setSpeakerColors,
+    buildInitialScenario,
+    setCurrentProject,
     applyAutoLineBreak,
   } = useEditorStore()
 
@@ -525,11 +586,12 @@ export default function EditorPage() {
   const [skipAutoFocus, setSkipAutoFocus] = useState(false) // 자동 포커스 스킵 플래그
   const [showRestoreModal, setShowRestoreModal] = useState(false) // 복원 확인 모달 상태
   const [shouldOpenExportModal, setShouldOpenExportModal] = useState(false) // OAuth 인증 후 모달 재오픈 플래그
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false) // 상태 초기화 확인 모달
 
   // Platform selection and deploy modal states
   const [isPlatformSelectionModalOpen, setIsPlatformSelectionModalOpen] =
     useState(false)
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const [, setSelectedPlatforms] = useState<string[]>([])
   const [pendingDeployTask, setPendingDeployTask] = useState<{
     id: number
     filename: string
@@ -539,7 +601,162 @@ export default function EditorPage() {
   const { openDeployModal, deployModalProps } = useDeployModal()
 
   // Get media actions from store
-  const { setMediaInfo } = useEditorStore()
+  const { setMediaInfo, validateAndRestoreBlobUrl } = useEditorStore()
+
+  // 대기 중인 처리 결과 확인 및 적용
+  const checkAndApplyPendingResults = useCallback(async () => {
+    const pendingJobId = sessionStorage.getItem('pendingJobId')
+    if (!pendingJobId) return
+
+    try {
+      log(
+        'EditorPage.tsx',
+        `🔍 Checking pending result for job: ${pendingJobId}`
+      )
+
+      // IndexedDB에서 결과 로드
+      const result = await processingResultStorage.loadResult(pendingJobId)
+      if (!result) {
+        log('EditorPage.tsx', '⚠️ No result found for pending job')
+        sessionStorage.removeItem('pendingJobId')
+        return
+      }
+
+      log('EditorPage.tsx', '🎉 Found pending result, applying to editor')
+
+      // useUploadModal의 convertSegmentsToClips 로직을 여기서 재현
+      const convertedClips: ClipItem[] = result.result.segments.map(
+        (segment, index) => {
+          const segmentId = `clip-${index + 1}`
+
+          // 세그먼트 타이밍 계산
+          let segmentStart = segment.start || 0
+          let segmentEnd = segment.end || 0
+
+          if (!isFinite(segmentStart) || segmentStart < 0) segmentStart = 0
+          if (!isFinite(segmentEnd) || segmentEnd < 0) segmentEnd = 0
+          if (segmentEnd <= segmentStart) segmentEnd = segmentStart + 0.001
+
+          // 화자 정보 처리
+          let speakerValue = 'Unknown'
+          if (typeof segment.speaker === 'string') {
+            speakerValue = segment.speaker
+          } else if (segment.speaker && typeof segment.speaker === 'object') {
+            speakerValue = (segment.speaker as any).speaker_id || 'Unknown'
+          }
+
+          // 화자 매핑 적용
+          if (
+            result.result.speakerMapping &&
+            result.result.speakerMapping[speakerValue]
+          ) {
+            speakerValue = result.result.speakerMapping[speakerValue]
+          }
+
+          // 단어 데이터 변환
+          const words =
+            segment.words?.map((word, wordIndex) => {
+              let wordStart = word.start || 0
+              let wordEnd = word.end || 0
+
+              if (!isFinite(wordStart) || wordStart < 0) wordStart = 0
+              if (!isFinite(wordEnd) || wordEnd < 0) wordEnd = 0
+              if (wordEnd <= wordStart) wordEnd = wordStart + 0.001
+
+              return {
+                id: `word-${segmentId}-${wordIndex}`,
+                text: word.word,
+                start: wordStart,
+                end: wordEnd,
+                isEditable: true,
+                confidence: word.confidence || 0.9,
+              }
+            }) || []
+
+          return {
+            id: segmentId,
+            timeline: `${(segmentStart || 0).toFixed(2)}s - ${(segmentEnd || 0).toFixed(2)}s`,
+            text: segment.text,
+            subtitle: segment.text,
+            fullText: segment.text,
+            speaker: speakerValue,
+            start: segmentStart,
+            end: segmentEnd,
+            duration: `${((segmentEnd || 0) - (segmentStart || 0)).toFixed(2)}초`,
+            thumbnail: '',
+            confidence: segment.confidence || 0.9,
+            words,
+            stickers: [],
+          }
+        }
+      )
+
+      // 화자 정보 초기화 (감지된 화자가 없으면 빈 배열)
+      const mlSpeakers = result.result.speakers || []
+      const allSpeakers = [...mlSpeakers]
+      const finalSpeakers = allSpeakers
+
+      const finalColors: Record<string, string> = {}
+      finalSpeakers.forEach((speaker, index) => {
+        // getSpeakerColorByIndex 함수 대신 간단한 색상 할당
+        const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6']
+        finalColors[speaker] = colors[index % colors.length]
+      })
+
+      // Store에 데이터 적용
+      setClips(convertedClips)
+      setGlobalSpeakers(finalSpeakers)
+      setSpeakerColors(finalColors)
+
+      // 시나리오 생성
+      try {
+        buildInitialScenario(convertedClips)
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to build scenario:', error)
+      }
+
+      // 프로젝트 생성
+      const projectId = `project-${Date.now()}`
+      const projectName =
+        result.metadata?.fileName?.replace(/\.[^/.]+$/, '') || 'Untitled'
+
+      const newProject = {
+        id: projectId,
+        name: projectName,
+        clips: convertedClips,
+        settings: {
+          autoSaveEnabled: true,
+          autoSaveInterval: 30,
+          defaultSpeaker: finalSpeakers.length > 0 ? finalSpeakers[0] : '',
+          exportFormat: 'srt' as const,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        videoDuration: result.result.metadata?.duration || 0,
+        videoUrl: result.metadata?.videoUrl,
+        videoName: result.metadata?.fileName,
+      }
+
+      setCurrentProject(newProject)
+      sessionStorage.setItem('currentProjectId', projectId)
+
+      // 정리
+      sessionStorage.removeItem('pendingJobId')
+      showToast('음성 분석 결과가 적용되었습니다', 'success')
+
+      log('EditorPage.tsx', '✅ Pending result applied successfully')
+    } catch (error) {
+      log('EditorPage.tsx', '❌ Failed to apply pending result:', error)
+      sessionStorage.removeItem('pendingJobId')
+      showToast('결과 적용 중 오류가 발생했습니다', 'error')
+    }
+  }, [
+    setClips,
+    setGlobalSpeakers,
+    setSpeakerColors,
+    buildInitialScenario,
+    setCurrentProject,
+  ])
 
   // URL 파라미터에서 deploy 모달 파라미터 감지
   useEffect(() => {
@@ -581,19 +798,139 @@ export default function EditorPage() {
     }
   }
 
-  // Cleanup blob URLs when component unmounts or videoUrl changes
-  useEffect(() => {
-    // Track current blob URL for cleanup
-    let currentBlobUrl: string | null = null
+  // 전체 상태 초기화 함수
+  const resetEditorState = async () => {
+    try {
+      log('EditorPage.tsx', '🔄 Starting complete editor state reset')
 
-    // Store에서 현재 videoUrl 가져오기
-    const { videoUrl } = useEditorStore.getState()
-    if (videoUrl && videoUrl.startsWith('blob:')) {
-      currentBlobUrl = videoUrl
-      console.log('📌 Tracking Blob URL for cleanup:', currentBlobUrl)
+      // 1. Store 상태 초기화
+      const store = useEditorStore.getState()
+
+      // 2. Scenario 초기화 (자막 파일 데이터)
+      store.clearScenario()
+
+      // 3. 미디어 상태 초기화
+      store.clearMedia()
+
+      // 4. 클립 데이터 초기화
+      store.setClips([])
+      store.setOriginalClips([])
+      store.clearDeletedClips()
+
+      // 5. 선택 상태 초기화
+      store.setSelectedClipIds(new Set())
+
+      // 6. 워드 애니메이션 상태 초기화 (개별 워드별로 처리해야 하므로 스킵)
+      // clearAnimationTracks는 wordId별로 처리하는 메서드이므로 전체 초기화에서는 생략
+
+      // 7. 텍스트 삽입 상태 초기화
+      // insertedTexts를 직접 빈 배열로 설정
+      const editorStoreAny = store as any
+      if (editorStoreAny.insertedTexts) {
+        editorStoreAny.insertedTexts = []
+      }
+
+      // 8. 화자 색상 초기화
+      store.setSpeakerColors({})
+
+      // 9. UI 상태 초기화
+      store.setRightSidebarType(null)
+      store.setActiveClipId(null)
+
+      // 10. 로컬 상태 초기화
+      setActiveTab('home')
+      setShowResetConfirmModal(false)
+      setClipboard([])
+      setSelectedClipIds(new Set())
+
+      // 11. 편집 히스토리 초기화
+      editorHistory.clear()
+
+      // 12. IndexedDB 프로젝트 데이터 삭제 (로그인 정보 제외)
+      try {
+        // 개별 프로젝트 삭제 방식으로 대체
+        // clearAllProjects 메서드가 없으므로 건너뛰기
+        log(
+          'EditorPage.tsx',
+          '✅ Skipped IndexedDB project clearing (method not available)'
+        )
+      } catch (error) {
+        log(
+          'EditorPage.tsx',
+          '⚠️ Failed to clear projects from IndexedDB:',
+          error
+        )
+      }
+
+      // 13. 세션 스토리지 정리
+      try {
+        sessionStorage.removeItem('currentStoredMediaId')
+        sessionStorage.removeItem('autosave_project')
+        log('EditorPage.tsx', '✅ Cleared session storage')
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to clear session storage:', error)
+      }
+
+      // 14. Upload Modal 상태 초기화
+      try {
+        uploadModal.closeModal()
+        log('EditorPage.tsx', '✅ Upload modal state reset')
+      } catch (error) {
+        log('EditorPage.tsx', '⚠️ Failed to reset upload modal:', error)
+      }
+
+      log('EditorPage.tsx', '✅ Complete editor state reset finished')
+      showToast('새 프로젝트가 생성되었습니다', 'success')
+    } catch (error) {
+      log('EditorPage.tsx', '❌ Failed to reset editor state:', error)
+      showToast('상태 초기화 중 오류가 발생했습니다', 'error')
     }
+  }
 
+  // 새 프로젝트 생성 핸들러
+  const handleNewProject = () => {
+    // 편집 중인 데이터가 있는지 확인
+    if (clips.length > 0 || hasUnsavedChanges) {
+      setShowResetConfirmModal(true)
+    } else {
+      // 데이터가 없으면 바로 업로드 모달 열기
+      uploadModal.openModal()
+    }
+  }
+
+  // 초기화 확인 핸들러
+  const handleResetConfirm = async () => {
+    await resetEditorState()
+    // 상태 초기화가 완전히 완료되도록 약간의 지연 추가
+    setTimeout(() => {
+      uploadModal.openModal()
+    }, 100)
+  }
+
+  // 초기화 취소 핸들러
+  const handleResetCancel = () => {
+    setShowResetConfirmModal(false)
+  }
+
+  // Get current videoUrl for blob URL tracking
+  const { videoUrl, cleanupPreviousBlobUrl } = useEditorStore()
+
+  // Cleanup blob URLs when videoUrl changes
+  useEffect(() => {
+    // When videoUrl changes, check if we need to cleanup the previous blob URL
+    // The store will handle the cleanup automatically through cleanupPreviousBlobUrl
+    console.log('🔄 VideoUrl changed in page.tsx:', {
+      videoUrl,
+      isBlobUrl: videoUrl?.startsWith('blob:'),
+      timestamp: new Date().toISOString(),
+    })
+  }, [videoUrl])
+
+  // Cleanup blob URLs on component unmount (fallback safety)
+  useEffect(() => {
     return () => {
+      console.log('🧹 Page unmounting - performing final blob URL cleanup')
+
       // Cleanup any blob URLs on unmount to prevent memory leaks
       const urls = document.querySelectorAll('video[src^="blob:"]')
       urls.forEach((video) => {
@@ -603,20 +940,24 @@ export default function EditorPage() {
             '🧹 Cleaning up blob URL from video element:',
             videoElement.src
           )
-          URL.revokeObjectURL(videoElement.src)
+          try {
+            URL.revokeObjectURL(videoElement.src)
+          } catch (error) {
+            console.warn('Failed to revoke blob URL from video element:', error)
+          }
         }
       })
 
-      // Also cleanup tracked blob URL
-      if (currentBlobUrl) {
-        console.log('🧹 Cleaning up tracked Blob URL:', currentBlobUrl)
-        URL.revokeObjectURL(currentBlobUrl)
-      }
+      // Final cleanup through store
+      cleanupPreviousBlobUrl()
     }
-  }, [])
+  }, [cleanupPreviousBlobUrl])
 
   // Track unsaved changes
   useUnsavedChanges(hasUnsavedChanges)
+
+  // 화자 동기화 훅 - 클립 변경 시 자동으로 화자 목록 동기화
+  useSpeakerSync()
 
   // URL 파라미터 감지 및 모달 상태 복원
   useEffect(() => {
@@ -655,6 +996,9 @@ export default function EditorPage() {
         // Check for project to recover
         const projectId = sessionStorage.getItem('currentProjectId')
         const mediaId = sessionStorage.getItem('currentMediaId')
+        const storedMediaIdFromSession = sessionStorage.getItem(
+          'currentStoredMediaId'
+        )
         const lastUploadProjectId = sessionStorage.getItem(
           'lastUploadProjectId'
         )
@@ -684,7 +1028,7 @@ export default function EditorPage() {
                 )
               }
 
-              // Restore media info - Blob URL 우선 사용
+              // Restore media info - Blob URL 우선 사용, storedMediaId 포함
               if (savedProject.videoUrl) {
                 // 신규 업로드인 경우 유효성 검사 없이 바로 사용
                 setMediaInfo({
@@ -693,6 +1037,7 @@ export default function EditorPage() {
                   videoDuration: savedProject.videoDuration,
                   videoType: savedProject.videoType || 'video/mp4',
                   videoMetadata: savedProject.videoMetadata,
+                  storedMediaId: savedProject.storedMediaId, // IndexedDB 미디어 ID 포함
                 })
 
                 log(
@@ -706,6 +1051,18 @@ export default function EditorPage() {
                     'EditorPage.tsx',
                     '⚠️ Using Blob URL - may expire on page refresh'
                   )
+
+                  // Blob URL 유효성 검사 및 복원 시도 (백그라운드)
+                  if (savedProject.storedMediaId) {
+                    setTimeout(() => {
+                      validateAndRestoreBlobUrl().catch((error) => {
+                        log(
+                          'EditorPage.tsx',
+                          `Failed to validate blob URL: ${error}`
+                        )
+                      })
+                    }, 1000) // 1초 후 검증 시도
+                  }
                 }
               }
             }
@@ -785,7 +1142,27 @@ export default function EditorPage() {
                   videoType: savedProject.videoType || null,
                   videoDuration: savedProject.videoDuration || null,
                   videoMetadata: savedProject.videoMetadata || null,
+                  storedMediaId: savedProject.storedMediaId || null, // IndexedDB 미디어 ID 포함
                 })
+
+                // 기존 프로젝트의 경우 blob URL 검증 및 복원 시도
+                if (
+                  savedProject.storedMediaId &&
+                  savedProject.videoUrl?.startsWith('blob:')
+                ) {
+                  log(
+                    'EditorPage.tsx',
+                    '🔄 Validating existing project blob URL...'
+                  )
+                  setTimeout(() => {
+                    validateAndRestoreBlobUrl().catch((error) => {
+                      log(
+                        'EditorPage.tsx',
+                        `Failed to restore blob URL: ${error}`
+                      )
+                    })
+                  }, 500) // 0.5초 후 검증 시도
+                }
               }
 
               // Set project in AutosaveManager
@@ -814,6 +1191,44 @@ export default function EditorPage() {
             const normalizedClips = normalizeClipOrder(currentProject.clips)
             setClips(normalizedClips)
             autosaveManager.setProject(currentProject.id, 'browser')
+
+            // 미디어 정보 복원 (storedMediaId가 있으면 즉시 복원)
+            if (
+              currentProject.storedMediaId ||
+              currentProject.videoUrl ||
+              currentProject.mediaId
+            ) {
+              log(
+                'EditorPage.tsx',
+                '🔄 Restoring media from autosaved project...'
+              )
+
+              setMediaInfo({
+                mediaId: currentProject.mediaId || null,
+                videoUrl: currentProject.videoUrl || null,
+                videoName: currentProject.videoName || null,
+                videoType: currentProject.videoType || null,
+                videoDuration: currentProject.videoDuration || null,
+                videoMetadata: currentProject.videoMetadata || null,
+                storedMediaId: currentProject.storedMediaId || null,
+              })
+
+              // storedMediaId가 있으면 즉시 복원 시도
+              if (currentProject.storedMediaId) {
+                log(
+                  'EditorPage.tsx',
+                  `🎬 Attempting immediate media restoration: ${currentProject.storedMediaId}`
+                )
+                setTimeout(() => {
+                  validateAndRestoreBlobUrl().catch((error) => {
+                    log(
+                      'EditorPage.tsx',
+                      `Failed to restore autosaved media: ${error}`
+                    )
+                  })
+                }, 100) // 100ms 후 즉시 복원 시도
+              }
+            }
           } else {
             // New project
             const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
@@ -826,6 +1241,7 @@ export default function EditorPage() {
         // Clear session storage after recovery
         sessionStorage.removeItem('currentProjectId')
         sessionStorage.removeItem('currentMediaId')
+        sessionStorage.removeItem('currentStoredMediaId')
       } catch (error) {
         console.error('Failed to initialize editor:', error)
         showToast('에디터 초기화에 실패했습니다', 'error')
@@ -844,6 +1260,17 @@ export default function EditorPage() {
     loadOriginalClipsFromStorage,
     setGlobalSpeakers,
   ])
+
+  // Check for pending processing results on page load
+  useEffect(() => {
+    // sessionStorage에 pendingJobId가 있을 때만 실행
+    if (
+      typeof window !== 'undefined' &&
+      sessionStorage.getItem('pendingJobId')
+    ) {
+      checkAndApplyPendingResults()
+    }
+  }, [checkAndApplyPendingResults])
 
   // Generate stable ID for DndContext to prevent hydration mismatch
   const dndContextId = useId()
@@ -994,9 +1421,10 @@ export default function EditorPage() {
     setRightSidebarType(rightSidebarType === 'animation' ? null : 'animation')
   }
 
-  const handleToggleTemplateSidebar = () => {
-    setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
-  }
+  // Template sidebar disabled
+  // const handleToggleTemplateSidebar = () => {
+  //   setRightSidebarType(rightSidebarType === 'template' ? null : 'template')
+  // }
 
   const handleCloseSidebar = () => {
     setRightSidebarType(null)
@@ -1073,6 +1501,13 @@ export default function EditorPage() {
       setSelectedClipIds(newSet)
       // 체크 해제 시에도 포커싱 유지
     }
+  }
+
+  // 전체 단어 선택/해제 핸들러
+  const handleSelectAllWords = (selectAll: boolean) => {
+    // 단어 선택은 SubtitleEditList 컴포넌트 내에서 직접 처리됩니다.
+    // 이 함수는 필요시 추가 로직을 위해 남겨두었습니다.
+    console.log('전체 단어 선택/해제:', selectAll ? '선택' : '해제')
   }
 
   const handleClipSelect = (clipId: string) => {
@@ -1652,11 +2087,11 @@ export default function EditorPage() {
     setAssetSidebarWidth,
   ])
 
-  // 편집 모드 변경 시 사이드바 자동 설정
+  // 편집 모드 변경 시 사이드바 자동 설정 (템플릿 사이드바 비활성화됨)
   useEffect(() => {
     if (editingMode === 'simple' && clips.length > 0) {
-      // 쉬운 편집 모드에서는 클립이 있을 때만 템플릿 사이드바 표시
-      setRightSidebarType('template')
+      // 템플릿 사이드바가 비활성화되어 사이드바를 닫음
+      setRightSidebarType(null)
     } else if (clips.length === 0) {
       // 빈 상태에서는 사이드바 닫기
       setRightSidebarType(null)
@@ -1847,7 +2282,7 @@ export default function EditorPage() {
                 canUndo={editorHistory.canUndo()}
                 canRedo={editorHistory.canRedo()}
                 onSelectionChange={setSelectedClipIds}
-                onNewClick={() => uploadModal.openModal()}
+                onNewClick={handleNewProject}
                 onMergeClips={handleMergeClips}
                 onUndo={handleUndo}
                 onRedo={handleRedo}
@@ -1858,7 +2293,7 @@ export default function EditorPage() {
                 onRestore={handleRestore}
                 onAutoLineBreak={handleAutoLineBreak}
                 onToggleAnimationSidebar={handleToggleAnimationSidebar}
-                onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onToggleTemplateSidebar={() => {}} // Template sidebar disabled
                 onSave={handleSave}
                 onSaveAs={handleSaveAs}
                 forceOpenExportModal={shouldOpenExportModal}
@@ -1869,12 +2304,13 @@ export default function EditorPage() {
                 activeClipId={activeClipId}
                 canUndo={editorHistory.canUndo()}
                 canRedo={editorHistory.canRedo()}
-                onNewClick={() => uploadModal.openModal()}
+                onNewClick={handleNewProject}
                 onMergeClips={handleMergeClips}
                 onUndo={handleUndo}
                 onRedo={handleRedo}
                 onSplitClip={handleSplitClip}
-                onToggleTemplateSidebar={handleToggleTemplateSidebar}
+                onToggleTemplateSidebar={() => {}} // Template sidebar disabled
+                onAutoLineBreak={handleAutoLineBreak}
                 onSave={handleSave}
                 onSaveAs={handleSaveAs}
                 forceOpenExportModal={shouldOpenExportModal}
@@ -1934,7 +2370,7 @@ export default function EditorPage() {
                       영상 파일을 업로드하여 자막을 생성하고 편집해보세요.
                     </p>
                     <button
-                      onClick={() => uploadModal.openModal()}
+                      onClick={handleNewProject}
                       className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl hover:outline-2 hover:outline-purple-500 hover:outline-offset-4 hover:scale-105"
                     >
                       새로 만들기
@@ -1957,6 +2393,7 @@ export default function EditorPage() {
                   onAddSpeaker={handleAddSpeaker}
                   onRenameSpeaker={handleRenameSpeaker}
                   onEmptySpaceClick={handleEmptySpaceClick}
+                  onSelectAllWords={handleSelectAllWords}
                 />
               ) : (
                 <div className="flex-1 bg-white p-4 flex flex-col overflow-y-auto items-center">
@@ -1965,7 +2402,7 @@ export default function EditorPage() {
                       자막 타임라인
                     </h2>
                     <div className="space-y-2">
-                      {clips.slice(0, 20).map((clip) => {
+                      {clips.map((clip) => {
                         const isActive = clip.id === activeClipId
                         const formatTime = (seconds: number) => {
                           const mins = Math.floor(seconds / 60)
@@ -1997,6 +2434,7 @@ export default function EditorPage() {
                             onOpenSpeakerManagement={
                               handleOpenSpeakerManagement
                             }
+                            onTextEdit={updateClipFullTextAdvanced}
                             formatTime={formatTime}
                           />
                         )
@@ -2056,27 +2494,7 @@ export default function EditorPage() {
                         </div>
                       )}
 
-                      {/* Template Sidebar */}
-                      {rightSidebarType === 'template' && (
-                        <div
-                          className={`transform transition-all duration-300 ease-out w-full ${
-                            rightSidebarType === 'template'
-                              ? 'translate-x-0 opacity-100'
-                              : 'translate-x-full opacity-0'
-                          }`}
-                        >
-                          <TemplateSidebar
-                            onTemplateSelect={(template) => {
-                              console.log(
-                                'Template selected in editor:',
-                                template
-                              )
-                              // TODO: Apply template to focused clip
-                            }}
-                            onClose={handleCloseSidebar}
-                          />
-                        </div>
-                      )}
+                      {/* Template Sidebar - DISABLED */}
 
                       {/* Speaker Management Sidebar */}
                       {rightSidebarType === 'speaker' && (
@@ -2143,6 +2561,19 @@ export default function EditorPage() {
             onPrimaryAction={handleConfirmRestore}
             onCancel={() => setShowRestoreModal(false)}
             onClose={() => setShowRestoreModal(false)}
+          />
+
+          {/* 상태 초기화 확인 모달 */}
+          <AlertDialog
+            isOpen={showResetConfirmModal}
+            title="새 프로젝트 만들기"
+            description="편집 중이던 모든 자료가 초기화됩니다. 계속하시겠습니까?"
+            variant="warning"
+            primaryActionLabel="확인"
+            cancelActionLabel="취소"
+            onPrimaryAction={handleResetConfirm}
+            onCancel={handleResetCancel}
+            onClose={handleResetCancel}
           />
 
           {/* Drag overlay for word drag and drop */}

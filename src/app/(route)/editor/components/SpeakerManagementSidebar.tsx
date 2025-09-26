@@ -6,9 +6,12 @@ import {
   LuUserX,
   LuArrowRight,
   LuPalette,
+  LuInfo,
+  LuRefreshCw,
 } from 'react-icons/lu'
 import chroma from 'chroma-js'
 import { getSpeakerColor } from '@/utils/editor/speakerColors'
+import { useSpeakerSync } from '../hooks/useSpeakerSync'
 
 interface ClipItem {
   id: string
@@ -42,6 +45,13 @@ export default function SpeakerManagementSidebar({
   onBatchSpeakerChange,
   onSpeakerColorChange,
 }: SpeakerManagementSidebarProps) {
+  // 화자 동기화 훅 사용
+  const {
+    syncSpeakers,
+    getSpeakerStats,
+    getUnusedSpeakers,
+    getUnassignedClipsCount,
+  } = useSpeakerSync()
   const [editingSpeaker, setEditingSpeaker] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
   const [selectedUnassignedClips, setSelectedUnassignedClips] = useState<
@@ -51,7 +61,14 @@ export default function SpeakerManagementSidebar({
   const [selectedColorSpeaker, setSelectedColorSpeaker] = useState<
     string | null
   >(null)
+  const [showSpeakerStats, setShowSpeakerStats] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // 화자 통계 데이터
+  const speakerStats = getSpeakerStats()
+  const unusedSpeakers = getUnusedSpeakers()
+  const unassignedClipsCount = getUnassignedClipsCount()
 
   // 미지정 클립들 필터링
   const unassignedClips = clips.filter(
@@ -241,6 +258,35 @@ export default function SpeakerManagementSidebar({
     setSelectedColorSpeaker(null)
   }
 
+  // 화자 동기화 핸들러
+  const handleRefreshSpeakers = async () => {
+    setIsRefreshing(true)
+    try {
+      syncSpeakers()
+      console.log('🔄 Manual speaker sync completed')
+    } catch (error) {
+      console.error('❌ Manual speaker sync failed:', error)
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500) // 시각적 피드백을 위한 딜레이
+    }
+  }
+
+  // 사용되지 않는 화자 정리
+  const handleCleanupUnusedSpeakers = () => {
+    if (unusedSpeakers.length === 0) {
+      alert('정리할 사용되지 않는 화자가 없습니다.')
+      return
+    }
+
+    const confirmMessage = `다음 화자들이 어떤 클립에서도 사용되지 않습니다:\n${unusedSpeakers.join(', ')}\n\n이 화자들을 삭제하시겠습니까?`
+
+    if (confirm(confirmMessage)) {
+      unusedSpeakers.forEach((speaker) => {
+        onRemoveSpeaker(speaker)
+      })
+    }
+  }
+
   if (!isOpen) return null
 
   return (
@@ -255,6 +301,44 @@ export default function SpeakerManagementSidebar({
               <span className="text-yellow-400 ml-1">(최대)</span>
             )}
           </p>
+          {/* 동기화 상태 표시 */}
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={handleRefreshSpeakers}
+              disabled={isRefreshing}
+              className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
+                isRefreshing
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
+              }`}
+              title="클립에서 화자 정보 동기화"
+            >
+              <LuRefreshCw
+                className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`}
+              />
+              {isRefreshing ? '동기화 중...' : '동기화'}
+            </button>
+
+            <button
+              onClick={() => setShowSpeakerStats(!showSpeakerStats)}
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-600 hover:bg-green-200 rounded transition-colors"
+              title="화자 통계 보기"
+            >
+              <LuInfo className="w-3 h-3" />
+              통계
+            </button>
+
+            {unusedSpeakers.length > 0 && (
+              <button
+                onClick={handleCleanupUnusedSpeakers}
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-100 text-orange-600 hover:bg-orange-200 rounded transition-colors"
+                title="사용되지 않는 화자 정리"
+              >
+                <LuTrash2 className="w-3 h-3" />
+                정리 ({unusedSpeakers.length})
+              </button>
+            )}
+          </div>
         </div>
         <button
           onClick={onClose}
@@ -266,6 +350,111 @@ export default function SpeakerManagementSidebar({
 
       {/* Content */}
       <div className="p-4 space-y-6 overflow-y-auto flex-1">
+        {/* 화자 통계 패널 */}
+        {showSpeakerStats && (
+          <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <LuInfo className="w-5 h-5 text-green-600" />
+                <h3 className="text-sm font-semibold text-black">화자 통계</h3>
+              </div>
+              <button
+                onClick={() => setShowSpeakerStats(false)}
+                className="p-1 text-gray-600 hover:text-black transition-colors cursor-pointer"
+              >
+                <LuX className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {/* 전체 통계 */}
+              <div className="text-xs text-gray-600 bg-white rounded p-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="font-medium">총 클립:</span> {clips.length}
+                    개
+                  </div>
+                  <div>
+                    <span className="font-medium">미지정:</span>{' '}
+                    {unassignedClipsCount}개
+                  </div>
+                  <div>
+                    <span className="font-medium">화자 수:</span>{' '}
+                    {speakers.length}명
+                  </div>
+                  <div>
+                    <span className="font-medium">미사용 화자:</span>{' '}
+                    {unusedSpeakers.length}명
+                  </div>
+                </div>
+              </div>
+
+              {/* 개별 화자 통계 */}
+              <div className="space-y-2">
+                <div className="text-xs font-medium text-gray-700">
+                  화자별 상세 정보:
+                </div>
+                <div className="max-h-32 overflow-y-auto space-y-1">
+                  {speakers.map((speaker) => {
+                    const stats = speakerStats[speaker]
+                    const isUnused = unusedSpeakers.includes(speaker)
+
+                    if (isUnused) {
+                      return (
+                        <div
+                          key={speaker}
+                          className="flex items-center justify-between text-xs bg-orange-100 rounded p-2"
+                        >
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full border"
+                              style={{
+                                backgroundColor: getSpeakerColor(
+                                  speaker,
+                                  speakerColors
+                                ),
+                              }}
+                            />
+                            <span className="text-orange-700">{speaker}</span>
+                          </div>
+                          <span className="text-orange-600 text-xs">
+                            미사용
+                          </span>
+                        </div>
+                      )
+                    }
+
+                    if (!stats) return null
+
+                    return (
+                      <div
+                        key={speaker}
+                        className="flex items-center justify-between text-xs bg-white rounded p-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full border"
+                            style={{
+                              backgroundColor: getSpeakerColor(
+                                speaker,
+                                speakerColors
+                              ),
+                            }}
+                          />
+                          <span className="text-gray-700">{speaker}</span>
+                        </div>
+                        <div className="text-gray-600">
+                          클립 {stats.clipCount}개 · 단어 {stats.wordCount}개
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 미지정 클립 관리 패널 */}
         {unassignedClips.length > 0 && (
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">

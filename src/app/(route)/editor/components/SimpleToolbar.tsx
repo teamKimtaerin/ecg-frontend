@@ -28,6 +28,7 @@ interface SimpleToolbarProps {
   onRedo: () => void
   onSplitClip: () => void
   onToggleTemplateSidebar: () => void
+  onAutoLineBreak?: () => void
   onSave?: () => void
   onSaveAs?: () => void
   forceOpenExportModal?: boolean
@@ -44,6 +45,7 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
   onRedo,
   onSplitClip,
   onToggleTemplateSidebar,
+  onAutoLineBreak,
   onSave,
   onSaveAs,
   forceOpenExportModal,
@@ -226,6 +228,30 @@ const SimpleToolbar: React.FC<SimpleToolbarProps> = ({
             disabled={!activeClipId}
             shortcut="Enter"
           />
+
+          {/* 자동 줄바꿈 */}
+          {onAutoLineBreak && (
+            <ToolbarButton
+              icon={
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h8m-8 6h16"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M14 12l4 4m0-4l-4 4"
+                  />
+                </svg>
+              }
+              label="자동 줄바꿈"
+              onClick={onAutoLineBreak}
+            />
+          )}
 
           {/* 템플릿 */}
           <ToolbarButton

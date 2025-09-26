@@ -40,6 +40,8 @@ export interface ClipSlice {
   saveOriginalClipsToStorage: () => Promise<void> // IndexedDB에 원본 클립 영구 저장
   loadOriginalClipsFromStorage: () => Promise<void> // IndexedDB에서 원본 클립 로드
   updateClipWords: (clipId: string, wordId: string, newText: string) => void
+  updateClipFullText: (clipId: string, newText: string) => void
+  updateClipFullTextAdvanced: (clipId: string, newText: string) => void
 
   applyAssetsToWord: (
     clipId: string,
@@ -292,6 +294,9 @@ export const createClipSlice: StateCreator<
               fullText: clip.words
                 .map((word) => (word.id === wordId ? newText : word.text))
                 .join(' '),
+              subtitle: clip.words
+                .map((word) => (word.id === wordId ? newText : word.text))
+                .join(' '), // Also update subtitle field
             }
           : clip
       ),
@@ -300,6 +305,138 @@ export const createClipSlice: StateCreator<
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyGet = get() as any
       anyGet.rebuildIndexesFromClips?.()
+      // Also update the scenario to reflect text change
+      anyGet.updateWordTextInScenario?.(wordId, newText)
+    } catch {}
+  },
+
+  updateClipFullText: (clipId, newText) => {
+    set((state) => ({
+      clips: state.clips.map((clip) =>
+        clip.id === clipId
+          ? {
+              ...clip,
+              fullText: newText,
+              subtitle: newText,
+            }
+          : clip
+      ),
+    }))
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+    } catch {}
+  },
+
+  updateClipFullTextAdvanced: (clipId, newText) => {
+    set((state) => {
+      // wordAnimationTracks에서 현재 clip의 애니메이션 정보 수집
+      const fullState = get() as any
+      const wordAnimationTracks = fullState.wordAnimationTracks || new Map()
+
+      return {
+        clips: state.clips.map((clip) => {
+          if (clip.id !== clipId) return clip
+
+          // displayTime 구간 보존하면서 새로운 단어 배열 생성
+          const originalWords = clip.words || []
+          const newWords = newText.trim().split(/\s+/).filter(Boolean)
+
+          // 시작 시간과 끝 시간 계산 (기존 words 배열 기반)
+          const startTime =
+            originalWords.length > 0 ? originalWords[0].start : 0
+          const endTime =
+            originalWords.length > 0
+              ? originalWords[originalWords.length - 1].end
+              : startTime + 3
+          const totalDuration = endTime - startTime
+
+          // 기존 단어들의 애니메이션 정보를 텍스트 매칭으로 보존
+          const existingAnimations = new Map<
+            string,
+            {
+              appliedAssets: string[]
+              animationTracks: any[]
+              wordAnimationTracks?: any[]
+            }
+          >()
+
+          originalWords.forEach((word) => {
+            const wordKey = word.text.toLowerCase().trim()
+            existingAnimations.set(wordKey, {
+              appliedAssets: word.appliedAssets || [],
+              animationTracks: word.animationTracks || [],
+              wordAnimationTracks: wordAnimationTracks.get(word.id),
+            })
+          })
+
+          // 새로운 단어들에 대해 시간을 균등 분배하고 애니메이션 정보 보존
+          const updatedWords = newWords.map((word, index) => {
+            const wordDuration = totalDuration / newWords.length
+            const wordStart = startTime + wordDuration * index
+            const wordEnd = wordStart + wordDuration
+
+            // 기존 단어가 있으면 기존 ID 유지, 없으면 새 ID 생성
+            let wordId: string
+            let appliedAssets: string[] = []
+            let animationTracks: any[] = []
+
+            if (originalWords[index] && originalWords[index].text === word) {
+              // 정확히 같은 위치의 같은 텍스트면 기존 ID와 애니메이션 정보 유지
+              wordId = originalWords[index].id
+              appliedAssets = originalWords[index].appliedAssets || []
+              animationTracks = originalWords[index].animationTracks || []
+            } else {
+              // 텍스트 매칭으로 애니메이션 정보 찾기
+              const wordKey = word.toLowerCase().trim()
+              const existingData = existingAnimations.get(wordKey)
+
+              if (existingData) {
+                // 기존에 같은 텍스트가 있었다면 해당 애니메이션 정보 사용
+                appliedAssets = existingData.appliedAssets
+                animationTracks = existingData.animationTracks
+                // 기존 ID 찾기 (텍스트 매칭)
+                const matchingOriginal = originalWords.find(
+                  (w) => w.text.toLowerCase().trim() === wordKey
+                )
+                wordId =
+                  matchingOriginal?.id ||
+                  `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
+              } else {
+                // 완전히 새로운 단어면 새 ID 생성
+                wordId = `word-${clipId.replace('clip-', '')}-${Date.now()}-${index}`
+              }
+            }
+
+            return {
+              id: wordId,
+              text: word,
+              start: wordStart,
+              end: wordEnd,
+              isEditable: true,
+              confidence: originalWords[index]?.confidence || 0.95,
+              appliedAssets,
+              animationTracks,
+            }
+          })
+
+          return {
+            ...clip,
+            words: updatedWords,
+            fullText: newText,
+            subtitle: newText,
+          }
+        }),
+      }
+    })
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      anyGet.rebuildIndexesFromClips?.()
+      // MotionText 시나리오 업데이트를 위한 추가 호출
+      anyGet.updateScenarioFromClips?.()
     } catch {}
   },
 
@@ -674,6 +811,7 @@ export const createClipSlice: StateCreator<
         videoType: state.videoType || undefined,
         videoDuration: state.videoDuration || undefined,
         videoMetadata: state.videoMetadata || undefined,
+        storedMediaId: state.storedMediaId || undefined, // IndexedDB 미디어 ID 포함
       }
     } else {
       // Update existing project
@@ -689,6 +827,7 @@ export const createClipSlice: StateCreator<
         videoType: state.videoType || project.videoType,
         videoDuration: state.videoDuration || project.videoDuration,
         videoMetadata: state.videoMetadata || project.videoMetadata,
+        storedMediaId: state.storedMediaId || project.storedMediaId, // IndexedDB 미디어 ID 포함
       }
     }
 
@@ -722,7 +861,10 @@ export const createClipSlice: StateCreator<
       })
 
       // Restore media information to MediaSlice if available
-      if (state.setMediaInfo && (project.mediaId || project.videoUrl)) {
+      if (
+        state.setMediaInfo &&
+        (project.mediaId || project.videoUrl || project.storedMediaId)
+      ) {
         state.setMediaInfo({
           mediaId: project.mediaId || null,
           videoUrl: project.videoUrl || null,
@@ -730,6 +872,7 @@ export const createClipSlice: StateCreator<
           videoType: project.videoType || null,
           videoDuration: project.videoDuration || null,
           videoMetadata: project.videoMetadata || null,
+          storedMediaId: project.storedMediaId || null, // IndexedDB 미디어 ID 포함
         })
       }
     }

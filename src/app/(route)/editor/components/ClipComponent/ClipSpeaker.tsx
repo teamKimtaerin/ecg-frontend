@@ -284,7 +284,7 @@ export default function ClipSpeaker({
                 className={`truncate overflow-hidden whitespace-nowrap ${!speaker ? 'text-orange-500' : ''}`}
                 style={{ maxWidth: '70px' }}
               >
-                {speaker || '미지정'}
+                {speaker || '화자 없음'}
               </span>
             </div>
             <ChevronDownIcon

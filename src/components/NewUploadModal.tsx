@@ -1,16 +1,14 @@
 'use client'
 
 import Modal from '@/components/ui/Modal'
+import {
+  generateVideoThumbnailWithMetadata,
+  isVideoFile,
+  revokeThumbnailUrl,
+} from '@/utils/video/videoThumbnail'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FaVimeo, FaYoutube } from 'react-icons/fa'
 import { LuLink } from 'react-icons/lu'
-import {
-  generateVideoThumbnail,
-  generateVideoThumbnailWithMetadata,
-  revokeThumbnailUrl,
-  isVideoFile,
-  isAudioFile,
-} from '@/utils/video/videoThumbnail'
 
 interface VideoMetadata {
   duration?: number
@@ -40,7 +38,7 @@ interface NewUploadModalProps {
 }
 
 interface TranscriptionSettings {
-  language: 'auto' | 'ko' | 'en' | 'ja' | 'zh'
+  language: 'ko' | 'en' | 'ja' | 'zh'
 }
 
 type TabType = 'upload' | 'link'
@@ -58,9 +56,7 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('upload')
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
-  const [language, setLanguage] = useState<'auto' | 'ko' | 'en' | 'ja' | 'zh'>(
-    'auto'
-  )
+  const [language, setLanguage] = useState<'ko' | 'en' | 'ja' | 'zh'>('en')
   const [isDragOver, setIsDragOver] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
   const [thumbnailUrl, setThumbnailUrl] = useState<string>('')
@@ -510,18 +506,15 @@ const NewUploadModal: React.FC<NewUploadModalProps> = ({
                 <select
                   value={language}
                   onChange={(e) =>
-                    setLanguage(
-                      e.target.value as 'auto' | 'ko' | 'en' | 'ja' | 'zh'
-                    )
+                    setLanguage(e.target.value as 'ko' | 'en' | 'ja' | 'zh')
                   }
                   className="w-full h-12 px-4 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-900 appearance-none focus:outline-none focus:ring-2 focus:ring-brand-sub focus:border-transparent"
                   disabled={isLoading}
                 >
-                  <option value="auto">Auto Detect</option>
-                  <option value="ko">한국어 (Korean)</option>
-                  <option value="en">English</option>
-                  <option value="ja">日本語 (Japanese)</option>
-                  <option value="zh">中文 (Chinese)</option>
+                  <option value="en">영어</option>
+                  <option value="ko">한국어</option>
+                  <option value="ja">일본어</option>
+                  <option value="zh">중국어</option>
                 </select>
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
                   <svg

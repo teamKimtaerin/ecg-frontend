@@ -9,25 +9,11 @@ import {
   isMultipleWordsSelected,
   canAddAnimationToSelection,
 } from '../../utils/animationHelpers'
+import { getAssets as fetchAssetsFromApi } from '@/services/assetsService'
+import { useAuthStatus } from '@/hooks/useAuthStatus'
 
 interface AssetGridProps {
   onAssetSelect?: (asset: AssetItem) => void
-}
-
-interface AssetDatabaseItem {
-  id: string
-  title: string
-  category: string
-  description: string
-  thumbnail?: string
-  pluginKey?: string
-  thumbnailPath?: string
-  iconName?: string
-  isPro: boolean
-}
-
-interface AssetDatabase {
-  assets: AssetDatabaseItem[]
 }
 
 const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
@@ -44,53 +30,32 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
     multiSelectedWordIds,
   } = useEditorStore()
 
-  // Hardcoded favorite assets for '담은 에셋' tab
-  const favoriteAssetNames = [
-    'TypeWriter Effect',
-    'Rotation Text',
-    'Elastic Bounce',
-  ]
+  const { isLoggedIn } = useAuthStatus()
 
   const [assets, setAssets] = useState<AssetItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch assets from JSON file
   useEffect(() => {
-    const fetchAssets = async () => {
+    const loadAssets = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/asset-store/assets-database.json')
-        if (!response.ok) {
-          throw new Error('Failed to fetch assets')
-        }
-        const data: AssetDatabase = await response.json()
+        const apiAssets = await fetchAssetsFromApi()
 
-        const origin = (
-          process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN ||
-          'http://localhost:3300'
-        ).replace(/\/$/, '')
-
-        // Transform JSON data to AssetItem format
-        const transformedAssets: AssetItem[] = data.assets.map((asset) => {
-          let thumb = asset.thumbnail || '/placeholder-thumb.jpg'
-          if (asset.pluginKey) {
-            const base = `${origin}/plugins/${asset.pluginKey}`
-            thumb = `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`
-          }
-          return {
-            id: asset.id,
-            name: asset.title,
-            category: asset.category,
-            type: 'free' as const,
-            pluginKey: asset.pluginKey,
-            iconName: asset.iconName,
-            preview: {
-              type: 'image' as const,
-              value: thumb,
-            },
-          }
-        })
+        const transformedAssets: AssetItem[] = apiAssets.map((asset) => ({
+          id: asset.id,
+          name: asset.title,
+          category: asset.category,
+          type: asset.isPro ? 'premium' : 'free',
+          pluginKey: asset.pluginKey,
+          iconName: asset.iconName,
+          isFavorite: asset.isFavorite,
+          preview: {
+            type: 'image' as const,
+            value: asset.thumbnail || '/placeholder-thumb.jpg',
+          },
+          description: asset.description,
+        }))
 
         setAssets(transformedAssets)
         setError(null)
@@ -101,22 +66,17 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       }
     }
 
-    fetchAssets()
+    loadAssets()
   }, [])
 
   // Filter assets based on tab, category, and search query
   const filteredAssets = assets.filter((asset) => {
-    // Filter by tab
     if (activeAssetTab === 'my') {
-      // '담은 에셋' tab - show only favorite assets
-      if (!favoriteAssetNames.includes(asset.name)) {
-        return false
-      }
-    } else if (activeAssetTab === 'free') {
-      // '무료 에셋' tab - show all assets EXCEPT favorites
-      if (favoriteAssetNames.includes(asset.name)) {
-        return false
-      }
+      return asset.isFavorite === true
+    }
+
+    if (activeAssetTab === 'free' && asset.isFavorite) {
+      return false
     }
 
     // Filter by search query
@@ -305,7 +265,7 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
                 isUsed:
                   isAppliedToFocusedWord ||
                   currentWordAssets.includes(asset.id),
-                isFavorite: favoriteAssetNames.includes(asset.name),
+                isFavorite: asset.isFavorite ?? false,
               }}
               onClick={handleAssetClick}
             />
@@ -316,9 +276,13 @@ const AssetGrid: React.FC<AssetGridProps> = ({ onAssetSelect }) => {
       {!loading && !error && filteredAssets.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-700 text-sm">
-            {assetSearchQuery
-              ? '검색 결과가 없습니다.'
-              : '사용 가능한 에셋이 없습니다.'}
+            {activeAssetTab === 'my' && !isLoggedIn
+              ? '즐겨찾기 기능을 사용하려면 로그인이 필요합니다.'
+              : activeAssetTab === 'my'
+                ? '즐겨찾기한 에셋이 없습니다.'
+                : assetSearchQuery
+                  ? '검색 결과가 없습니다.'
+                  : '사용 가능한 에셋이 없습니다.'}
           </p>
         </div>
       )}

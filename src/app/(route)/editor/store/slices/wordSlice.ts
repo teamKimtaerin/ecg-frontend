@@ -217,6 +217,11 @@ export interface WordSlice extends WordDragState {
   getSelectedWordsByClip: () => Map<string, string[]>
   setLastSelectedWord: (clipId: string, wordId: string) => void
 
+  // Select all words functionality
+  selectAllWords: () => void
+  isAllWordsSelected: () => boolean
+  getSelectedWordsCount: () => { selected: number; total: number }
+
   // Video playback synchronization
   setPlayingWord: (clipId: string | null, wordId: string | null) => void
   clearPlayingWord: () => void
@@ -687,7 +692,8 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       return { wordAnimationTracks: newTracks }
     }),
 
-  removeAnimationTrack: (wordId, assetId) =>
+  removeAnimationTrack: (wordId, assetId) => {
+    // 1. First update the state
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
       const existingTracks = newTracks.get(wordId) || []
@@ -711,41 +717,40 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
         newTracks.set(wordId, recoloredTracks)
       }
 
-      // Update scenario pluginChain for this word
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyGet = get() as any
-        anyGet.refreshWordPluginChain?.(wordId)
-      } catch {
-        // ignore
-      }
+      return { wordAnimationTracks: newTracks }
+    })
 
-      // Also sync with word.appliedAssets and word.animationTracks in clips
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const anyGet = get() as any
-        if (
-          (anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) &&
-          anyGet.clips
-        ) {
-          const clipId = anyGet.getClipIdByWordId?.(wordId)
-          if (clipId) {
-            const remainingTracks = newTracks.get(wordId) || []
-            const assetIds = remainingTracks.map((track) => track.assetId)
-            if (anyGet.applyAssetsToWord) {
-              anyGet.applyAssetsToWord(clipId, wordId, assetIds)
-            }
-            if (anyGet.updateWordAnimationTracks) {
-              anyGet.updateWordAnimationTracks(clipId, wordId, remainingTracks)
-            }
+    // 2. After state update, sync with clips and refresh plugin chain
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      const updatedTracks = anyGet.wordAnimationTracks?.get(wordId) || []
+
+      // Sync with word.appliedAssets and word.animationTracks in clips
+      if (
+        (anyGet.applyAssetsToWord || anyGet.updateWordAnimationTracks) &&
+        anyGet.clips
+      ) {
+        const clipId = anyGet.getClipIdByWordId?.(wordId)
+        if (clipId) {
+          const assetIds = updatedTracks.map(
+            (track: AnimationTrack) => track.assetId
+          )
+          if (anyGet.applyAssetsToWord) {
+            anyGet.applyAssetsToWord(clipId, wordId, assetIds)
+          }
+          if (anyGet.updateWordAnimationTracks) {
+            anyGet.updateWordAnimationTracks(clipId, wordId, updatedTracks)
           }
         }
-      } catch {
-        // ignore
       }
 
-      return { wordAnimationTracks: newTracks }
-    }),
+      // Update scenario pluginChain for this word (now with correct state)
+      anyGet.refreshWordPluginChain?.(wordId)
+    } catch {
+      // ignore
+    }
+  },
 
   updateAnimationTrackTiming: (wordId, assetId, start, end) =>
     set((state) => {
@@ -1352,8 +1357,9 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
     }
 
     // Call the regular addAnimationTrack with the fetched timeOffset and autofilled params
-    const state = get()
-    state.addAnimationTrack(
+    // Use get() to get current state and call addAnimationTrack method
+    const { addAnimationTrack } = get()
+    addAnimationTrack(
       wordId,
       assetId,
       assetName,
@@ -1362,6 +1368,21 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       timeOffset,
       finalParams
     )
+
+    // Ensure refreshWordPluginChain is called after the async operation completes
+    // Use setTimeout to ensure it runs after the state update
+    setTimeout(() => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyGet = get() as any
+        anyGet.refreshWordPluginChain?.(wordId)
+      } catch (error) {
+        console.warn(
+          'Failed to refresh plugin chain after async track addition:',
+          error
+        )
+      }
+    }, 0)
   },
 
   setAnimationTrackPluginKey: (wordId, assetId, pluginKey) =>
@@ -1512,6 +1533,69 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       lastSelectedWordId: null,
       lastSelectedClipId: null,
     }),
+
+  selectAllWords: () =>
+    set((state) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyGet = get() as any
+      const clips = anyGet.clips || []
+
+      const allWordIds = new Set<string>()
+      const allClipIds = new Set<string>()
+
+      clips.forEach((clip: any) => {
+        if (clip.words && Array.isArray(clip.words)) {
+          allClipIds.add(clip.id)
+          clip.words.forEach((word: any) => {
+            if (word.id) {
+              allWordIds.add(word.id)
+            }
+          })
+        }
+      })
+
+      return {
+        multiSelectedWordIds: allWordIds,
+        multiSelectedClipIds: allClipIds,
+        lastSelectedWordId: allWordIds.size > 0 ? Array.from(allWordIds)[allWordIds.size - 1] : null,
+        lastSelectedClipId: allClipIds.size > 0 ? Array.from(allClipIds)[allClipIds.size - 1] : null,
+      }
+    }),
+
+  isAllWordsSelected: () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyGet = get() as any
+    const clips = anyGet.clips || []
+    const selectedWordIds = get().multiSelectedWordIds
+
+    let totalWords = 0
+    clips.forEach((clip: any) => {
+      if (clip.words && Array.isArray(clip.words)) {
+        totalWords += clip.words.length
+      }
+    })
+
+    return totalWords > 0 && selectedWordIds.size === totalWords
+  },
+
+  getSelectedWordsCount: () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyGet = get() as any
+    const clips = anyGet.clips || []
+    const selectedWordIds = get().multiSelectedWordIds
+
+    let totalWords = 0
+    clips.forEach((clip: any) => {
+      if (clip.words && Array.isArray(clip.words)) {
+        totalWords += clip.words.length
+      }
+    })
+
+    return {
+      selected: selectedWordIds.size,
+      total: totalWords
+    }
+  },
 
   deleteSelectedWords: () =>
     set(() => {
@@ -1744,15 +1828,15 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
       return hasChanges ? { wordAnimationTracks: newTracks } : state
     }),
 
-  removeAnimationFromMultipleWords: (wordIds, assetId) =>
+  removeAnimationFromMultipleWords: (wordIds, assetId) => {
+    const colors: ('blue' | 'green' | 'purple')[] = ['blue', 'green', 'purple']
+
+    // 1. First update the state
+    let hasChanges = false
+    const affectedWordIds: string[] = []
+
     set((state) => {
       const newTracks = new Map(state.wordAnimationTracks)
-      const colors: ('blue' | 'green' | 'purple')[] = [
-        'blue',
-        'green',
-        'purple',
-      ]
-      let hasChanges = false
 
       for (const wordId of wordIds) {
         const existingTracks = newTracks.get(wordId) || []
@@ -1762,6 +1846,7 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
 
         if (filteredTracks.length !== existingTracks.length) {
           hasChanges = true
+          affectedWordIds.push(wordId)
 
           // Reassign colors after removal
           const recoloredTracks = filteredTracks.map((track, index) => ({
@@ -1774,43 +1859,43 @@ export const createWordSlice: StateCreator<WordSlice, [], [], WordSlice> = (
           } else {
             newTracks.set(wordId, recoloredTracks)
           }
-
-          // Update scenario for this word
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const anyGet = get() as any
-            anyGet.refreshWordPluginChain?.(wordId)
-          } catch {
-            // ignore
-          }
-
-          // Update clip data
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const anyGet = get() as any
-            if (anyGet.updateWordAnimationTracks && anyGet.clips) {
-              const clipId = anyGet.getClipIdByWordId?.(wordId)
-              if (clipId) {
-                anyGet.updateWordAnimationTracks(
-                  clipId,
-                  wordId,
-                  recoloredTracks
-                )
-              }
-            }
-            if (anyGet.applyAssetsToWord) {
-              const clipId = anyGet.getClipIdByWordId?.(wordId)
-              if (clipId) {
-                const assetIds = recoloredTracks.map((track) => track.assetId)
-                anyGet.applyAssetsToWord(clipId, wordId, assetIds)
-              }
-            }
-          } catch {
-            // ignore
-          }
         }
       }
 
       return hasChanges ? { wordAnimationTracks: newTracks } : state
-    }),
+    })
+
+    // 2. After state update, refresh plugin chains and update clip data
+    if (hasChanges) {
+      for (const wordId of affectedWordIds) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const anyGet = get() as any
+          const updatedTracks = anyGet.wordAnimationTracks?.get(wordId) || []
+
+          // Update clip data
+          if (anyGet.updateWordAnimationTracks && anyGet.clips) {
+            const clipId = anyGet.getClipIdByWordId?.(wordId)
+            if (clipId) {
+              anyGet.updateWordAnimationTracks(clipId, wordId, updatedTracks)
+            }
+          }
+          if (anyGet.applyAssetsToWord) {
+            const clipId = anyGet.getClipIdByWordId?.(wordId)
+            if (clipId) {
+              const assetIds = updatedTracks.map(
+                (track: AnimationTrack) => track.assetId
+              )
+              anyGet.applyAssetsToWord(clipId, wordId, assetIds)
+            }
+          }
+
+          // Update scenario plugin chain (now with correct state)
+          anyGet.refreshWordPluginChain?.(wordId)
+        } catch {
+          // ignore
+        }
+      }
+    }
+  },
 })

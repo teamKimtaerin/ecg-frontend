@@ -1,6 +1,7 @@
 'use client'
 
 import { useProgressTasks } from '@/hooks/useProgressTasks'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -21,6 +22,7 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState({ top: 0, left: 0 })
   const [isMounted, setIsMounted] = useState(false)
+  const router = useRouter()
 
   // Get formatted progress data (automatic timeout checking is now handled in useProgressTasks)
   const {
@@ -69,6 +71,16 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen, onClose, buttonRef])
+
+  // 완료된 업로드 클릭 핸들러
+  const handleUploadClick = (task: any) => {
+    if (task.status === 'completed' && task.jobId) {
+      // jobId를 세션에 저장하고 에디터로 이동
+      sessionStorage.setItem('pendingJobId', task.jobId)
+      router.push('/editor')
+      onClose()
+    }
+  }
 
   if (!isOpen || !isMounted) return null
 
@@ -413,11 +425,12 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                     .map((task) => (
                       <div
                         key={task.id}
-                        className={`rounded-lg p-3 border ${
+                        className={`rounded-lg p-3 border transition-colors ${
                           task.status === 'completed'
-                            ? 'bg-green-50 border-green-200'
+                            ? 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer'
                             : 'bg-red-50 border-red-200'
                         }`}
+                        onClick={() => handleUploadClick(task)}
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium text-gray-800 truncate">
@@ -442,9 +455,16 @@ const DocumentModal: React.FC<DocumentModalProps> = ({
                             </span>
                           </div>
                         </div>
-                        <span className="text-xs text-gray-500">
-                          {task.completedAt}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {task.completedAt}
+                          </span>
+                          {task.status === 'completed' && task.jobId && (
+                            <span className="text-xs text-purple-600 font-medium">
+                              에디터에서 열기 →
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                 </div>

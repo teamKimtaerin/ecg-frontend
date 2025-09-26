@@ -43,6 +43,7 @@ export interface AssetItem {
   pluginKey?: string
   thumbnailPath?: string
   manifestFile?: string
+  iconName?: string
   authorId: string
   authorName: string
   isPro: boolean

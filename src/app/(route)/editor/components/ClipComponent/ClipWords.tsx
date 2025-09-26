@@ -9,6 +9,9 @@ import {
   DragStartEvent,
   DragOverEvent,
   DndContext,
+  MouseSensor,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core'
 import { Word, Sticker } from '../../types'
 import ClipWord from './ClipWord'
@@ -16,6 +19,7 @@ import ClipSticker from './ClipSticker'
 import { useWordGrouping } from '../../hooks/useWordGrouping'
 import { useEditorStore } from '../../store'
 import { getAssetIcon } from '../../utils/assetIconMapper'
+import { DRAG_ACTIVATION_DISTANCE } from '../../types'
 
 interface ClipWordsProps {
   clipId: string
@@ -45,6 +49,15 @@ export default function ClipWords({
   // Drag state for visual feedback
   const [draggedStickerId, setDraggedStickerId] = useState<string | null>(null)
   const [hoveredWordId, setHoveredWordId] = useState<string | null>(null)
+
+  // Configure sensors to prevent drag interference with double-click
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: DRAG_ACTIVATION_DISTANCE, // 15px - prevent accidental drags
+      },
+    })
+  )
 
   const {
     // From dev branch
@@ -337,9 +350,9 @@ export default function ClipWords({
       const word = words.find((w) => w.id === wordId)
       if (!word) return
 
-      // Prevent rapid clicks from causing conflicts
+      // Prevent rapid clicks from causing conflicts (reduced to allow double-click)
       const now = Date.now()
-      if (now - lastClickTimeRef.current < 50) {
+      if (now - lastClickTimeRef.current < 10) {
         return
       }
       lastClickTimeRef.current = now
@@ -384,6 +397,7 @@ export default function ClipWords({
 
   return (
     <DndContext
+      sensors={sensors}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}

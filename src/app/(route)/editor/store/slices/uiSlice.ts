@@ -22,10 +22,8 @@ export interface UISlice {
   setVideoPanelWidth: (width: number) => void
 
   // Right Sidebar state
-  rightSidebarType: 'speaker' | 'animation' | 'template' | null
-  setRightSidebarType: (
-    type: 'speaker' | 'animation' | 'template' | null
-  ) => void
+  rightSidebarType: 'speaker' | 'animation' | null
+  setRightSidebarType: (type: 'speaker' | 'animation' | null) => void
 
   // Editing Mode state
   editingMode: 'simple' | 'advanced'

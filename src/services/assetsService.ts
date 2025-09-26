@@ -1,4 +1,4 @@
-import { apiGet } from '@/lib/api/apiClient'
+import { apiDelete, apiGet, apiPost } from '@/lib/api/apiClient'
 import { AssetItem } from '@/types/asset-store'
 
 export interface AssetsResponse {
@@ -8,6 +8,8 @@ export interface AssetsResponse {
 /**
  * 플러그인 에셋 목록을 가져옵니다.
  */
+const ASSETS_BASE = '/api/v1/assets'
+
 export async function getAssets(options?: {
   category?: string
   is_pro?: boolean
@@ -21,7 +23,9 @@ export async function getAssets(options?: {
       queryParams.append('is_pro', options.is_pro.toString())
     }
 
-    const endpoint = `/api/v1/assets/${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+    const endpoint = `${ASSETS_BASE}${
+      queryParams.toString() ? `?${queryParams.toString()}` : ''
+    }`
     const response = await apiGet(endpoint)
 
     if (!response.ok) {
@@ -36,15 +40,18 @@ export async function getAssets(options?: {
     ).replace(/\/$/, '')
 
     const resolvedAssets = data.assets.map((asset) => {
-      if (asset.pluginKey) {
-        const base = `${origin}/plugins/${asset.pluginKey}`
-        return {
-          ...asset,
-          thumbnail: `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`,
-          manifestFile: `${base}/manifest.json`,
-        }
+      const base = asset.pluginKey
+        ? `${origin}/plugins/${asset.pluginKey}`
+        : null
+
+      return {
+        ...asset,
+        id: String(asset.id),
+        thumbnail: base
+          ? `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`
+          : asset.thumbnail,
+        manifestFile: base ? `${base}/manifest.json` : asset.manifestFile,
       }
-      return asset
     })
 
     return resolvedAssets
@@ -52,4 +59,54 @@ export async function getAssets(options?: {
     console.error('Error fetching assets:', error)
     throw error
   }
+}
+
+export async function addFavorite(pluginKey: string): Promise<void> {
+  const response = await apiPost(
+    `${ASSETS_BASE}/${encodeURIComponent(pluginKey)}/favorite`
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '즐겨찾기 추가에 실패했습니다.')
+  }
+}
+
+export async function removeFavorite(pluginKey: string): Promise<void> {
+  const response = await apiDelete(
+    `${ASSETS_BASE}/${encodeURIComponent(pluginKey)}/favorite`
+  )
+
+  if (!response.ok && response.status !== 204) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.detail || '즐겨찾기 제거에 실패했습니다.')
+  }
+}
+
+export async function getFavoriteAssets(): Promise<AssetItem[]> {
+  const response = await apiGet(`${ASSETS_BASE}/favorites`)
+
+  if (!response.ok) {
+    throw new Error('즐겨찾기 목록을 불러오는데 실패했습니다.')
+  }
+
+  const data: AssetsResponse = await response.json()
+
+  const origin = (
+    process.env.NEXT_PUBLIC_MOTIONTEXT_PLUGIN_ORIGIN || 'http://localhost:80'
+  ).replace(/\/$/, '')
+
+  return data.assets.map((asset) => {
+    const base = asset.pluginKey ? `${origin}/plugins/${asset.pluginKey}` : null
+
+    return {
+      ...asset,
+      id: String(asset.id),
+      thumbnail: base
+        ? `${base}/${asset.thumbnailPath || 'assets/thumbnail.svg'}`
+        : asset.thumbnail,
+      manifestFile: base ? `${base}/manifest.json` : asset.manifestFile,
+      isFavorite: true,
+    }
+  })
 }

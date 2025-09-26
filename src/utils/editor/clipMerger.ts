@@ -1,4 +1,5 @@
 import { ClipItem } from '@/app/(route)/editor/components/ClipComponent'
+import { generateMergedClipId } from './clipIdGenerator'
 
 // 넘버링에서 숫자를 파싱하는 함수
 const parseNumbering = (timeline: string): number => {
@@ -69,7 +70,7 @@ export const mergeClips = (
 
   // 첫 번째 클립
   const firstClip = selectedClips[0]
-  const mergedId = `merged_${Date.now()}`
+  const mergedId = generateMergedClipId()
 
   // 넘버링 계산 (첫 번째 클립의 번호 사용)
   const clipNumber = parseNumbering(firstClip.timeline)

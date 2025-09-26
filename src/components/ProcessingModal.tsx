@@ -188,12 +188,13 @@ export default function ProcessingModal({
                 <h4 className="font-medium text-gray-900 mb-2">
                   알고 계셨나요?
                 </h4>
-                <p className="text-sm text-gray-700 mb-1">
-                  편집 중인 영상을 다른 사람에게 보여주고 싶다면,
+                <p className="text-sm text-gray-700 mb-1 text-center">
+                  애니메이션 템플릿을 적용하면 전체 자막 스타일을 한 번에 변경할
+                  수 있습니다.
                 </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">[만일] &gt; [프리뷰 공유]</span>
-                  를 사용하여 간편하게 영상을 공유해 보세요.
+                <p className="text-sm text-gray-700 text-center">
+                  챗봇 어시스턴트를 사용하여 간편하게 커스텀 템플릿을
+                  제작해보세요.
                 </p>
               </div>
             </div>

@@ -7,6 +7,7 @@ export interface ProjectData {
   updatedAt: Date
   // Video information
   mediaId?: string // IndexedDB media ID
+  storedMediaId?: string // IndexedDB에 저장된 미디어 파일 ID (복원용)
   videoUrl?: string // External URL or Blob URL
   videoName?: string // Original file name
   videoType?: string // MIME type (e.g., video/mp4)

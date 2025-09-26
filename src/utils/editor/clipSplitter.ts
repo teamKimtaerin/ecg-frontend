@@ -1,4 +1,5 @@
 import { ClipItem, Word } from '@/app/(route)/editor/types'
+import { generateSplitClipId } from './clipIdGenerator'
 
 // duration 문자열에서 숫자 추출 (예: "1.283초" -> 1.283) - currently unused but kept for future use
 // const parseDuration = (duration: string): number => {
@@ -66,9 +67,8 @@ export const splitClip = (clip: ClipItem): [ClipItem, ClipItem] => {
   const secondClipData = calculateClipData(secondWords)
 
   // 새로운 ID 생성
-  const timestamp = Date.now()
-  const firstClipId = `${clip.id}_split_1_${timestamp}`
-  const secondClipId = `${clip.id}_split_2_${timestamp}`
+  const firstClipId = generateSplitClipId(clip.id, 1)
+  const secondClipId = generateSplitClipId(clip.id, 2)
 
   // 원본 클립의 넘버링 파싱
   const clipNumber = parseNumbering(clip.timeline)

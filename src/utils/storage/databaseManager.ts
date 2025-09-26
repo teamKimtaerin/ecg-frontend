@@ -6,7 +6,7 @@
 import { getTimestamp } from '@/utils/logger'
 
 const DB_NAME = 'ECGMediaStorage'
-const DB_VERSION = 3
+const DB_VERSION = 4
 
 // Store names
 export const STORES = {
@@ -14,6 +14,7 @@ export const STORES = {
   PROJECT_MEDIA: 'projectMedia',
   PROJECTS: 'projects',
   PROJECT_HISTORY: 'projectHistory',
+  PROCESSING_RESULTS: 'processingResults',
 } as const
 
 export class DatabaseManager {
@@ -179,6 +180,23 @@ export class DatabaseManager {
             })
             console.log(
               `[${getTimestamp()}] DatabaseManager: Created ${STORES.PROJECT_HISTORY} store`
+            )
+          }
+
+          // 처리 결과 저장소
+          if (!db.objectStoreNames.contains(STORES.PROCESSING_RESULTS)) {
+            const processingStore = db.createObjectStore(
+              STORES.PROCESSING_RESULTS,
+              {
+                keyPath: 'jobId',
+              }
+            )
+            processingStore.createIndex('status', 'status', { unique: false })
+            processingStore.createIndex('createdAt', 'createdAt', {
+              unique: false,
+            })
+            console.log(
+              `[${getTimestamp()}] DatabaseManager: Created ${STORES.PROCESSING_RESULTS} store`
             )
           }
 

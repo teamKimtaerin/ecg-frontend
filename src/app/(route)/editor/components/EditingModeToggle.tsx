@@ -10,8 +10,8 @@ const EditingModeToggle: React.FC = () => {
   const handleAdvancedModeClick = () => {
     setEditingMode('advanced')
 
-    // If template sidebar is currently open, close it and open animation asset sidebar
-    if (rightSidebarType === 'template') {
+    // Template sidebar disabled - auto open animation asset sidebar
+    if (rightSidebarType === null) {
       setRightSidebarType('animation')
     }
   }
