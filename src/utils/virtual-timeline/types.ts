@@ -61,7 +61,10 @@ export interface VirtualFrameData {
 export type FrameCallback = (frameData: VirtualFrameData) => void
 export type PlayStateCallback = () => void
 export type SeekCallback = (virtualTime: number) => void
-export type SeekedCallback = (data: { realTime: number; virtualTime: number }) => void
+export type SeekedCallback = (data: {
+  realTime: number
+  virtualTime: number
+}) => void
 export type TimeUpdateCallback = (virtualTime: number) => void
 
 /**

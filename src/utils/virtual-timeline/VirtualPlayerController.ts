@@ -101,8 +101,8 @@ export class VirtualPlayerController
   // Sync lock and queue system for preventing concurrent seeks
   private syncLock: boolean = false
   private seekQueue: Array<{
-    virtualTime: number;
-    resolve: (value: { realTime: number; virtualTime: number }) => void;
+    virtualTime: number
+    resolve: (value: { realTime: number; virtualTime: number }) => void
     reject: (reason?: any) => void
   }> = []
   private lastVirtualTimeProcessed: number = -1
@@ -325,7 +325,9 @@ export class VirtualPlayerController
     log('VirtualPlayerController', 'Playback stopped')
   }
 
-  seek(virtualTime: number): Promise<{ realTime: number; virtualTime: number }> {
+  seek(
+    virtualTime: number
+  ): Promise<{ realTime: number; virtualTime: number }> {
     return new Promise((resolve, reject) => {
       if (!this.video) {
         reject(new Error('No video element attached'))
@@ -335,8 +337,15 @@ export class VirtualPlayerController
       // Check sync lock - if locked, queue this seek request
       if (this.syncLock) {
         return new Promise((queueResolve, queueReject) => {
-          log('VirtualPlayerController', `[SYNC] Seek queued for virtual time: ${virtualTime.toFixed(3)}s`)
-          this.seekQueue.push({ virtualTime, resolve: queueResolve, reject: queueReject })
+          log(
+            'VirtualPlayerController',
+            `[SYNC] Seek queued for virtual time: ${virtualTime.toFixed(3)}s`
+          )
+          this.seekQueue.push({
+            virtualTime,
+            resolve: queueResolve,
+            reject: queueReject,
+          })
         })
       }
 
@@ -367,11 +376,13 @@ export class VirtualPlayerController
           if (!activeSegment) {
             // Try direct search in segments array as fallback
             const timeline = this.timelineMapper.timelineManager.getTimeline()
-            const segments = timeline.segments.filter(s => s.isEnabled)
+            const segments = timeline.segments.filter((s) => s.isEnabled)
 
             for (const segment of segments) {
-              if (this.currentVirtualTime >= segment.virtualStartTime &&
-                  this.currentVirtualTime <= segment.virtualEndTime) {
+              if (
+                this.currentVirtualTime >= segment.virtualStartTime &&
+                this.currentVirtualTime <= segment.virtualEndTime
+              ) {
                 activeSegment = segment
                 log(
                   'VirtualPlayerController',
@@ -400,7 +411,8 @@ export class VirtualPlayerController
               (activeSegment.virtualEndTime - activeSegment.virtualStartTime)
             targetRealTime =
               activeSegment.realStartTime +
-              (activeSegment.realEndTime - activeSegment.realStartTime) * segmentProgress
+              (activeSegment.realEndTime - activeSegment.realStartTime) *
+                segmentProgress
           } else {
             // Fallback: try direct mapping
             targetRealTime = this.virtualToReal(this.currentVirtualTime)
@@ -438,7 +450,10 @@ export class VirtualPlayerController
           this.notifySeekCallbacks(this.currentVirtualTime)
           this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
           this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
-          this.notifySeekedCallbacks({ realTime: targetRealTime, virtualTime: this.currentVirtualTime })
+          this.notifySeekedCallbacks({
+            realTime: targetRealTime,
+            virtualTime: this.currentVirtualTime,
+          })
 
           // 8. Dispatch global sync event
           if (typeof window !== 'undefined') {
@@ -459,7 +474,10 @@ export class VirtualPlayerController
           )
 
           // Resolve with times
-          resolve({ realTime: targetRealTime, virtualTime: this.currentVirtualTime })
+          resolve({
+            realTime: targetRealTime,
+            virtualTime: this.currentVirtualTime,
+          })
         } catch (error) {
           log('VirtualPlayerController', `[SYNC] Seek failed: ${error}`)
           reject(error)
@@ -478,9 +496,12 @@ export class VirtualPlayerController
               )
 
               this.seek(nextSeek.virtualTime)
-                .then(result => nextSeek.resolve(result))
-                .catch(error => {
-                  log('VirtualPlayerController', `[SYNC] Queued seek failed: ${error}`)
+                .then((result) => nextSeek.resolve(result))
+                .catch((error) => {
+                  log(
+                    'VirtualPlayerController',
+                    `[SYNC] Queued seek failed: ${error}`
+                  )
                   nextSeek.reject(error)
                 })
             }
@@ -1235,8 +1256,11 @@ export class VirtualPlayerController
     }
   }
 
-  private notifySeekedCallbacks(data: { realTime: number; virtualTime: number }): void {
-    this.seekedCallbacks.forEach(callback => {
+  private notifySeekedCallbacks(data: {
+    realTime: number
+    virtualTime: number
+  }): void {
+    this.seekedCallbacks.forEach((callback) => {
       try {
         callback(data)
       } catch (error) {
@@ -1705,7 +1729,10 @@ export class VirtualPlayerController
       // 세그먼트 경계에서 갭 체크 - 세그먼트 종료 지점 근처에서 다음 세그먼트와의 갭 감지
       if (this.currentVirtualTime >= activeSegment.virtualEndTime - 0.01) {
         const nextSegment = this.findNextActiveSegment(this.currentVirtualTime)
-        if (nextSegment && nextSegment.virtualStartTime > activeSegment.virtualEndTime + 0.01) {
+        if (
+          nextSegment &&
+          nextSegment.virtualStartTime > activeSegment.virtualEndTime + 0.01
+        ) {
           // 세그먼트 경계에서 갭 감지됨 - 갭 처리로 넘김
           log(
             'VirtualPlayerController',
@@ -1777,8 +1804,11 @@ export class VirtualPlayerController
 
       // 비디오 재생 상태 확인 및 복원
       if (this.video && this.isPlaying && this.video.paused) {
-        this.video.play().catch(error => {
-          log('VirtualPlayerController', `Failed to resume playback after gap skip: ${error}`)
+        this.video.play().catch((error) => {
+          log(
+            'VirtualPlayerController',
+            `Failed to resume playback after gap skip: ${error}`
+          )
         })
       }
 
@@ -1787,19 +1817,24 @@ export class VirtualPlayerController
       this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
 
       // UI 업데이트를 위한 이벤트 발송
-      window.dispatchEvent(new CustomEvent('gapSkipped', {
-        detail: {
-          fromVirtualTime: this.currentVirtualTime,
-          toVirtualTime: nextSegment.virtualStartTime,
-          realTime: nextSegment.realStartTime,
-          segmentId: nextSegment.id
-        }
-      }))
+      window.dispatchEvent(
+        new CustomEvent('gapSkipped', {
+          detail: {
+            fromVirtualTime: this.currentVirtualTime,
+            toVirtualTime: nextSegment.virtualStartTime,
+            realTime: nextSegment.realStartTime,
+            segmentId: nextSegment.id,
+          },
+        })
+      )
     } else {
       // 더 이상 세그먼트가 없으면 재생 완료 처리
       if (this.video && !this.video.paused) {
         this.video.pause()
-        log('VirtualPlayerController', '🏁 [GAP] No more segments, playback completed')
+        log(
+          'VirtualPlayerController',
+          '🏁 [GAP] No more segments, playback completed'
+        )
       }
     }
   }
@@ -1807,16 +1842,22 @@ export class VirtualPlayerController
   /**
    * 현재 가상 시간 이후의 다음 활성 세그먼트 찾기
    */
-  private findNextActiveSegment(currentVirtualTime: number): VirtualSegment | null {
+  private findNextActiveSegment(
+    currentVirtualTime: number
+  ): VirtualSegment | null {
     const timeline = this.timelineMapper.timelineManager.getTimeline()
-    const segments = timeline.segments.filter(s => s.isEnabled)
+    const segments = timeline.segments.filter((s) => s.isEnabled)
 
     // 가상 시간 순으로 정렬하여 다음 세그먼트 찾기
-    const sortedSegments = segments.sort((a, b) => a.virtualStartTime - b.virtualStartTime)
+    const sortedSegments = segments.sort(
+      (a, b) => a.virtualStartTime - b.virtualStartTime
+    )
 
-    return sortedSegments.find(segment =>
-      segment.virtualStartTime > currentVirtualTime
-    ) || null
+    return (
+      sortedSegments.find(
+        (segment) => segment.virtualStartTime > currentVirtualTime
+      ) || null
+    )
   }
 
   /**
@@ -2183,7 +2224,8 @@ export class VirtualPlayerController
 
     const realTime =
       activeSegment.realStartTime +
-      (activeSegment.realEndTime - activeSegment.realStartTime) * segmentProgress
+      (activeSegment.realEndTime - activeSegment.realStartTime) *
+        segmentProgress
 
     return realTime
   }
@@ -2193,16 +2235,21 @@ export class VirtualPlayerController
    */
   virtualToReal(virtualTime: number): number {
     const segments = this.timelineMapper.timelineManager.getTimeline().segments
-    const activeSegments = segments.filter(s => s.isEnabled)
+    const activeSegments = segments.filter((s) => s.isEnabled)
 
     for (const segment of activeSegments) {
-      if (virtualTime >= segment.virtualStartTime && virtualTime <= segment.virtualEndTime) {
+      if (
+        virtualTime >= segment.virtualStartTime &&
+        virtualTime <= segment.virtualEndTime
+      ) {
         const segmentProgress =
           (virtualTime - segment.virtualStartTime) /
           (segment.virtualEndTime - segment.virtualStartTime)
 
-        return segment.realStartTime +
+        return (
+          segment.realStartTime +
           (segment.realEndTime - segment.realStartTime) * segmentProgress
+        )
       }
     }
 
@@ -2214,16 +2261,21 @@ export class VirtualPlayerController
    */
   realToVirtual(realTime: number): number {
     const segments = this.timelineMapper.timelineManager.getTimeline().segments
-    const activeSegments = segments.filter(s => s.isEnabled)
+    const activeSegments = segments.filter((s) => s.isEnabled)
 
     for (const segment of activeSegments) {
-      if (realTime >= segment.realStartTime && realTime <= segment.realEndTime) {
+      if (
+        realTime >= segment.realStartTime &&
+        realTime <= segment.realEndTime
+      ) {
         const segmentProgress =
           (realTime - segment.realStartTime) /
           (segment.realEndTime - segment.realStartTime)
 
-        return segment.virtualStartTime +
+        return (
+          segment.virtualStartTime +
           (segment.virtualEndTime - segment.virtualStartTime) * segmentProgress
+        )
       }
     }
 

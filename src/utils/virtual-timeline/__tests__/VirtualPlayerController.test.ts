@@ -57,7 +57,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'First',
           duration: '5.00',
           thumbnail: '',
-          words: [{ id: 'w1', text: 'First', start: 0, end: 5, isEditable: true }],
+          words: [
+            { id: 'w1', text: 'First', start: 0, end: 5, isEditable: true },
+          ],
           stickers: [],
           startTime: 0,
           endTime: 5,
@@ -70,7 +72,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'Second',
           duration: '5.00',
           thumbnail: '',
-          words: [{ id: 'w2', text: 'Second', start: 10, end: 15, isEditable: true }],
+          words: [
+            { id: 'w2', text: 'Second', start: 10, end: 15, isEditable: true },
+          ],
           stickers: [],
           startTime: 10,
           endTime: 15,
@@ -85,9 +89,9 @@ describe('VirtualPlayerController', () => {
       expect(controller.virtualToReal(5)).toBe(5)
 
       // Second segment mapping (virtual time continues from 5)
-      expect(controller.virtualToReal(5)).toBe(10)  // Start of second segment
-      expect(controller.virtualToReal(7.5)).toBe(12.5)  // Middle of second segment
-      expect(controller.virtualToReal(10)).toBe(15)  // End of second segment
+      expect(controller.virtualToReal(5)).toBe(10) // Start of second segment
+      expect(controller.virtualToReal(7.5)).toBe(12.5) // Middle of second segment
+      expect(controller.virtualToReal(10)).toBe(15) // End of second segment
     })
 
     it('should return 0 for invalid virtual times', () => {
@@ -110,7 +114,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'Test',
           duration: '10.00',
           thumbnail: '',
-          words: [{ id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true }],
+          words: [
+            { id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true },
+          ],
           stickers: [],
           startTime: 0,
           endTime: 10,
@@ -139,7 +145,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'Test',
           duration: '10.00',
           thumbnail: '',
-          words: [{ id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true }],
+          words: [
+            { id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true },
+          ],
           stickers: [],
           startTime: 0,
           endTime: 10,
@@ -177,7 +185,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'Test',
           duration: '10.00',
           thumbnail: '',
-          words: [{ id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true }],
+          words: [
+            { id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true },
+          ],
           stickers: [],
           startTime: 0,
           endTime: 10,
@@ -207,7 +217,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'First',
           duration: '5.00',
           thumbnail: '',
-          words: [{ id: 'w1', text: 'First', start: 0, end: 5, isEditable: true }],
+          words: [
+            { id: 'w1', text: 'First', start: 0, end: 5, isEditable: true },
+          ],
           stickers: [],
           startTime: 0,
           endTime: 5,
@@ -220,7 +232,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'Second',
           duration: '5.00',
           thumbnail: '',
-          words: [{ id: 'w2', text: 'Second', start: 5, end: 10, isEditable: true }],
+          words: [
+            { id: 'w2', text: 'Second', start: 5, end: 10, isEditable: true },
+          ],
           stickers: [],
           startTime: 5,
           endTime: 10,
@@ -256,7 +270,9 @@ describe('VirtualPlayerController', () => {
           fullText: 'Test',
           duration: '10.00',
           thumbnail: '',
-          words: [{ id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true }],
+          words: [
+            { id: 'w1', text: 'Test', start: 0, end: 10, isEditable: true },
+          ],
           stickers: [],
           startTime: 0,
           endTime: 10,

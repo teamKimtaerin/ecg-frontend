@@ -24,7 +24,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [duration, setDuration] = useState(0)
     const [isToggling, setIsToggling] = useState(false)
     const [videoError, setVideoError] = useState<string | null>(null)
-  const [isRestoring, setIsRestoring] = useState(false)
+    const [isRestoring, setIsRestoring] = useState(false)
 
     const {
       videoUrl,
@@ -133,7 +133,8 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
             setIsRestoring(true)
             setVideoError('비디오 복원 중...')
 
-            store.restoreMediaFromStorage(store.storedMediaId)
+            store
+              .restoreMediaFromStorage(store.storedMediaId)
               .then(() => {
                 console.log('✅ Media restored from storage')
                 setIsRestoring(false)
@@ -353,13 +354,18 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         const virtualController = (
           window as {
             virtualPlayerController?: {
-              seek: (virtualTime: number) => Promise<{ realTime: number; virtualTime: number }>
+              seek: (
+                virtualTime: number
+              ) => Promise<{ realTime: number; virtualTime: number }>
             }
           }
         ).virtualPlayerController
 
         if (virtualController) {
-          console.log('[SYNC] VideoPlayer seekTo via VirtualPlayerController:', time)
+          console.log(
+            '[SYNC] VideoPlayer seekTo via VirtualPlayerController:',
+            time
+          )
           try {
             const result = await virtualController.seek(time)
             // The onSeeked event will handle updating video.currentTime
@@ -374,7 +380,10 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         } else {
           // Fallback: Direct video seek if VirtualPlayerController not available
-          console.log('[SYNC] VideoPlayer seekTo direct (no VirtualPlayerController):', time)
+          console.log(
+            '[SYNC] VideoPlayer seekTo direct (no VirtualPlayerController):',
+            time
+          )
           if (videoRef.current) {
             videoRef.current.currentTime = time
             setCurrentTime(time)
@@ -387,16 +396,25 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     // Listen for playback state changes from VirtualPlayerController
     useEffect(() => {
       const handlePlaybackStateChange = (event: Event) => {
-        const customEvent = event as CustomEvent<{ isPlaying: boolean; source: string }>
+        const customEvent = event as CustomEvent<{
+          isPlaying: boolean
+          source: string
+        }>
         if (customEvent.detail.source === 'VirtualPlayerController') {
           setIsPlaying(customEvent.detail.isPlaying)
-          console.log('[VideoPlayer] Synced playback state:', customEvent.detail.isPlaying)
+          console.log(
+            '[VideoPlayer] Synced playback state:',
+            customEvent.detail.isPlaying
+          )
         }
       }
 
       window.addEventListener('playbackStateChange', handlePlaybackStateChange)
       return () => {
-        window.removeEventListener('playbackStateChange', handlePlaybackStateChange)
+        window.removeEventListener(
+          'playbackStateChange',
+          handlePlaybackStateChange
+        )
       }
     }, [])
 

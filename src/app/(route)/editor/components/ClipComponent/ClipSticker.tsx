@@ -137,7 +137,9 @@ export default function ClipSticker({
       const virtualPlayerController = (
         window as {
           virtualPlayerController?: {
-            seek: (virtualTime: number) => Promise<{ realTime: number; virtualTime: number }>
+            seek: (
+              virtualTime: number
+            ) => Promise<{ realTime: number; virtualTime: number }>
             pause?: () => void
             isPlaying?: boolean
           }
@@ -151,7 +153,8 @@ export default function ClipSticker({
         )
 
         // Seek is now always async with proper queue handling
-        virtualPlayerController.seek(sticker.start)
+        virtualPlayerController
+          .seek(sticker.start)
           .then(({ realTime, virtualTime }) => {
             console.log(
               '✅ [SYNC] Seek completed - virtual:',
@@ -174,7 +177,10 @@ export default function ClipSticker({
             }
           })
           .catch((error: unknown) => {
-            console.error('❌ [SYNC] VirtualPlayerController seek failed:', error)
+            console.error(
+              '❌ [SYNC] VirtualPlayerController seek failed:',
+              error
+            )
 
             // Fallback: try direct video control
             const video = document.querySelector('video') as HTMLVideoElement
@@ -186,7 +192,9 @@ export default function ClipSticker({
           })
       } else {
         // Fallback: Use regular video player if VirtualPlayerController not available
-        console.warn('⚠️ [SYNC] VirtualPlayerController not available, falling back to videoPlayer')
+        console.warn(
+          '⚠️ [SYNC] VirtualPlayerController not available, falling back to videoPlayer'
+        )
         const videoPlayer = (
           window as {
             videoPlayer?: {

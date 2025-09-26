@@ -102,7 +102,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
       )
 
       // Expose globally for ClipSticker access
-      ;(window as any).virtualPlayerController = virtualPlayerControllerRef.current
+      ;(window as any).virtualPlayerController =
+        virtualPlayerControllerRef.current
       console.log('🌍 [SYNC] VirtualPlayerController exposed globally')
     }
 
@@ -188,9 +189,14 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         this.handlePlaybackStateChange = this.onPlaybackStateChange.bind(this)
 
         window.addEventListener('virtualTimeUpdate', this.handleTimeUpdate)
-        window.addEventListener('playbackStateChange', this.handlePlaybackStateChange)
+        window.addEventListener(
+          'playbackStateChange',
+          this.handlePlaybackStateChange
+        )
 
-        console.log('🎯 [SubtitleSyncManager] Initialized global subtitle synchronization')
+        console.log(
+          '🎯 [SubtitleSyncManager] Initialized global subtitle synchronization'
+        )
       }
 
       onTimeUpdate(event: Event) {
@@ -198,19 +204,24 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         const { virtualTime, realTime, source } = customEvent.detail
 
         // Update all subtitle-related components
-        if (Date.now() % 1000 < 50) { // Log every ~1 second
+        if (Date.now() % 1000 < 50) {
+          // Log every ~1 second
           console.log('🔄 [SubtitleSync] Time update:', {
             virtual: virtualTime?.toFixed(3),
             real: realTime?.toFixed(3),
-            source
+            source,
           })
         }
 
         // Update clip stickers visual state
         const stickers = document.querySelectorAll('[data-sticker-start]')
         stickers.forEach((element) => {
-          const start = parseFloat(element.getAttribute('data-sticker-start') || '0')
-          const end = parseFloat(element.getAttribute('data-sticker-end') || '0')
+          const start = parseFloat(
+            element.getAttribute('data-sticker-start') || '0'
+          )
+          const end = parseFloat(
+            element.getAttribute('data-sticker-end') || '0'
+          )
 
           if (virtualTime >= start && virtualTime < end) {
             element.classList.add('sticker-active')
@@ -220,7 +231,9 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         })
 
         // Update subtitle overlays and other time-dependent components
-        const subtitleElements = document.querySelectorAll('[data-subtitle-timing]')
+        const subtitleElements = document.querySelectorAll(
+          '[data-subtitle-timing]'
+        )
         subtitleElements.forEach((element) => {
           const start = parseFloat(element.getAttribute('data-start') || '0')
           const end = parseFloat(element.getAttribute('data-end') || '0')
@@ -240,7 +253,7 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
         console.log('▶️ [SubtitleSync] Playback state changed:', {
           isPlaying,
-          source
+          source,
         })
 
         // Update UI elements based on playback state
@@ -258,8 +271,13 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
 
       destroy() {
         window.removeEventListener('virtualTimeUpdate', this.handleTimeUpdate)
-        window.removeEventListener('playbackStateChange', this.handlePlaybackStateChange)
-        console.log('🧹 [SubtitleSyncManager] Destroyed global subtitle synchronization')
+        window.removeEventListener(
+          'playbackStateChange',
+          this.handlePlaybackStateChange
+        )
+        console.log(
+          '🧹 [SubtitleSyncManager] Destroyed global subtitle synchronization'
+        )
       }
     }
 
@@ -274,7 +292,8 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
   useEffect(() => {
     const handleGapSkipped = (event: Event) => {
       const customEvent = event as CustomEvent
-      const { fromVirtualTime, toVirtualTime, realTime, segmentId } = customEvent.detail
+      const { fromVirtualTime, toVirtualTime, realTime, segmentId } =
+        customEvent.detail
 
       console.log(
         `⏭️ [GAP SKIP] Virtual time jumped: ${fromVirtualTime.toFixed(3)}s → ${toVirtualTime.toFixed(3)}s`,
@@ -307,30 +326,32 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         virtualPlayerControllerRef.current.attachVideo(videoPlayerRef.current)
 
         // Subscribe to seeked events for sync
-        const seekedCleanup = virtualPlayerControllerRef.current.onSeeked(({ realTime, virtualTime }) => {
-          if (videoPlayerRef.current) {
-            const currentVideoTime = videoPlayerRef.current.currentTime
-            const delta = Math.abs(currentVideoTime - realTime)
+        const seekedCleanup = virtualPlayerControllerRef.current.onSeeked(
+          ({ realTime, virtualTime }) => {
+            if (videoPlayerRef.current) {
+              const currentVideoTime = videoPlayerRef.current.currentTime
+              const delta = Math.abs(currentVideoTime - realTime)
 
-            // Only update if delta is significant (>50ms)
-            if (delta > 0.05) {
-              videoPlayerRef.current.currentTime = realTime
-              console.log(
-                '📹 [SYNC] Video synced after VirtualPlayerController seek:',
-                `virtual=${virtualTime.toFixed(3)}s`,
-                `real=${realTime.toFixed(3)}s`,
-                `delta=${(delta * 1000).toFixed(0)}ms`
-              )
-            } else {
-              console.log(
-                '✅ [SYNC] Video already in sync:',
-                `virtual=${virtualTime.toFixed(3)}s`,
-                `real=${realTime.toFixed(3)}s`,
-                `delta=${(delta * 1000).toFixed(0)}ms`
-              )
+              // Only update if delta is significant (>50ms)
+              if (delta > 0.05) {
+                videoPlayerRef.current.currentTime = realTime
+                console.log(
+                  '📹 [SYNC] Video synced after VirtualPlayerController seek:',
+                  `virtual=${virtualTime.toFixed(3)}s`,
+                  `real=${realTime.toFixed(3)}s`,
+                  `delta=${(delta * 1000).toFixed(0)}ms`
+                )
+              } else {
+                console.log(
+                  '✅ [SYNC] Video already in sync:',
+                  `virtual=${virtualTime.toFixed(3)}s`,
+                  `real=${realTime.toFixed(3)}s`,
+                  `delta=${(delta * 1000).toFixed(0)}ms`
+                )
+              }
             }
           }
-        })
+        )
 
         return () => {
           seekedCleanup()
@@ -378,11 +399,12 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
         // playbackEngine.setCurrentTime(virtualTime)
 
         // 디버그 로그 (주기적)
-        if (Date.now() % 1000 < 50) { // 대략 1초마다
+        if (Date.now() % 1000 < 50) {
+          // 대략 1초마다
           console.log('[SYNC] Time Update:', {
             real: time.toFixed(3),
             virtual: virtualTime.toFixed(3),
-            delta: (time - virtualTime).toFixed(3)
+            delta: (time - virtualTime).toFixed(3),
           })
         }
       } else {

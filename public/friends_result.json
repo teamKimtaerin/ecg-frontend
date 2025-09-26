@@ -13,11 +13,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 285.502,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE]  Would you just stay with me? [SILENCE]",
       "words": [
@@ -123,11 +119,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 269.69,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Stay with you?",
       "words": [
@@ -178,11 +170,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 314.4,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What for? Look at us. We're already fighting. Well, that's what we do. [SILENCE]",
       "words": [
@@ -354,11 +342,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 245.287,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "We fight.",
       "words": [
@@ -398,11 +382,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 260.485,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE] You tell me when I'm being an arrogant son of a bitch, and I tell you when you're being a pain in the ass, which you are, 99% of the time.",
       "words": [
@@ -772,11 +752,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 273.568,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE] I'm not afraid to hurt your feelings. [SILENCE]",
       "words": [
@@ -893,11 +869,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 231.122,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "They have, like, a two-second rebound rate, and you're back doing the next pain in the ass thing. [SILENCE]",
       "words": [
@@ -1124,11 +1096,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 281.038,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "So what?",
       "words": [
@@ -1168,11 +1136,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 245.539,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "So it's not gonna be easy. It's gonna be really hard.",
       "words": [
@@ -1311,11 +1275,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 267.711,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE]  And we're gonna have to work at this every day, but I wanna do that because I want you. [SILENCE]",
       "words": [
@@ -1564,11 +1524,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 238.97,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "I want all of you, forever, you and me, every day. Will you do something for me? [SILENCE]",
       "words": [
@@ -1784,11 +1740,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 229.33,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Please?",
       "words": [
@@ -1817,11 +1769,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 235.263,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE] You just picture your life for me. [SILENCE]",
       "words": [
@@ -1938,11 +1886,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 210.659,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "30 years from now, 40 years from now, what's it look like? [SILENCE]",
       "words": [
@@ -2103,11 +2047,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 208.753,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "If it's with that guy, go. [SILENCE]",
       "words": [
@@ -2202,11 +2142,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 244.813,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Go! I lost you once, I think I could do it again. If I thought it's what you really wanted, [SILENCE]",
       "words": [
@@ -2455,11 +2391,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 258.671,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Don't you take the easy way out.",
       "words": [
@@ -2554,11 +2486,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 345.175,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What easy way?",
       "words": [
@@ -2609,11 +2537,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 351.542,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE] There is no easy way. No matter what I do, somebody gets hurt.",
       "words": [
@@ -2785,11 +2709,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 242.246,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Would you stop thinking about what everyone wants? [SILENCE]",
       "words": [
@@ -2906,11 +2826,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 229.713,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "Stop thinking about what I want, what he wants, what your parents want. [SILENCE]",
       "words": [
@@ -3082,11 +2998,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 235.015,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What do you want? [SILENCE]",
       "words": [
@@ -3159,11 +3071,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 255.205,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What do you want?",
       "words": [
@@ -3225,11 +3133,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 272.249,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "It's not that simple.",
       "words": [
@@ -3291,11 +3195,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 258.238,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "What do you want?",
       "words": [
@@ -3357,11 +3257,7 @@
         "zero_crossing_rate": 0.05,
         "pitch_mean": 278.142,
         "pitch_std": 10.0,
-        "mfcc_mean": [
-          12.0,
-          -8.0,
-          4.0
-        ]
+        "mfcc_mean": [12.0, -8.0, 4.0]
       },
       "text": "[SILENCE] God damn it. What do you want? I have to go. [SILENCE]",
       "words": [
