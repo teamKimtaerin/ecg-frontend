@@ -84,6 +84,7 @@ interface TimelineClipCardProps {
   onAddSpeaker: (name: string) => void
   onRenameSpeaker: (oldName: string, newName: string) => void
   onOpenSpeakerManagement: () => void
+  onTextEdit: (clipId: string, newText: string) => void
   formatTime: (seconds: number) => string
 }
 
@@ -99,11 +100,14 @@ function TimelineClipCard({
   onAddSpeaker,
   onRenameSpeaker,
   onOpenSpeakerManagement,
+  onTextEdit,
   formatTime,
 }: TimelineClipCardProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [editingSpeaker, setEditingSpeaker] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [isEditingText, setIsEditingText] = useState(false)
+  const [editingText, setEditingText] = useState('')
   const [showRenameModal, setShowRenameModal] = useState(false)
   const [pendingRename, setPendingRename] = useState<{
     oldName: string
@@ -111,6 +115,7 @@ function TimelineClipCard({
   } | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const textInputRef = useRef<HTMLTextAreaElement>(null)
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -206,6 +211,43 @@ function TimelineClipCard({
       inputRef.current.blur()
     }
   }
+
+  const handleTextClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsEditingText(true)
+    setEditingText(clip.fullText)
+  }
+
+  const handleTextSave = () => {
+    if (editingText.trim() !== clip.fullText && editingText.trim() !== '') {
+      onTextEdit(clip.id, editingText.trim())
+    }
+    setIsEditingText(false)
+    setEditingText('')
+  }
+
+  const handleTextCancel = () => {
+    setIsEditingText(false)
+    setEditingText('')
+  }
+
+  const handleTextKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleTextSave()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleTextCancel()
+    }
+  }
+
+  // 텍스트 편집 시 자동 포커스
+  useEffect(() => {
+    if (isEditingText && textInputRef.current) {
+      textInputRef.current.focus()
+      textInputRef.current.select()
+    }
+  }, [isEditingText])
 
   return (
     <>
@@ -407,11 +449,24 @@ function TimelineClipCard({
 
           {/* 텍스트 영역 */}
           <div className="overflow-hidden min-w-0 min-h-[32px] flex items-center">
-            <div
-              className={`text-sm ${isActive ? 'font-medium text-gray-900' : 'text-gray-700'}`}
-            >
-              {clip.fullText}
-            </div>
+            {isEditingText ? (
+              <textarea
+                ref={textInputRef}
+                value={editingText}
+                onChange={(e) => setEditingText(e.target.value)}
+                onKeyDown={handleTextKeyDown}
+                onBlur={handleTextSave}
+                className="w-full text-sm text-black bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                rows={2}
+              />
+            ) : (
+              <div
+                className={`text-sm cursor-text hover:bg-gray-50 rounded px-2 py-1 transition-colors ${isActive ? 'font-medium text-gray-900' : 'text-gray-700'}`}
+                onClick={handleTextClick}
+              >
+                {clip.fullText}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -475,6 +530,8 @@ export default function EditorPage() {
     setSelectedClipIds,
     clearSelection,
     updateClipWords,
+    updateClipFullText,
+    updateClipFullTextAdvanced,
     // updateClipTiming, // Currently unused
     saveProject,
     activeClipId,
@@ -2369,6 +2426,7 @@ export default function EditorPage() {
                             onOpenSpeakerManagement={
                               handleOpenSpeakerManagement
                             }
+                            onTextEdit={updateClipFullTextAdvanced}
                             formatTime={formatTime}
                           />
                         )

@@ -188,11 +188,11 @@ export default function ProcessingModal({
                 <h4 className="font-medium text-gray-900 mb-2">
                   알고 계셨나요?
                 </h4>
-                <p className="text-sm text-gray-700 mb-1">
+                <p className="text-sm text-gray-700 mb-1 text-center">
                   애니메이션 템플릿을 적용하면 전체 자막 스타일을 한 번에 변경할
                   수 있습니다.
                 </p>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 text-center">
                   챗봇 어시스턴트를 사용하여 간편하게 커스텀 템플릿을
                   제작해보세요.
                 </p>

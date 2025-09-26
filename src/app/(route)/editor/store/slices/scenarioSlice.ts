@@ -44,6 +44,9 @@ export interface ScenarioSlice {
   // Update word text in scenario
   updateWordTextInScenario: (wordId: string, newText: string) => void
 
+  // Update scenario from clips (for real-time updates)
+  updateScenarioFromClips: () => void
+
   // Set scenario from arbitrary JSON (editor apply)
   setScenarioFromJson: (config: RendererConfigV2) => void
 
@@ -508,6 +511,23 @@ export const createScenarioSlice: StateCreator<ScenarioSlice> = (set, get) => ({
     set({
       currentScenario: config,
       nodeIndex: index,
+      scenarioVersion: (get().scenarioVersion || 0) + 1,
+    })
+  },
+
+  updateScenarioFromClips: () => {
+    // Get current clips from clipSlice
+    const fullState = get() as any
+    const clips = fullState.clips || []
+
+    if (clips.length === 0) return
+
+    // Rebuild scenario from current clips with their current state
+    const newScenario = get().buildInitialScenario(clips)
+
+    // Update current scenario and increment version for reactivity
+    set({
+      currentScenario: newScenario,
       scenarioVersion: (get().scenarioVersion || 0) + 1,
     })
   },
