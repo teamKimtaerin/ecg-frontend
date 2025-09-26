@@ -37,7 +37,7 @@ export interface VirtualPlayerControl {
   play(): Promise<void>
   pause(): void
   stop(): void
-  seek(virtualTime: number): void
+  seek(virtualTime: number): Promise<{ realTime: number; virtualTime: number }>
   getCurrentTime(): number
   getDuration(): number
   setPlaybackRate(rate: number): void
@@ -61,6 +61,7 @@ export interface VirtualFrameData {
 export type FrameCallback = (frameData: VirtualFrameData) => void
 export type PlayStateCallback = () => void
 export type SeekCallback = (virtualTime: number) => void
+export type SeekedCallback = (data: { realTime: number; virtualTime: number }) => void
 export type TimeUpdateCallback = (virtualTime: number) => void
 
 /**
@@ -83,6 +84,7 @@ export interface VirtualPlayerEvents {
    * 시간 변경 이벤트
    */
   onSeek(callback: SeekCallback): () => void
+  onSeeked(callback: SeekedCallback): () => void
   onTimeUpdate(callback: TimeUpdateCallback): () => void
 
   /**

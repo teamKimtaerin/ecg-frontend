@@ -12,8 +12,9 @@ import VirtualTimelineController from './VirtualTimelineController'
 import ChatBotFloatingButton from './ChatBot/ChatBotFloatingButton'
 import ChatBotModal from './ChatBot/ChatBotModal'
 import { ChatMessage } from '../types/chatBot'
-import { playbackEngine } from '@/utils/timeline/playbackEngine'
-import { timelineEngine } from '@/utils/timeline/timelineEngine'
+// DISABLED: Conflicting with VirtualPlayerController
+// import { playbackEngine } from '@/utils/timeline/playbackEngine'
+// import { timelineEngine } from '@/utils/timeline/timelineEngine'
 import {
   VirtualPlayerController,
   type MotionTextSeekCallback,
@@ -99,13 +100,18 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
           enableFramePrecision: true,
         }
       )
+
+      // Expose globally for ClipSticker access
+      ;(window as any).virtualPlayerController = virtualPlayerControllerRef.current
+      console.log('🌍 [SYNC] VirtualPlayerController exposed globally')
     }
 
     // 기존 타임라인 초기화 (호환성 유지)
     if (timeline.clips.length === 0 && clips.length > 0) {
       initializeTimeline(clips)
-      const timelineClips = timelineEngine.initializeFromClips(clips)
-      playbackEngine.initialize(timelineClips, clips)
+      // DISABLED: playbackEngine conflicts with VirtualPlayerController
+      // const timelineClips = timelineEngine.initializeFromClips(clips)
+      // playbackEngine.initialize(timelineClips, clips)
     }
   }, [timeline.clips, clips, initializeTimeline]) // Dependencies needed for initialization logic
 
@@ -171,15 +177,164 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     }
   }, [clips, videoDuration]) // 클립이나 비디오 duration이 변경될 때마다 실행
 
+  // Global Subtitle Sync Manager for perfect synchronization
+  useEffect(() => {
+    class SubtitleSyncManager {
+      private handleTimeUpdate: (event: Event) => void
+      private handlePlaybackStateChange: (event: Event) => void
+
+      constructor() {
+        this.handleTimeUpdate = this.onTimeUpdate.bind(this)
+        this.handlePlaybackStateChange = this.onPlaybackStateChange.bind(this)
+
+        window.addEventListener('virtualTimeUpdate', this.handleTimeUpdate)
+        window.addEventListener('playbackStateChange', this.handlePlaybackStateChange)
+
+        console.log('🎯 [SubtitleSyncManager] Initialized global subtitle synchronization')
+      }
+
+      onTimeUpdate(event: Event) {
+        const customEvent = event as CustomEvent
+        const { virtualTime, realTime, source } = customEvent.detail
+
+        // Update all subtitle-related components
+        if (Date.now() % 1000 < 50) { // Log every ~1 second
+          console.log('🔄 [SubtitleSync] Time update:', {
+            virtual: virtualTime?.toFixed(3),
+            real: realTime?.toFixed(3),
+            source
+          })
+        }
+
+        // Update clip stickers visual state
+        const stickers = document.querySelectorAll('[data-sticker-start]')
+        stickers.forEach((element) => {
+          const start = parseFloat(element.getAttribute('data-sticker-start') || '0')
+          const end = parseFloat(element.getAttribute('data-sticker-end') || '0')
+
+          if (virtualTime >= start && virtualTime < end) {
+            element.classList.add('sticker-active')
+          } else {
+            element.classList.remove('sticker-active')
+          }
+        })
+
+        // Update subtitle overlays and other time-dependent components
+        const subtitleElements = document.querySelectorAll('[data-subtitle-timing]')
+        subtitleElements.forEach((element) => {
+          const start = parseFloat(element.getAttribute('data-start') || '0')
+          const end = parseFloat(element.getAttribute('data-end') || '0')
+
+          if (virtualTime >= start && virtualTime < end) {
+            element.classList.add('subtitle-active')
+            element.setAttribute('data-current-time', virtualTime.toString())
+          } else {
+            element.classList.remove('subtitle-active')
+          }
+        })
+      }
+
+      onPlaybackStateChange(event: Event) {
+        const customEvent = event as CustomEvent
+        const { isPlaying, source } = customEvent.detail
+
+        console.log('▶️ [SubtitleSync] Playback state changed:', {
+          isPlaying,
+          source
+        })
+
+        // Update UI elements based on playback state
+        const playButtons = document.querySelectorAll('[data-play-button]')
+        playButtons.forEach((button) => {
+          if (isPlaying) {
+            button.classList.add('playing')
+            button.setAttribute('aria-label', '일시정지')
+          } else {
+            button.classList.remove('playing')
+            button.setAttribute('aria-label', '재생')
+          }
+        })
+      }
+
+      destroy() {
+        window.removeEventListener('virtualTimeUpdate', this.handleTimeUpdate)
+        window.removeEventListener('playbackStateChange', this.handlePlaybackStateChange)
+        console.log('🧹 [SubtitleSyncManager] Destroyed global subtitle synchronization')
+      }
+    }
+
+    const syncManager = new SubtitleSyncManager()
+
+    return () => {
+      syncManager.destroy()
+    }
+  }, []) // Run once on mount
+
+  // Gap skip event handling for seamless playback
+  useEffect(() => {
+    const handleGapSkipped = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const { fromVirtualTime, toVirtualTime, realTime, segmentId } = customEvent.detail
+
+      console.log(
+        `⏭️ [GAP SKIP] Virtual time jumped: ${fromVirtualTime.toFixed(3)}s → ${toVirtualTime.toFixed(3)}s`,
+        `(Real time: ${realTime.toFixed(3)}s, Segment: ${segmentId})`
+      )
+
+      // Update current time state to reflect the skip
+      setCurrentTime(toVirtualTime)
+
+      // Optional: Show gap indicator in UI
+      // This could be used to display "Edited segment skipped" notification
+      // or show visual indicators on timeline
+    }
+
+    window.addEventListener('gapSkipped', handleGapSkipped)
+
+    return () => {
+      window.removeEventListener('gapSkipped', handleGapSkipped)
+    }
+  }, [])
+
   // 비디오 플레이어 레퍼런스 설정
   useEffect(() => {
     if (videoPlayerRef.current) {
-      // 기존 PlaybackEngine 설정 (호환성 유지)
-      playbackEngine.setVideoPlayer(videoPlayerRef.current)
+      // DISABLED: playbackEngine conflicts with VirtualPlayerController
+      // playbackEngine.setVideoPlayer(videoPlayerRef.current)
 
       // Virtual Player Controller에 비디오 연결
       if (virtualPlayerControllerRef.current) {
         virtualPlayerControllerRef.current.attachVideo(videoPlayerRef.current)
+
+        // Subscribe to seeked events for sync
+        const seekedCleanup = virtualPlayerControllerRef.current.onSeeked(({ realTime, virtualTime }) => {
+          if (videoPlayerRef.current) {
+            const currentVideoTime = videoPlayerRef.current.currentTime
+            const delta = Math.abs(currentVideoTime - realTime)
+
+            // Only update if delta is significant (>50ms)
+            if (delta > 0.05) {
+              videoPlayerRef.current.currentTime = realTime
+              console.log(
+                '📹 [SYNC] Video synced after VirtualPlayerController seek:',
+                `virtual=${virtualTime.toFixed(3)}s`,
+                `real=${realTime.toFixed(3)}s`,
+                `delta=${(delta * 1000).toFixed(0)}ms`
+              )
+            } else {
+              console.log(
+                '✅ [SYNC] Video already in sync:',
+                `virtual=${virtualTime.toFixed(3)}s`,
+                `real=${realTime.toFixed(3)}s`,
+                `delta=${(delta * 1000).toFixed(0)}ms`
+              )
+            }
+          }
+        })
+
+        return () => {
+          seekedCleanup()
+        }
       }
     }
   }, [videoUrl])
@@ -205,20 +360,38 @@ const VideoSection: React.FC<VideoSectionProps> = ({ width = 300 }) => {
     }
   }, []) // virtualPlayerControllerRef.current is stable
 
-  // Handle time update from video player
+  // Handle time update from video player - Unified time management
   const handleTimeUpdate = useCallback(
     (time: number) => {
-      // 실제 영상 시간만 업데이트 (텍스트 삽입용)
+      // 실제 영상 시간 업데이트
       setRealVideoTime(time)
 
-      // 가상 타임라인이 비활성화된 경우에만 currentTime도 업데이트
-      if (!virtualPlayerControllerRef.current) {
+      // Virtual Player Controller가 있을 때
+      if (virtualPlayerControllerRef.current) {
+        // 가상 시간을 기준으로 모든 컴포넌트 동기화
+        const virtualTime = virtualPlayerControllerRef.current.getCurrentTime()
+        setCurrentTime(virtualTime) // 자막은 가상 시간 사용
+
+        // 타임라인 위치 업데이트
+        setPlaybackPosition(virtualTime)
+        // DISABLED: playbackEngine conflicts with VirtualPlayerController
+        // playbackEngine.setCurrentTime(virtualTime)
+
+        // 디버그 로그 (주기적)
+        if (Date.now() % 1000 < 50) { // 대략 1초마다
+          console.log('[SYNC] Time Update:', {
+            real: time.toFixed(3),
+            virtual: virtualTime.toFixed(3),
+            delta: (time - virtualTime).toFixed(3)
+          })
+        }
+      } else {
+        // Fallback: Virtual Controller가 없을 때
         setCurrentTime(time)
-        // 타임라인 재생 위치 업데이트 (기존 시스템)
         setPlaybackPosition(time)
-        playbackEngine.setCurrentTime(time)
+        // DISABLED: playbackEngine conflicts with VirtualPlayerController
+        // playbackEngine.setCurrentTime(time)
       }
-      // Virtual Player Controller가 있으면 RVFC가 자동으로 시간 업데이트 처리
     },
     [setPlaybackPosition]
   )

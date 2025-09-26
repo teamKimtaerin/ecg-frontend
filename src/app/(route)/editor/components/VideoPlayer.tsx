@@ -24,6 +24,7 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [duration, setDuration] = useState(0)
     const [isToggling, setIsToggling] = useState(false)
     const [videoError, setVideoError] = useState<string | null>(null)
+  const [isRestoring, setIsRestoring] = useState(false)
 
     const {
       videoUrl,
@@ -123,17 +124,39 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
           videoUrl?.startsWith('blob:')
         ) {
           console.warn(
-            '[VideoPlayer] Blob URL may be invalid/expired - suggesting re-upload'
+            '[VideoPlayer] Blob URL may be invalid/expired - attempting restoration'
           )
-          setVideoError(
-            '업로드한 비디오를 재생할 수 없습니다. 파일을 다시 업로드해주세요.'
-          )
+
+          // Try to restore from IndexedDB
+          const store = useEditorStore.getState()
+          if (store.storedMediaId && store.restoreMediaFromStorage) {
+            setIsRestoring(true)
+            setVideoError('비디오 복원 중...')
+
+            store.restoreMediaFromStorage(store.storedMediaId)
+              .then(() => {
+                console.log('✅ Media restored from storage')
+                setIsRestoring(false)
+                setVideoError(null)
+              })
+              .catch((error) => {
+                console.error('❌ Failed to restore media:', error)
+                setIsRestoring(false)
+                setVideoError(
+                  '업로드한 비디오를 재생할 수 없습니다. 파일을 다시 업로드해주세요.'
+                )
+              })
+          } else {
+            setVideoError(
+              '업로드한 비디오를 재생할 수 없습니다. 파일을 다시 업로드해주세요.'
+            )
+          }
         }
       },
       [videoUrl, getMediaErrorMessage]
     )
 
-    // Handle time update
+    // Handle time update - Sync with VirtualPlayerController if available
     const handleTimeUpdate = useCallback(() => {
       if (videoRef.current) {
         const time = videoRef.current.currentTime
@@ -144,6 +167,37 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
         useEditorStore.getState().setMediaInfo({
           currentTime: time,
         })
+
+        // Sync with VirtualPlayerController only when not seeking
+        const virtualController = (
+          window as {
+            virtualPlayerController?: {
+              updateVirtualTimeFromVideo?: (realTime: number) => void
+              isSeeking?: boolean
+              getCurrentTime?: () => number
+            }
+          }
+        ).virtualPlayerController
+
+        // CRITICAL: Only update VirtualPlayerController when it's not seeking
+        if (virtualController && !virtualController.isSeeking) {
+          // Update virtual time based on video playback
+          if (virtualController.updateVirtualTimeFromVideo) {
+            virtualController.updateVirtualTimeFromVideo(time)
+          }
+
+          // Dispatch global sync event for subtitle synchronization
+          const virtualTime = virtualController.getCurrentTime?.() ?? time
+          window.dispatchEvent(
+            new CustomEvent('virtualTimeUpdate', {
+              detail: {
+                virtualTime,
+                realTime: time,
+                source: 'playback',
+              },
+            })
+          )
+        }
 
         // Auto-select current word during playback (temporarily disabled for debugging)
         // TODO: Re-enable after fixing video playback issues
@@ -232,16 +286,38 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
         setIsToggling(true)
 
+        // Try to use VirtualPlayerController first for proper sync
+        const virtualController = (
+          window as {
+            virtualPlayerController?: {
+              play?: () => Promise<void>
+              pause?: () => void
+              isPlaying?: boolean
+            }
+          }
+        ).virtualPlayerController
+
         try {
           if (isPlaying) {
-            videoRef.current.pause()
+            // Pause using VirtualPlayerController if available
+            if (virtualController?.pause) {
+              virtualController.pause()
+              console.log('[VideoPlayer] Paused via VirtualPlayerController')
+            } else {
+              videoRef.current.pause()
+            }
             setIsPlaying(false)
             useEditorStore.getState().setMediaInfo({
               isPlaying: false,
             })
           } else {
-            // Handle play() promise properly
-            await videoRef.current.play()
+            // Play using VirtualPlayerController if available
+            if (virtualController?.play) {
+              await virtualController.play()
+              console.log('[VideoPlayer] Playing via VirtualPlayerController')
+            } else {
+              await videoRef.current.play()
+            }
             setIsPlaying(true)
             useEditorStore.getState().setMediaInfo({
               isPlaying: true,
@@ -255,9 +331,10 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
             console.warn('Video play/pause failed:', error)
           }
           // Reset state on error
-          setIsPlaying(videoRef.current.paused === false)
+          const actuallyPlaying = videoRef.current.paused === false
+          setIsPlaying(actuallyPlaying)
           useEditorStore.getState().setMediaInfo({
-            isPlaying: videoRef.current.paused === false,
+            isPlaying: actuallyPlaying,
           })
         } finally {
           // 짧은 지연 후 다시 토글 가능하도록
@@ -267,16 +344,61 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       [isPlaying, isToggling, videoRef] // Added videoRef to satisfy ESLint
     )
 
-    // Seek to specific time
+    // Seek to specific time - Use VirtualPlayerController if available
     const seekTo = useCallback(
-      (time: number) => {
-        if (videoRef.current && time >= 0 && time <= duration) {
-          videoRef.current.currentTime = time
-          setCurrentTime(time)
+      async (time: number) => {
+        if (time < 0 || time > duration) return
+
+        // Try to use VirtualPlayerController first for proper sync
+        const virtualController = (
+          window as {
+            virtualPlayerController?: {
+              seek: (virtualTime: number) => Promise<{ realTime: number; virtualTime: number }>
+            }
+          }
+        ).virtualPlayerController
+
+        if (virtualController) {
+          console.log('[SYNC] VideoPlayer seekTo via VirtualPlayerController:', time)
+          try {
+            const result = await virtualController.seek(time)
+            // The onSeeked event will handle updating video.currentTime
+            setCurrentTime(result.virtualTime)
+          } catch (error) {
+            console.error('[SYNC] VirtualPlayerController seek failed:', error)
+            // Fallback to direct seek
+            if (videoRef.current) {
+              videoRef.current.currentTime = time
+              setCurrentTime(time)
+            }
+          }
+        } else {
+          // Fallback: Direct video seek if VirtualPlayerController not available
+          console.log('[SYNC] VideoPlayer seekTo direct (no VirtualPlayerController):', time)
+          if (videoRef.current) {
+            videoRef.current.currentTime = time
+            setCurrentTime(time)
+          }
         }
       },
       [duration, videoRef] // Added videoRef to satisfy ESLint
     )
+
+    // Listen for playback state changes from VirtualPlayerController
+    useEffect(() => {
+      const handlePlaybackStateChange = (event: Event) => {
+        const customEvent = event as CustomEvent<{ isPlaying: boolean; source: string }>
+        if (customEvent.detail.source === 'VirtualPlayerController') {
+          setIsPlaying(customEvent.detail.isPlaying)
+          console.log('[VideoPlayer] Synced playback state:', customEvent.detail.isPlaying)
+        }
+      }
+
+      window.addEventListener('playbackStateChange', handlePlaybackStateChange)
+      return () => {
+        window.removeEventListener('playbackStateChange', handlePlaybackStateChange)
+      }
+    }, [])
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -420,39 +542,67 @@ const VideoPlayer = React.forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     }, [videoUrl])
 
-    // Error state
-    if (videoError) {
+    // Error or restoring state
+    if (videoError || isRestoring) {
       return (
         <div
-          className={`flex items-center justify-center bg-black text-red-400 ${className}`}
+          className={`flex items-center justify-center bg-black ${isRestoring ? 'text-blue-400' : 'text-red-400'} ${className}`}
         >
           <div className="text-center p-4">
-            <svg
-              className="w-12 h-12 mx-auto mb-2 text-red-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-              />
-            </svg>
-            <p className="text-sm font-medium mb-2">비디오 오류</p>
-            <p className="text-xs text-red-300 mb-4">{videoError}</p>
-            <button
-              onClick={() => {
-                setVideoError(null)
-                if (videoRef.current) {
-                  videoRef.current.load() // Reload video
-                }
-              }}
-              className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
-            >
-              다시 시도
-            </button>
+            {isRestoring ? (
+              // Restoring animation
+              <>
+                <div className="w-12 h-12 mx-auto mb-2">
+                  <svg className="animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium mb-2">비디오 복원 중...</p>
+                <p className="text-xs text-blue-300">잠시만 기다려주세요</p>
+              </>
+            ) : (
+              // Error state
+              <>
+                <svg
+                  className="w-12 h-12 mx-auto mb-2 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+                <p className="text-sm font-medium mb-2">비디오 오류</p>
+                <p className="text-xs text-red-300 mb-4">{videoError}</p>
+                <button
+                  onClick={() => {
+                    setVideoError(null)
+                    if (videoRef.current) {
+                      videoRef.current.load() // Reload video
+                    }
+                  }}
+                  className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors"
+                >
+                  다시 시도
+                </button>
+              </>
+            )}
           </div>
         </div>
       )
