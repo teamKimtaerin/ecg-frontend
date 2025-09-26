@@ -1522,18 +1522,72 @@ export default function EditorPage() {
 
       // 선택된 클립의 시작 시간으로 비디오 이동
       const selectedClip = clips.find((c) => c.id === clipId)
-      if (selectedClip && selectedClip.timeline) {
-        // timeline 형식: "00:00 → 00:07"
-        const [startTimeStr] = selectedClip.timeline.split(' → ')
-        const [mins, secs] = startTimeStr.split(':').map(Number)
-        const timeInSeconds = mins * 60 + secs
+      if (selectedClip) {
+        let timeInSeconds = 0
+
+        // 방법 1: Words 배열의 첫 번째 단어 시작 시간 사용 (가장 정확)
+        if (selectedClip.words && selectedClip.words.length > 0) {
+          timeInSeconds = selectedClip.words[0].start
+          console.log(
+            '🎯 Using word-based start time:',
+            timeInSeconds,
+            'for clip:',
+            clipId
+          )
+        }
+        // 방법 2: Timeline 문자열 파싱 (fallback)
+        else if (selectedClip.timeline) {
+          console.log(
+            '📋 Timeline string:',
+            selectedClip.timeline,
+            'for clip:',
+            clipId
+          )
+          const timelineParts = selectedClip.timeline.split(' → ')
+          if (timelineParts.length >= 1) {
+            const [startTimeStr] = timelineParts
+            const timeParts = startTimeStr.split(':')
+            if (timeParts.length === 2) {
+              const [mins, secs] = timeParts.map(Number)
+              if (!isNaN(mins) && !isNaN(secs)) {
+                timeInSeconds = mins * 60 + secs
+                console.log(
+                  '📋 Parsed timeline start time:',
+                  timeInSeconds,
+                  'for clip:',
+                  clipId
+                )
+              } else {
+                console.warn(
+                  '❌ Invalid time format in timeline:',
+                  startTimeStr
+                )
+              }
+            } else {
+              console.warn(
+                '❌ Unexpected timeline format:',
+                selectedClip.timeline
+              )
+            }
+          }
+        } else {
+          console.warn('❌ No timeline or words data found for clip:', clipId)
+        }
 
         // 비디오 플레이어로 시간 이동
         const videoPlayer = (
           window as { videoPlayer?: { seekTo: (time: number) => void } }
         ).videoPlayer
-        if (videoPlayer) {
+        if (videoPlayer && timeInSeconds >= 0) {
+          console.log(
+            '🎬 Seeking to:',
+            timeInSeconds,
+            'seconds for clip:',
+            clipId
+          )
           videoPlayer.seekTo(timeInSeconds)
+        } else if (!videoPlayer) {
+          console.warn('❌ Video player not found')
         }
       }
     }
