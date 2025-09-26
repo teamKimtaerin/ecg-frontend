@@ -1,10 +1,11 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react'
+import React, { useRef, useCallback, useState, useEffect, useMemo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Sticker, Word } from '../../types'
 import { useEditorStore } from '../../store'
 import { useStickerResize } from '../../hooks/useStickerResize'
 import TooltipPortal from './TooltipPortal'
+import { debounce } from 'lodash'
 
 interface ClipStickerProps {
   sticker: Sticker
@@ -93,6 +94,7 @@ export default function ClipSticker({
       console.log('👆 Sticker click:', {
         stickerId: sticker.id,
         target: (e.target as HTMLElement).tagName,
+        virtualTime: sticker.start,
       })
 
       const currentTime = Date.now()
@@ -131,57 +133,92 @@ export default function ClipSticker({
         }
       }
 
-      // Seek and pause video player
-      const videoPlayer = (
-        window as {
-          videoPlayer?: {
-            seekTo: (time: number) => void
-            pause: () => void
-            pauseAutoWordSelection?: () => void
-          }
-        }
-      ).videoPlayer
-
-      if (videoPlayer) {
-        try {
-          videoPlayer.seekTo(sticker.start)
-          videoPlayer.pause()
-          if (videoPlayer.pauseAutoWordSelection) {
-            videoPlayer.pauseAutoWordSelection()
-          }
-          console.log(
-            '⏸️ Video paused and seeked to sticker time:',
-            sticker.start
-          )
-        } catch (error) {
-          console.error('Video player seek/pause failed:', error)
-        }
-      }
-
-      // Try to use VirtualPlayerController first (if available)
+      // Use VirtualPlayerController as single source of truth
       const virtualPlayerController = (
         window as {
           virtualPlayerController?: {
-            seek: (virtualTime: number) => void
+            seek: (
+              virtualTime: number
+            ) => Promise<{ realTime: number; virtualTime: number }>
             pause?: () => void
+            isPlaying?: boolean
           }
         }
       ).virtualPlayerController
 
       if (virtualPlayerController) {
         console.log(
-          '🎯 Using VirtualPlayerController to seek to:',
+          '🎯 [SYNC] Seeking via VirtualPlayerController to virtual time:',
           sticker.start
         )
-        try {
-          virtualPlayerController.seek(sticker.start)
-          // Automatically pause after seeking to the sticker time
-          setTimeout(() => {
-            virtualPlayerController.pause?.()
-            console.log('⏸️ Auto-paused after seeking to sticker time')
-          }, 100) // Small delay to ensure seek completes
-        } catch (error) {
-          console.error('VirtualPlayerController seek/pause failed:', error)
+
+        // Seek is now always async with proper queue handling
+        virtualPlayerController
+          .seek(sticker.start)
+          .then(({ realTime, virtualTime }) => {
+            console.log(
+              '✅ [SYNC] Seek completed - virtual:',
+              virtualTime.toFixed(3),
+              's, real:',
+              realTime.toFixed(3),
+              's'
+            )
+
+            // Always pause after seek to sticker position
+            if (virtualPlayerController.pause) {
+              virtualPlayerController.pause()
+              console.log('⏸️ [SYNC] Paused after seek')
+            }
+
+            // Also ensure video element is paused
+            const video = document.querySelector('video') as HTMLVideoElement
+            if (video && !video.paused) {
+              video.pause()
+            }
+          })
+          .catch((error: unknown) => {
+            console.error(
+              '❌ [SYNC] VirtualPlayerController seek failed:',
+              error
+            )
+
+            // Fallback: try direct video control
+            const video = document.querySelector('video') as HTMLVideoElement
+            if (video) {
+              video.currentTime = sticker.start
+              video.pause()
+              console.log('⚠️ [SYNC] Used fallback video control')
+            }
+          })
+      } else {
+        // Fallback: Use regular video player if VirtualPlayerController not available
+        console.warn(
+          '⚠️ [SYNC] VirtualPlayerController not available, falling back to videoPlayer'
+        )
+        const videoPlayer = (
+          window as {
+            videoPlayer?: {
+              seekTo: (time: number) => void
+              pause: () => void
+              pauseAutoWordSelection?: () => void
+            }
+          }
+        ).videoPlayer
+
+        if (videoPlayer) {
+          try {
+            videoPlayer.seekTo(sticker.start)
+            videoPlayer.pause()
+            if (videoPlayer.pauseAutoWordSelection) {
+              videoPlayer.pauseAutoWordSelection()
+            }
+            console.log(
+              '⏸️ [SYNC] Video paused and seeked to sticker time:',
+              sticker.start
+            )
+          } catch (error) {
+            console.error('❌ [SYNC] Video player seek/pause failed:', error)
+          }
         }
       }
 
@@ -200,6 +237,12 @@ export default function ClipSticker({
       insertedTexts,
       selectText,
     ]
+  )
+
+  // Debounce the click handler to prevent rapid repeated seeks
+  const debouncedHandleClick = useMemo(
+    () => debounce(handleClick, 100, { leading: true, trailing: false }),
+    [handleClick]
   )
 
   // Handle keyboard shortcuts for deletion
@@ -390,9 +433,9 @@ export default function ClipSticker({
         console.log('🚀 Starting position drag for sticker:', sticker.id)
         listeners.onMouseDown(e as React.MouseEvent<HTMLElement>)
       } else {
-        // Regular click
+        // Regular click (using debounced version)
         console.log('👆 Regular click on sticker:', sticker.id)
-        handleClick(e)
+        debouncedHandleClick(e)
       }
     },
     [
@@ -400,7 +443,7 @@ export default function ClipSticker({
       handleResizeStart,
       isDraggable,
       listeners,
-      handleClick,
+      debouncedHandleClick,
       isResizing,
       sticker.id,
     ]

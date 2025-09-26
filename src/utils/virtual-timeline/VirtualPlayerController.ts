@@ -14,6 +14,7 @@ import {
   FrameCallback,
   PlayStateCallback,
   SeekCallback,
+  SeekedCallback,
   TimeUpdateCallback,
   VirtualTimeline,
   VirtualTimelineConfig,
@@ -53,6 +54,7 @@ export class VirtualPlayerController
   private pauseCallbacks: Set<PlayStateCallback> = new Set()
   private stopCallbacks: Set<PlayStateCallback> = new Set()
   private seekCallbacks: Set<SeekCallback> = new Set()
+  private seekedCallbacks: Set<SeekedCallback> = new Set()
   private timeUpdateCallbacks: Set<TimeUpdateCallback> = new Set()
   private timelineChangeCallbacks: Set<(timeline: VirtualTimeline) => void> =
     new Set()
@@ -95,6 +97,14 @@ export class VirtualPlayerController
 
   // Current active segment tracking
   private currentActiveSegment: VirtualSegment | null = null
+
+  // Sync lock and queue system for preventing concurrent seeks
+  private syncLock: boolean = false
+  private seekQueue: Array<{
+    virtualTime: number
+    resolve: (value: { realTime: number; virtualTime: number }) => void
+    reject: (reason?: any) => void
+  }> = []
   private lastVirtualTimeProcessed: number = -1
 
   // Performance optimization caching (Multi-Level)
@@ -136,19 +146,25 @@ export class VirtualPlayerController
   private debugFlushInterval: number = 1000 // 1초마다 로그 플러시
   private debugLevel: 'none' | 'minimal' | 'verbose' = 'minimal'
 
-  // Video position update optimization (더욱 보수적 설정)
+  // 동기화 정밀도 상수 (33ms = 2프레임@60fps)
+  private static readonly SYNC_THRESHOLD_SECONDS = 0.033
+  private static readonly SEEK_THROTTLE_MS = 50
+
+  // Video position update optimization
   private lastVideoUpdateTime: number = 0
-  private videoUpdateThreshold: number = 200 // 200ms threshold (최대한 적은 seek로 부드러운 재생)
 
   // 예측적 Seek 최적화
   private lastVideoSeekTime: number = 0
   private videoSeekTargetTime: number = -1
   private isVideoSeeking: boolean = false
-  private naturalPlaybackToleranceMs: number = 500 // 자연스러운 재생 허용 오차 (초관대하게 - 끊김 방지 최우선)
 
   // 세그먼트 탐색 최적화 (Binary Search)
   private sortedActiveSegments: VirtualSegment[] = []
   private segmentsSortTimestamp: number = 0
+
+  // Seeking state for bidirectional sync
+  private _isSeeking: boolean = false
+  private seekLockTimeout: NodeJS.Timeout | null = null
 
   constructor(
     timelineMapper: ECGTimelineMapper,
@@ -217,9 +233,11 @@ export class VirtualPlayerController
     }
 
     try {
+      // Set playing state first
+      this.isPlaying = true
+
       // 가상 시간 진행 시작
       this.startVirtualTimeProgression()
-      this.isPlaying = true
 
       // 현재 가상 시간에 해당하는 활성 세그먼트 찾기
       const activeSegment = this.getActiveSegmentOptimized(
@@ -251,8 +269,20 @@ export class VirtualPlayerController
       }
 
       this.notifyPlayCallbacks()
+
+      // Dispatch global sync event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('playbackStateChange', {
+            detail: { isPlaying: true, source: 'VirtualPlayerController' },
+          })
+        )
+      }
+
       log('VirtualPlayerController', 'Virtual Timeline playback started')
     } catch (error) {
+      // If play fails, reset state
+      this.isPlaying = false
       log('VirtualPlayerController', 'Play failed:', error)
       throw error
     }
@@ -261,11 +291,23 @@ export class VirtualPlayerController
   pause(): void {
     if (!this.video) return
 
+    // Immediately set playing state to false to prevent auto-play
+    this.isPlaying = false
+
     // 가상 시간 진행 일시정지
     this.pauseVirtualTimeProgression()
     this.video.pause()
-    this.isPlaying = false
     this.notifyPauseCallbacks()
+
+    // Dispatch global sync event
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('playbackStateChange', {
+          detail: { isPlaying: false, source: 'VirtualPlayerController' },
+        })
+      )
+    }
+
     log('VirtualPlayerController', 'Playback paused')
   }
 
@@ -283,32 +325,192 @@ export class VirtualPlayerController
     log('VirtualPlayerController', 'Playback stopped')
   }
 
-  seek(virtualTime: number): void {
-    if (!this.video) return
+  seek(
+    virtualTime: number
+  ): Promise<{ realTime: number; virtualTime: number }> {
+    return new Promise((resolve, reject) => {
+      if (!this.video) {
+        reject(new Error('No video element attached'))
+        return
+      }
 
-    // 가상 시간 직접 설정
-    this.currentVirtualTime = Math.max(
-      0,
-      Math.min(virtualTime, this.getDuration())
-    )
+      // Check sync lock - if locked, queue this seek request
+      if (this.syncLock) {
+        return new Promise((queueResolve, queueReject) => {
+          log(
+            'VirtualPlayerController',
+            `[SYNC] Seek queued for virtual time: ${virtualTime.toFixed(3)}s`
+          )
+          this.seekQueue.push({
+            virtualTime,
+            resolve: queueResolve,
+            reject: queueReject,
+          })
+        })
+      }
 
-    // 가상 시간 진행 상태 업데이트 (seek 시 현재 위치 기준으로 재설정)
-    if (this.isVirtualTimeRunning) {
-      this.virtualTimePausedAt = this.currentVirtualTime
-      this.virtualTimeStartTimestamp = performance.now()
-    }
+      // Acquire sync lock
+      this.syncLock = true
+      this._isSeeking = true
 
-    // 현재 가상 시간에 해당하는 세그먼트 찾기 및 비디오 위치 설정
-    this.updateVideoPositionFromVirtualTime()
+      // Execute seek
+      const executeSeek = async () => {
+        try {
+          // 1. Pause first to stop any playback
+          if (this.isPlaying) {
+            this.pause()
+          }
 
-    this.notifySeekCallbacks(this.currentVirtualTime)
-    this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
-    this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
+          // 2. Set virtual time
+          this.currentVirtualTime = Math.max(
+            0,
+            Math.min(virtualTime, this.getDuration())
+          )
 
-    log(
-      'VirtualPlayerController',
-      `Seeked to virtual time: ${this.currentVirtualTime.toFixed(3)}s`
-    )
+          // 3. Find and set active segment immediately
+          let activeSegment = this.getActiveSegmentOptimized(
+            this.currentVirtualTime,
+            performance.now()
+          )
+
+          if (!activeSegment) {
+            // Try direct search in segments array as fallback
+            const timeline = this.timelineMapper.timelineManager.getTimeline()
+            const segments = timeline.segments.filter((s) => s.isEnabled)
+
+            for (const segment of segments) {
+              if (
+                this.currentVirtualTime >= segment.virtualStartTime &&
+                this.currentVirtualTime <= segment.virtualEndTime
+              ) {
+                activeSegment = segment
+                log(
+                  'VirtualPlayerController',
+                  `[SYNC] Found segment via direct search: ${segment.id} for virtual time: ${this.currentVirtualTime.toFixed(3)}s`
+                )
+                break
+              }
+            }
+
+            if (!activeSegment) {
+              log(
+                'VirtualPlayerController',
+                `[SYNC] WARNING: No segment found for virtual time: ${this.currentVirtualTime.toFixed(3)}s after fallback search`
+              )
+              // Still continue with seek even without segment
+            }
+          }
+
+          this.currentActiveSegment = activeSegment
+
+          // 4. Calculate real time
+          let targetRealTime = 0
+          if (activeSegment) {
+            const segmentProgress =
+              (this.currentVirtualTime - activeSegment.virtualStartTime) /
+              (activeSegment.virtualEndTime - activeSegment.virtualStartTime)
+            targetRealTime =
+              activeSegment.realStartTime +
+              (activeSegment.realEndTime - activeSegment.realStartTime) *
+                segmentProgress
+          } else {
+            // Fallback: try direct mapping
+            targetRealTime = this.virtualToReal(this.currentVirtualTime)
+          }
+
+          // 5. Set video time and wait for seeked event
+          if (this.video && targetRealTime >= 0) {
+            const seekPromise = new Promise<void>((seekResolve) => {
+              const onSeeked = () => {
+                this.video?.removeEventListener('seeked', onSeeked)
+                seekResolve()
+              }
+              this.video?.addEventListener('seeked', onSeeked, { once: true })
+
+              // Set video current time
+              this.video!.currentTime = targetRealTime
+
+              // Reduced timeout for faster response (500ms)
+              setTimeout(() => {
+                this.video?.removeEventListener('seeked', onSeeked)
+                seekResolve()
+              }, 500)
+            })
+
+            await seekPromise
+          }
+
+          // 6. Update virtual time progression state
+          if (this.isVirtualTimeRunning) {
+            this.virtualTimePausedAt = this.currentVirtualTime
+            this.virtualTimeStartTimestamp = performance.now()
+          }
+
+          // 7. Notify all callbacks
+          this.notifySeekCallbacks(this.currentVirtualTime)
+          this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
+          this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
+          this.notifySeekedCallbacks({
+            realTime: targetRealTime,
+            virtualTime: this.currentVirtualTime,
+          })
+
+          // 8. Dispatch global sync event
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('virtualTimeUpdate', {
+                detail: {
+                  virtualTime: this.currentVirtualTime,
+                  realTime: targetRealTime,
+                  source: 'seek',
+                },
+              })
+            )
+          }
+
+          log(
+            'VirtualPlayerController',
+            `[SYNC] Seek completed - virtual: ${this.currentVirtualTime.toFixed(3)}s, real: ${targetRealTime.toFixed(3)}s`
+          )
+
+          // Resolve with times
+          resolve({
+            realTime: targetRealTime,
+            virtualTime: this.currentVirtualTime,
+          })
+        } catch (error) {
+          log('VirtualPlayerController', `[SYNC] Seek failed: ${error}`)
+          reject(error)
+        } finally {
+          // Release sync lock
+          this.syncLock = false
+          this._isSeeking = false
+
+          // Process next queued seek with error recovery
+          setTimeout(() => {
+            if (this.seekQueue.length > 0) {
+              const nextSeek = this.seekQueue.shift()!
+              log(
+                'VirtualPlayerController',
+                `[SYNC] Processing queued seek to: ${nextSeek.virtualTime.toFixed(3)}s`
+              )
+
+              this.seek(nextSeek.virtualTime)
+                .then((result) => nextSeek.resolve(result))
+                .catch((error) => {
+                  log(
+                    'VirtualPlayerController',
+                    `[SYNC] Queued seek failed: ${error}`
+                  )
+                  nextSeek.reject(error)
+                })
+            }
+          }, 0) // Use setTimeout to prevent stack overflow and ensure proper async handling
+        }
+      }
+
+      executeSeek()
+    })
   }
 
   getCurrentTime(): number {
@@ -367,6 +569,11 @@ export class VirtualPlayerController
   onTimelineChange(callback: (timeline: VirtualTimeline) => void): () => void {
     this.timelineChangeCallbacks.add(callback)
     return () => this.timelineChangeCallbacks.delete(callback)
+  }
+
+  onSeeked(callback: SeekedCallback): () => void {
+    this.seekedCallbacks.add(callback)
+    return () => this.seekedCallbacks.delete(callback)
   }
 
   /**
@@ -607,6 +814,11 @@ export class VirtualPlayerController
     metadata: RVFCMetadata
   ): void {
     if (!this.video) return
+
+    // CRITICAL: Don't update video position during seek operations
+    if (this._isSeeking || this.syncLock) {
+      return // Skip frame processing during seek operations
+    }
 
     // 적응형 Frame rate limiting with performance monitoring
     const timeSinceLastFrame = now - this.lastFrameTime
@@ -1042,6 +1254,19 @@ export class VirtualPlayerController
         }
       })
     }
+  }
+
+  private notifySeekedCallbacks(data: {
+    realTime: number
+    virtualTime: number
+  }): void {
+    this.seekedCallbacks.forEach((callback) => {
+      try {
+        callback(data)
+      } catch (error) {
+        console.error('[SYNC] Seeked callback error:', error)
+      }
+    })
   }
 
   /**
@@ -1493,9 +1718,31 @@ export class VirtualPlayerController
   private updateVideoPositionOptimized(now: DOMHighResTimeStamp): void {
     if (!this.video) return
 
+    // CRITICAL: Don't interfere with manual seeks
+    if (this._isSeeking || this.syncLock) {
+      return
+    }
+
     const activeSegment = this.currentActiveSegment
 
     if (activeSegment) {
+      // 세그먼트 경계에서 갭 체크 - 세그먼트 종료 지점 근처에서 다음 세그먼트와의 갭 감지
+      if (this.currentVirtualTime >= activeSegment.virtualEndTime - 0.01) {
+        const nextSegment = this.findNextActiveSegment(this.currentVirtualTime)
+        if (
+          nextSegment &&
+          nextSegment.virtualStartTime > activeSegment.virtualEndTime + 0.01
+        ) {
+          // 세그먼트 경계에서 갭 감지됨 - 갭 처리로 넘김
+          log(
+            'VirtualPlayerController',
+            `🔍 [BOUNDARY GAP] Detected gap at segment boundary: ${activeSegment.virtualEndTime.toFixed(3)}s → ${nextSegment.virtualStartTime.toFixed(3)}s`
+          )
+          this.handleGapBetweenSegments()
+          return
+        }
+      }
+
       // 활성 세그먼트가 있을 때: 해당 세그먼트의 실제 시간으로 비디오 재생
       const segmentProgress =
         (this.currentVirtualTime - activeSegment.virtualStartTime) /
@@ -1509,26 +1756,108 @@ export class VirtualPlayerController
       // 예측적 Seek 최적화
       this.performSmartVideoSeek(targetRealTime, now, activeSegment)
 
-      // 비디오가 일시정지 상태라면 재생
+      // 비디오가 일시정지 상태라면 재생 (isPlaying이 true일 때만)
       if (this.video.paused && this.isPlaying) {
-        this.video.play().catch(() => {
-          // 에러 무시 (성능 최적화)
+        this.video.play().catch((error) => {
+          // Only log significant errors
+          if (error?.name !== 'AbortError') {
+            log('VirtualPlayerController', `Video play failed: ${error}`)
+          }
         })
       }
     } else {
-      // 활성 세그먼트가 없을 때: 비디오 일시정지
-      if (!this.video.paused) {
-        this.video.pause()
-        this.lastVideoUpdateTime = now
+      // 갭 구간 처리 - 세그먼트 사이의 공백에서 다음 세그먼트로 자동 스킵
+      this.handleGapBetweenSegments()
+    }
+  }
 
-        if (this.config.debugMode) {
+  /**
+   * 갭 구간 처리 - 세그먼트 사이의 공백에서 다음 세그먼트로 자동 스킵
+   */
+  private handleGapBetweenSegments(): void {
+    // 다음 활성 세그먼트 찾기
+    const nextSegment = this.findNextActiveSegment(this.currentVirtualTime)
+
+    if (nextSegment) {
+      log(
+        'VirtualPlayerController',
+        `⏭️ [GAP] Skipping gap, jumping from virtual ${this.currentVirtualTime.toFixed(3)}s to ${nextSegment.virtualStartTime.toFixed(3)}s`
+      )
+
+      // 가상 시간을 다음 세그먼트로 즉시 이동
+      this.currentVirtualTime = nextSegment.virtualStartTime
+
+      // CRITICAL: 가상 시간 진행 동기화 - 타임스탬프 재설정
+      if (this.isVirtualTimeRunning) {
+        this.virtualTimePausedAt = nextSegment.virtualStartTime
+        this.virtualTimeStartTimestamp = performance.now() // 시작 타임스탬프 재설정
+      }
+
+      // 비디오도 해당 실제 시간으로 이동
+      if (this.video && !this._isSeeking) {
+        this.video.currentTime = nextSegment.realStartTime
+        this.lastVideoUpdateTime = performance.now()
+      }
+
+      // 현재 활성 세그먼트 업데이트
+      this.currentActiveSegment = nextSegment
+
+      // 비디오 재생 상태 확인 및 복원
+      if (this.video && this.isPlaying && this.video.paused) {
+        this.video.play().catch((error) => {
           log(
             'VirtualPlayerController',
-            `Video paused at virtual time ${this.currentVirtualTime.toFixed(3)}s`
+            `Failed to resume playback after gap skip: ${error}`
           )
-        }
+        })
+      }
+
+      // 즉시 콜백 알림으로 UI 동기화
+      this.notifyTimeUpdateCallbacks(this.currentVirtualTime)
+      this.notifyMotionTextSeekCallbacks(this.currentVirtualTime)
+
+      // UI 업데이트를 위한 이벤트 발송
+      window.dispatchEvent(
+        new CustomEvent('gapSkipped', {
+          detail: {
+            fromVirtualTime: this.currentVirtualTime,
+            toVirtualTime: nextSegment.virtualStartTime,
+            realTime: nextSegment.realStartTime,
+            segmentId: nextSegment.id,
+          },
+        })
+      )
+    } else {
+      // 더 이상 세그먼트가 없으면 재생 완료 처리
+      if (this.video && !this.video.paused) {
+        this.video.pause()
+        log(
+          'VirtualPlayerController',
+          '🏁 [GAP] No more segments, playback completed'
+        )
       }
     }
+  }
+
+  /**
+   * 현재 가상 시간 이후의 다음 활성 세그먼트 찾기
+   */
+  private findNextActiveSegment(
+    currentVirtualTime: number
+  ): VirtualSegment | null {
+    const timeline = this.timelineMapper.timelineManager.getTimeline()
+    const segments = timeline.segments.filter((s) => s.isEnabled)
+
+    // 가상 시간 순으로 정렬하여 다음 세그먼트 찾기
+    const sortedSegments = segments.sort(
+      (a, b) => a.virtualStartTime - b.virtualStartTime
+    )
+
+    return (
+      sortedSegments.find(
+        (segment) => segment.virtualStartTime > currentVirtualTime
+      ) || null
+    )
   }
 
   /**
@@ -1544,48 +1873,40 @@ export class VirtualPlayerController
     const currentVideoTime = this.video.currentTime
     const timeDifference = Math.abs(currentVideoTime - targetRealTime)
     const timeSinceLastSeek = now - this.lastVideoSeekTime
-    const timeSinceLastUpdate = now - this.lastVideoUpdateTime
 
-    // 자연스러운 재생 허용 영역 (세그먼트 내에서)
+    // 자연스러운 재생 허용 영역 (동기화 임계값 이내)
     const isWithinNaturalPlaybackRange =
       currentVideoTime >= activeSegment.realStartTime &&
       currentVideoTime <= activeSegment.realEndTime &&
-      timeDifference < this.naturalPlaybackToleranceMs / 1000
+      timeDifference < VirtualPlayerController.SYNC_THRESHOLD_SECONDS
 
     // Seek 필요성 판단
     const shouldSeek = this.shouldPerformVideoSeek(
       timeDifference,
       timeSinceLastSeek,
-      timeSinceLastUpdate,
+      0, // timeSinceLastUpdate 제거 (사용하지 않음)
       isWithinNaturalPlaybackRange
     )
 
     if (shouldSeek) {
-      // 예측적 Seek: 약간 앞선 위치로 seek하여 지연 보상
-      const predictiveOffset = this.calculatePredictiveOffset(activeSegment)
-      const adjustedTargetTime = Math.min(
-        targetRealTime + predictiveOffset,
-        activeSegment.realEndTime - 0.1 // 세그먼트 끝에서 100ms 여유
-      )
-
-      this.video.currentTime = adjustedTargetTime
+      // predictiveOffset 제거하고 직접 설정 (정확도 우선)
+      this.video.currentTime = targetRealTime
       this.lastVideoSeekTime = now
       this.lastVideoUpdateTime = now
-      this.videoSeekTargetTime = adjustedTargetTime
+      this.videoSeekTargetTime = targetRealTime
       this.isVideoSeeking = true
 
-      if (this.config.debugMode && this.frameCount % 30 === 0) {
+      if (this.config.debugMode) {
         log(
           'VirtualPlayerController',
-          `Smart seek: ${adjustedTargetTime.toFixed(3)}s (diff: ${timeDifference.toFixed(3)}s, ` +
-            `predictive: +${predictiveOffset.toFixed(3)}s)`
+          `Precise seek: ${targetRealTime.toFixed(3)}s (diff: ${timeDifference.toFixed(3)}s)`
         )
       }
     }
   }
 
   /**
-   * Seek 필요성 판단 (초보수적 설정 - 끊김 방지 최우선)
+   * Seek 필요성 판단 (정확한 동기화 우선 - 33ms 기준)
    */
   private shouldPerformVideoSeek(
     timeDifference: number,
@@ -1598,34 +1919,17 @@ export class VirtualPlayerController
       return false
     }
 
-    // 매우 큰 차이만 즉시 보정 (더욱 보수적)
-    if (timeDifference > 1.0) {
-      // 0.5s → 1.0s (매우 보수적)
+    // 동기화 임계값 이상 차이면 즉시 보정
+    if (timeDifference > VirtualPlayerController.SYNC_THRESHOLD_SECONDS) {
       return true
-    }
-
-    // 중간 차이는 매우 엄격한 throttling 적용
-    if (
-      timeDifference > 0.25 &&
-      timeSinceLastUpdate >= this.videoUpdateThreshold * 2
-    ) {
-      // 0.15s → 0.25s, threshold 2배
-      return true
-    }
-
-    // 작은 차이는 완전히 무시 (끊김 방지 최우선)
-    if (timeDifference < 0.2) {
-      // 0.1s → 0.2s (200ms까지 허용)
-      return false
     }
 
     // 연속된 Seek 방지
-    if (timeSinceLastSeek < 100) {
-      // 100ms 내 연속 Seek 방지
+    if (timeSinceLastSeek < VirtualPlayerController.SEEK_THROTTLE_MS) {
       return false
     }
 
-    return true
+    return false
   }
 
   /**
@@ -1903,6 +2207,143 @@ export class VirtualPlayerController
   setDebugLevel(level: 'none' | 'minimal' | 'verbose'): void {
     this.debugLevel = level
     this.logDebug('minimal', `Debug level set to: ${level}`)
+  }
+
+  /**
+   * Get current real time based on virtual time mapping
+   */
+  getCurrentRealTime(): number {
+    if (!this.video) return 0
+
+    const activeSegment = this.currentActiveSegment
+    if (!activeSegment) return this.video.currentTime
+
+    const segmentProgress =
+      (this.currentVirtualTime - activeSegment.virtualStartTime) /
+      (activeSegment.virtualEndTime - activeSegment.virtualStartTime)
+
+    const realTime =
+      activeSegment.realStartTime +
+      (activeSegment.realEndTime - activeSegment.realStartTime) *
+        segmentProgress
+
+    return realTime
+  }
+
+  /**
+   * Convert virtual time to real time
+   */
+  virtualToReal(virtualTime: number): number {
+    const segments = this.timelineMapper.timelineManager.getTimeline().segments
+    const activeSegments = segments.filter((s) => s.isEnabled)
+
+    for (const segment of activeSegments) {
+      if (
+        virtualTime >= segment.virtualStartTime &&
+        virtualTime <= segment.virtualEndTime
+      ) {
+        const segmentProgress =
+          (virtualTime - segment.virtualStartTime) /
+          (segment.virtualEndTime - segment.virtualStartTime)
+
+        return (
+          segment.realStartTime +
+          (segment.realEndTime - segment.realStartTime) * segmentProgress
+        )
+      }
+    }
+
+    return 0
+  }
+
+  /**
+   * Convert real time to virtual time (reverse mapping)
+   */
+  realToVirtual(realTime: number): number {
+    const segments = this.timelineMapper.timelineManager.getTimeline().segments
+    const activeSegments = segments.filter((s) => s.isEnabled)
+
+    for (const segment of activeSegments) {
+      if (
+        realTime >= segment.realStartTime &&
+        realTime <= segment.realEndTime
+      ) {
+        const segmentProgress =
+          (realTime - segment.realStartTime) /
+          (segment.realEndTime - segment.realStartTime)
+
+        return (
+          segment.virtualStartTime +
+          (segment.virtualEndTime - segment.virtualStartTime) * segmentProgress
+        )
+      }
+    }
+
+    // If real time is outside any segment, try to estimate
+    if (activeSegments.length > 0) {
+      const firstSegment = activeSegments[0]
+      const lastSegment = activeSegments[activeSegments.length - 1]
+
+      if (realTime < firstSegment.realStartTime) {
+        // Before first segment
+        return 0
+      } else if (realTime > lastSegment.realEndTime) {
+        // After last segment
+        return lastSegment.virtualEndTime
+      }
+    }
+
+    return realTime // Fallback to 1:1 mapping
+  }
+
+  /**
+   * Update virtual time based on video playback (for bidirectional sync)
+   * Called during natural video playback to keep virtual timeline in sync
+   */
+  updateVirtualTimeFromVideo(realTime: number): void {
+    // Don't update if we're in the middle of a seek operation
+    if (this._isSeeking) {
+      return
+    }
+
+    // Convert real time to virtual time
+    const newVirtualTime = this.realToVirtual(realTime)
+
+    // Only update if there's a significant change (>100ms)
+    if (Math.abs(newVirtualTime - this.currentVirtualTime) > 0.1) {
+      this.currentVirtualTime = newVirtualTime
+
+      // Update virtual time tracking
+      if (this.isVirtualTimeRunning) {
+        this.virtualTimePausedAt = newVirtualTime
+        this.virtualTimeStartTimestamp = performance.now()
+      }
+
+      // Notify callbacks about the time update
+      this.notifyTimeUpdateCallbacks(newVirtualTime)
+      this.notifyMotionTextSeekCallbacks(newVirtualTime)
+
+      // Find and update current segment
+      const activeSegment = this.findActiveSegmentAtVirtualTime(newVirtualTime)
+      if (activeSegment !== this.currentActiveSegment) {
+        this.currentActiveSegment = activeSegment
+      }
+
+      // Log sync update periodically
+      if (this.frameCount % 60 === 0) {
+        log(
+          'VirtualPlayerController',
+          `[SYNC] Updated virtual time from video: real=${realTime.toFixed(3)}s → virtual=${newVirtualTime.toFixed(3)}s`
+        )
+      }
+    }
+  }
+
+  /**
+   * Getter for isSeeking flag (for external use)
+   */
+  get isSeeking(): boolean {
+    return this._isSeeking
   }
 
   /**

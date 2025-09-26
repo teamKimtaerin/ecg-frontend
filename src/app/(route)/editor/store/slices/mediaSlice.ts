@@ -400,35 +400,26 @@ export const createMediaSlice: StateCreator<MediaSlice> = (set, get) => ({
     }
   },
 
-  // blob URL 검증 및 복원
+  // blob URL 복원 (간소화된 버전 - 실제 에러 발생 시에만 호출)
   validateAndRestoreBlobUrl: async () => {
     const state = get()
 
     // storedMediaId가 없으면 복원할 수 없음
     if (!state.storedMediaId) {
       log('mediaSlice.ts', '⚠️ No stored media ID for restoration')
-      return
+      throw new Error('No stored media ID available')
     }
 
-    // 현재 blob URL이 유효한지 확인
-    if (state.videoUrl && state.videoUrl.startsWith('blob:')) {
-      try {
-        // Blob URL 유효성 검사를 위해 fetch 시도
-        const response = await fetch(state.videoUrl, { method: 'HEAD' })
-        if (response.ok) {
-          log('mediaSlice.ts', '✅ Current blob URL is valid')
-          return
-        }
-      } catch {
-        log(
-          'mediaSlice.ts',
-          '⚠️ Current blob URL is invalid, attempting restoration'
-        )
-      }
-    }
+    log('mediaSlice.ts', '🔄 Attempting to restore blob URL from storage')
 
-    // blob URL이 무효하면 저장된 미디어에서 복원
-    const mediaSlice = get()
-    await mediaSlice.restoreMediaFromStorage(state.storedMediaId)
+    try {
+      // 저장된 미디어에서 바로 복원 (검증 없이)
+      const mediaSlice = get()
+      await mediaSlice.restoreMediaFromStorage(state.storedMediaId)
+      log('mediaSlice.ts', '✅ Blob URL restored successfully')
+    } catch (error) {
+      log('mediaSlice.ts', `❌ Failed to restore blob URL: ${error}`)
+      throw error
+    }
   },
 })
