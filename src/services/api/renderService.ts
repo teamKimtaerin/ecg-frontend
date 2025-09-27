@@ -410,12 +410,22 @@ class RenderService {
   /**
    * 파일 다운로드 (File System Access API 지원)
    */
-  async downloadFile(url: string, filename?: string, autoDownload = false): Promise<void> {
+  async downloadFile(
+    url: string,
+    filename?: string,
+    autoDownload = false
+  ): Promise<void> {
     const suggestedName = filename || `ecg-rendered-${Date.now()}.mp4`
 
     // autoDownload가 true이거나 File System Access API가 없는 경우 직접 fallback 사용
-    if (autoDownload || !('showSaveFilePicker' in window) || !window.showSaveFilePicker) {
-      console.log('Using fallback download method (auto download or API not available)')
+    if (
+      autoDownload ||
+      !('showSaveFilePicker' in window) ||
+      !window.showSaveFilePicker
+    ) {
+      console.log(
+        'Using fallback download method (auto download or API not available)'
+      )
       // 전통적인 다운로드 방식
       const link = document.createElement('a')
       link.href = url

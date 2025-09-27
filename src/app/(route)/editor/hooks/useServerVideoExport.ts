@@ -28,7 +28,11 @@ interface UseServerVideoExportResult extends ExportState {
     suggestedFileName?: string
   ) => Promise<string>
   cancelExport: () => Promise<void>
-  downloadFile: (url?: string, filename?: string, autoDownload?: boolean) => Promise<void>
+  downloadFile: (
+    url?: string,
+    filename?: string,
+    autoDownload?: boolean
+  ) => Promise<void>
   reset: () => void
 }
 

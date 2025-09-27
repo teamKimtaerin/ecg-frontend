@@ -8,7 +8,12 @@ interface ToastTimerState {
 }
 
 interface ToastTimerActions {
-  startDelayedToast: (message: string, delayMs: number, downloadUrl?: string, filename?: string) => void
+  startDelayedToast: (
+    message: string,
+    delayMs: number,
+    downloadUrl?: string,
+    filename?: string
+  ) => void
   cancelDelayedToast: () => void
   checkPendingToast: () => void
 }
@@ -86,8 +91,18 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
   isActive: false,
 
   // Actions
-  startDelayedToast: (message: string, delayMs: number, downloadUrl?: string, filename?: string) => {
-    console.log('🚀 [ToastTimer] 지연 토스트 시작:', { message, delayMs, downloadUrl, filename })
+  startDelayedToast: (
+    message: string,
+    delayMs: number,
+    downloadUrl?: string,
+    filename?: string
+  ) => {
+    console.log('🚀 [ToastTimer] 지연 토스트 시작:', {
+      message,
+      delayMs,
+      downloadUrl,
+      filename,
+    })
 
     // 기존 토스트 취소
     get().cancelDelayedToast()
@@ -152,7 +167,10 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
 
         // 다운로드 URL이 있으면 자동 다운로드 실행
         if (downloadUrl && filename) {
-          console.log('⬇️ [ToastTimer] 자동 다운로드 시작:', { downloadUrl, filename })
+          console.log('⬇️ [ToastTimer] 자동 다운로드 시작:', {
+            downloadUrl,
+            filename,
+          })
           try {
             downloadFileUtil(downloadUrl, filename)
             showToast('다운로드를 시작합니다', 'success')

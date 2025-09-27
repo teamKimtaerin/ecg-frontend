@@ -198,7 +198,12 @@ export default function ServerVideoExportModal({
     // 전역 토스트 타이머로 30초 후 완료 토스트 표시 (다운로드 포함)
     const downloadUrl = '/project_0927.mp4'
     const filename = 'project_0927.mp4'
-    startDelayedToast('영상 출력이 완료되었습니다', 30000, downloadUrl, filename)
+    startDelayedToast(
+      '영상 출력이 완료되었습니다',
+      30000,
+      downloadUrl,
+      filename
+    )
 
     // 30초 후 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
     setTimeout(() => {
