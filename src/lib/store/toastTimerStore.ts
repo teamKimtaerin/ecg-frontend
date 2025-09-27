@@ -1,13 +1,19 @@
 import { create } from 'zustand'
 import { showToast } from '@/utils/ui/toast'
 import { useProgressStore } from './progressStore'
+import { downloadFile as downloadFileUtil } from '@/utils/download'
 
 interface ToastTimerState {
   isActive: boolean
 }
 
 interface ToastTimerActions {
-  startDelayedToast: (message: string, delayMs: number) => void
+  startDelayedToast: (
+    message: string,
+    delayMs: number,
+    downloadUrl?: string,
+    filename?: string
+  ) => void
   cancelDelayedToast: () => void
   checkPendingToast: () => void
 }
@@ -35,6 +41,8 @@ const setStoredToastData = (data: {
   startTime: number
   message: string
   delayMs: number
+  downloadUrl?: string
+  filename?: string
 }) => {
   if (typeof window === 'undefined') return
 
@@ -83,8 +91,18 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
   isActive: false,
 
   // Actions
-  startDelayedToast: (message: string, delayMs: number) => {
-    console.log('🚀 [ToastTimer] 지연 토스트 시작:', { message, delayMs })
+  startDelayedToast: (
+    message: string,
+    delayMs: number,
+    downloadUrl?: string,
+    filename?: string
+  ) => {
+    console.log('🚀 [ToastTimer] 지연 토스트 시작:', {
+      message,
+      delayMs,
+      downloadUrl,
+      filename,
+    })
 
     // 기존 토스트 취소
     get().cancelDelayedToast()
@@ -96,6 +114,8 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
       startTime,
       message,
       delayMs,
+      downloadUrl,
+      filename,
     })
 
     set({ isActive: true })
@@ -121,7 +141,7 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
       return
     }
 
-    const { startTime, message, delayMs } = toastData
+    const { startTime, message, delayMs, downloadUrl, filename } = toastData
     const currentTime = Date.now()
     const elapsedTime = currentTime - startTime
 
@@ -144,6 +164,21 @@ const useToastTimerStore = create<ToastTimerStore>()((set, get) => ({
         console.log('🎉 [ToastTimer] 토스트 표시:', message)
         showToast(message, 'success')
         setLastToastTime(currentTime)
+
+        // 다운로드 URL이 있으면 자동 다운로드 실행
+        if (downloadUrl && filename) {
+          console.log('⬇️ [ToastTimer] 자동 다운로드 시작:', {
+            downloadUrl,
+            filename,
+          })
+          try {
+            downloadFileUtil(downloadUrl, filename)
+            showToast('다운로드를 시작합니다', 'success')
+          } catch (error) {
+            console.error('🚨 [ToastTimer] 다운로드 실패:', error)
+            showToast('다운로드 중 오류가 발생했습니다', 'error')
+          }
+        }
 
         // 내보내기 완료 메시지인 경우 알림 설정
         if (message.includes('영상 출력이 완료되었습니다')) {

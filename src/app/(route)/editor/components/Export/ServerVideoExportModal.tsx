@@ -4,6 +4,7 @@ import { buildScenarioFromClips } from '@/app/(route)/editor/utils/scenarioBuild
 import { useProgressStore } from '@/lib/store/progressStore'
 import { useToastTimerStore } from '@/lib/store/toastTimerStore'
 import { showToast } from '@/utils/ui/toast'
+import { downloadFile } from '@/utils/download'
 import { useEffect, useState } from 'react'
 import { useServerVideoExport } from '../../hooks/useServerVideoExport'
 import { useEditorStore } from '../../store'
@@ -194,8 +195,15 @@ export default function ServerVideoExportModal({
     setPhase('ready')
     onClose() // 부모 모달도 함께 닫기
 
-    // 전역 토스트 타이머로 30초 후 완료 토스트 표시
-    startDelayedToast('영상 출력이 완료되었습니다', 30000)
+    // 전역 토스트 타이머로 30초 후 완료 토스트 표시 (다운로드 포함)
+    const downloadUrl = '/project_0927.mp4'
+    const filename = 'project_0927.mp4'
+    startDelayedToast(
+      '영상 출력이 완료되었습니다',
+      30000,
+      downloadUrl,
+      filename
+    )
 
     // 30초 후 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
     setTimeout(() => {
@@ -214,6 +222,12 @@ export default function ServerVideoExportModal({
     if (currentTime - lastToastTime > TOAST_DEBOUNCE_TIME) {
       showToast('영상 출력이 완료되었습니다', 'success')
       lastToastTime = currentTime
+
+      // 자동 다운로드 시작 (File System Access API 보안 제한 회피)
+      const downloadUrl = '/project_0927.mp4'
+      const filename = 'project_0927.mp4'
+      showToast('다운로드를 시작합니다', 'success')
+      downloadFile(downloadUrl, filename, true) // autoDownload = true
     }
 
     // 내보내기 완료 알림 설정 (종 아이콘에 빨간점 표시)
@@ -221,7 +235,6 @@ export default function ServerVideoExportModal({
     setExportNotification(true)
 
     setPhase('completed')
-    onClose()
   }
 
   return (

@@ -28,7 +28,11 @@ interface UseServerVideoExportResult extends ExportState {
     suggestedFileName?: string
   ) => Promise<string>
   cancelExport: () => Promise<void>
-  downloadFile: (url?: string, filename?: string) => Promise<void>
+  downloadFile: (
+    url?: string,
+    filename?: string,
+    autoDownload?: boolean
+  ) => Promise<void>
   reset: () => void
 }
 
@@ -312,7 +316,7 @@ export function useServerVideoExport(): UseServerVideoExportResult {
    * 파일 다운로드
    */
   const downloadFile = useCallback(
-    async (url?: string, filename?: string) => {
+    async (url?: string, filename?: string, autoDownload = false) => {
       const downloadUrl = url || state.downloadUrl
 
       if (!downloadUrl) {
@@ -321,7 +325,7 @@ export function useServerVideoExport(): UseServerVideoExportResult {
       }
 
       try {
-        await renderService.downloadFile(downloadUrl, filename)
+        await renderService.downloadFile(downloadUrl, filename, autoDownload)
         showToast('파일이 저장되었습니다', 'success')
       } catch (error) {
         console.error('Download failed:', error)
