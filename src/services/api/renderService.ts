@@ -410,67 +410,77 @@ class RenderService {
   /**
    * 파일 다운로드 (File System Access API 지원)
    */
-  async downloadFile(url: string, filename?: string): Promise<void> {
+  async downloadFile(url: string, filename?: string, autoDownload = false): Promise<void> {
     const suggestedName = filename || `ecg-rendered-${Date.now()}.mp4`
 
-    // File System Access API 지원 확인 (Chrome 86+, Edge 86+, Opera 72+)
-    if ('showSaveFilePicker' in window && window.showSaveFilePicker) {
-      try {
-        // 저장 대화상자 표시
-        const handle = await window.showSaveFilePicker({
-          suggestedName,
-          types: [
-            {
-              description: 'MP4 Video File',
-              accept: {
-                'video/mp4': ['.mp4'],
-              },
-            },
-          ],
-        })
-
-        // URL에서 파일 데이터 가져오기
-        const response = await fetch(url)
-        if (!response.ok) {
-          throw new Error('Failed to fetch video')
-        }
-
-        const blob = await response.blob()
-
-        // 파일 쓰기
-        const writable = await handle.createWritable()
-        await writable.write(blob)
-        await writable.close()
-
-        console.log('File saved successfully with File System Access API')
-        return
-      } catch (error) {
-        // 사용자가 취소한 경우 에러를 무시
-        if (error instanceof Error && error.name === 'AbortError') {
-          console.log('User cancelled the save dialog')
-          return
-        }
-        console.error(
-          'File System Access API failed, falling back to traditional download:',
-          error
-        )
-        // 폴백으로 진행
-      }
+    // autoDownload가 true이거나 File System Access API가 없는 경우 직접 fallback 사용
+    if (autoDownload || !('showSaveFilePicker' in window) || !window.showSaveFilePicker) {
+      console.log('Using fallback download method (auto download or API not available)')
+      // 전통적인 다운로드 방식
+      const link = document.createElement('a')
+      link.href = url
+      link.download = suggestedName
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      return
     }
 
-    // 폴백: 전통적인 다운로드 방식
-    // 브라우저 설정에 따라 저장 대화상자가 표시될 수 있음
-    const link = document.createElement('a')
-    link.href = url
-    link.download = suggestedName
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
+    // File System Access API 지원 확인 (Chrome 86+, Edge 86+, Opera 72+)
+    try {
+      // 저장 대화상자 표시
+      const handle = await window.showSaveFilePicker({
+        suggestedName,
+        types: [
+          {
+            description: 'MP4 Video File',
+            accept: {
+              'video/mp4': ['.mp4'],
+            },
+          },
+        ],
+      })
 
-    // 약간의 지연 후 DOM에서 제거
-    setTimeout(() => {
-      document.body.removeChild(link)
-    }, 100)
+      // URL에서 파일 데이터 가져오기
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error('Failed to fetch video')
+      }
+
+      const blob = await response.blob()
+
+      // 파일 쓰기
+      const writable = await handle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+
+      console.log('File saved successfully with File System Access API')
+      return
+    } catch (error) {
+      // 사용자가 취소한 경우 에러를 무시
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('User cancelled the save dialog')
+        return
+      }
+      console.error(
+        'File System Access API failed, falling back to traditional download:',
+        error
+      )
+
+      // 폴백: 전통적인 다운로드 방식
+      const link = document.createElement('a')
+      link.href = url
+      link.download = suggestedName
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+
+      // 약간의 지연 후 DOM에서 제거
+      setTimeout(() => {
+        document.body.removeChild(link)
+      }, 100)
+    }
   }
 }
 
